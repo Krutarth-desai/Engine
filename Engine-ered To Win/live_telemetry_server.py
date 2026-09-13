@@ -26,6 +26,7 @@ from supabase import create_client, Client
 from src.predictive_maintenance import AeroTwinAnomalyDetector
 from src.sensor_diagnosis import SensorDiagnosisEngine
 from src.unified_telemetry import TelemetryProcessor
+from src.digital_twin import DigitalTwinCore
 
 # Load environment variables from .env file
 load_dotenv()
@@ -117,6 +118,7 @@ sensor_diagnosis_engine = SensorDiagnosisEngine(
     model_path="models/sensor_cross_models.pkl"
 )
 telemetry_processor = TelemetryProcessor()
+digital_twin_core = DigitalTwinCore()
 def generate_initial_buffer(count=40):
     """Seed the regression plot buffer with realistic nominal telemetry.
     Baselines aligned with TelemetryProcessor nominal cruise output."""
@@ -321,6 +323,20 @@ async def tick_and_broadcast():
         "fault_label": unified_data["fault_label"]
     }
     
+    # 2b. Digital Twin Core Virtual Engine Synchronization & State Estimation
+    env_state = {
+        "throttle_pct": simulation_state.get("throttle", 75.0),
+        "altitude_ft": simulation_state.get("altitude", 15000.0),
+        "ambient_temp_c": simulation_state.get("ambient_temp", 15.0)
+    }
+    dt_output = digital_twin_core.update(
+        telemetry=flat_telemetry,
+        environment=env_state,
+        dt=1.0
+    )
+    flat_telemetry["digital_twin"] = dt_output
+    unified_data["digital_twin"] = dt_output
+    
     # 3. Anomaly & Sensor-vs-Engine Cross-Diagnosis Pipeline
     is_anomaly, score = anomaly_detector.detect(flat_telemetry)
     fault_info = anomaly_detector.infer_fault(flat_telemetry, is_anomaly, score)
@@ -411,8 +427,9 @@ async def websocket_telemetry(websocket: WebSocket):
                 if "scenario" in cmd:
                     simulation_state["scenario"] = cmd["scenario"]
                     simulation_state["tick"] = 0
-                    # Reset sensor diagnosis persistence on scenario change
+                    # Reset sensor diagnosis persistence and digital twin wear on scenario change
                     sensor_diagnosis_engine.reset_persistence()
+                    digital_twin_core.reset_degradation()
                     print(f"*** WS Injected scenario: {cmd['scenario']} ***")
                     # Immediately tick and broadcast with zero latency
                     await tick_and_broadcast()
@@ -431,6 +448,7 @@ async def api_inject_scenario(payload: dict):
     simulation_state["scenario"] = sc
     simulation_state["tick"] = 0
     sensor_diagnosis_engine.reset_persistence()
+    digital_twin_core.reset_degradation()
     print(f"*** HTTP POST Injected scenario: {sc} ***")
     await tick_and_broadcast()
     return {"status": "ok", "scenario": sc, "health_index": simulation_state.get("health_index")}

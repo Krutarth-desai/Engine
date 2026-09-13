@@ -9,6 +9,33 @@ export interface SensorDiagnosis {
   evidence?: string;
 }
 
+export interface DigitalTwinResidualItem {
+  actual: number;
+  expected: number;
+  residual: number;
+  normalized_residual: number;
+  pct_deviation: number;
+}
+
+export interface DigitalTwinSubsystemHealth {
+  thermal: number;
+  combustion: number;
+  lubrication: number;
+  mechanical: number;
+  electrical: number;
+  sensor: number;
+}
+
+export interface DigitalTwinPayload {
+  timestamp: string;
+  actual: Record<string, number>;
+  expected: Record<string, number>;
+  residuals: Record<string, DigitalTwinResidualItem>;
+  degradation: Record<string, number>;
+  subsystem_health: DigitalTwinSubsystemHealth;
+  health_index: number;
+}
+
 export interface TelemetryData {
   timestamp: string;
   engine_id: string;
@@ -34,6 +61,7 @@ export interface TelemetryData {
   prevention?: string;
   anomaly_score?: number;
   sensor_diagnosis?: SensorDiagnosis;
+  digital_twin?: DigitalTwinPayload;
 }
 
 export interface RulTickData {
@@ -74,7 +102,7 @@ export interface PrognosticsData {
   max_useful_life: number;
   rul_unclipped: number;
   rul_clipped: number;
-  degradation_trend: "Increasing" | "Stable" | "Accelerating" | "Decreasing";
+  degradation_trend: "Increasing" | "Stable" | "Accelerating" | "Decelerating" | "Decreasing";
   confidence: number;
   abs_error: number;
   model_mae: number;
@@ -150,6 +178,7 @@ export interface UnifiedTelemetryPayload {
   fault_label: string;
   scenario: string;
   sensor_diagnosis?: SensorDiagnosis;
+  digital_twin?: DigitalTwinPayload;
   rpm?: number;
   cht_c?: number;
   egt_c?: number;
