@@ -26,6 +26,33 @@ export interface DigitalTwinSubsystemHealth {
   sensor: number;
 }
 
+export interface DigitalTwinHealthBlock extends DigitalTwinSubsystemHealth {
+  overall: number;
+  status: "HEALTHY" | "NORMAL / MONITORED" | "DEGRADED" | "CRITICAL" | "SEVERE" | string;
+}
+
+export interface DigitalTwinTrend {
+  current_health: number;
+  previous_health: number;
+  overall_delta: number;
+  degradation_rate: number;
+  rapid_degradation: boolean;
+  warning?: string | null;
+}
+
+export interface DigitalTwinHistoryPoint {
+  tick: number;
+  timestamp: string;
+  overall: number;
+  status: string;
+  thermal: number;
+  combustion: number;
+  lubrication: number;
+  mechanical: number;
+  electrical: number;
+  sensor: number;
+}
+
 export interface DigitalTwinPayload {
   timestamp: string;
   actual: Record<string, number>;
@@ -34,6 +61,9 @@ export interface DigitalTwinPayload {
   degradation: Record<string, number>;
   subsystem_health: DigitalTwinSubsystemHealth;
   health_index: number;
+  health?: DigitalTwinHealthBlock;
+  trend?: DigitalTwinTrend;
+  history?: DigitalTwinHistoryPoint[];
 }
 
 export interface TelemetryData {

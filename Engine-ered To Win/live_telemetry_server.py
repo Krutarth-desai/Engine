@@ -323,21 +323,7 @@ async def tick_and_broadcast():
         "fault_label": unified_data["fault_label"]
     }
     
-    # 2b. Digital Twin Core Virtual Engine Synchronization & State Estimation
-    env_state = {
-        "throttle_pct": simulation_state.get("throttle", 75.0),
-        "altitude_ft": simulation_state.get("altitude", 15000.0),
-        "ambient_temp_c": simulation_state.get("ambient_temp", 15.0)
-    }
-    dt_output = digital_twin_core.update(
-        telemetry=flat_telemetry,
-        environment=env_state,
-        dt=1.0
-    )
-    flat_telemetry["digital_twin"] = dt_output
-    unified_data["digital_twin"] = dt_output
-    
-    # 3. Anomaly & Sensor-vs-Engine Cross-Diagnosis Pipeline
+    # 2b. Anomaly & Sensor-vs-Engine Cross-Diagnosis Pipeline
     is_anomaly, score = anomaly_detector.detect(flat_telemetry)
     fault_info = anomaly_detector.infer_fault(flat_telemetry, is_anomaly, score)
     flat_telemetry.update(fault_info)
@@ -349,6 +335,24 @@ async def tick_and_broadcast():
         isolation_forest_score=score
     )
     flat_telemetry["sensor_diagnosis"] = diag_result
+
+    # 2c. Digital Twin Core Virtual Engine Synchronization & State Estimation
+    env_state = {
+        "throttle_pct": simulation_state.get("throttle", 75.0),
+        "altitude_ft": simulation_state.get("altitude", 15000.0),
+        "ambient_temp_c": simulation_state.get("ambient_temp", 15.0)
+    }
+    sc_progress = min(simulation_state.get("tick", 0) / 20.0, 1.0)
+    dt_output = digital_twin_core.update(
+        telemetry=flat_telemetry,
+        environment=env_state,
+        dt=1.0,
+        scenario=simulation_state.get("scenario", "Normal"),
+        scenario_progress=sc_progress,
+        sensor_diagnosis=diag_result
+    )
+    flat_telemetry["digital_twin"] = dt_output
+    unified_data["digital_twin"] = dt_output
     
     # Merge flat fields into unified_data so all components can access whichever they need
     unified_data.update(flat_telemetry)

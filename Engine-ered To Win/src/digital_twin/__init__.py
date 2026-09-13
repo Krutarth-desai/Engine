@@ -1,15 +1,25 @@
 """
-AeroTwin Digital Twin Core Framework
-====================================
+AeroTwin Digital Twin Core Framework (Phase 2)
+==============================================
 Physics-informed virtual engine model, continuous degradation tracking,
-state estimation residuals, and modular subsystem health calculations
-for MALE UAV piston propulsion.
+state estimation residuals, modular subsystem health calculations,
+and airworthiness health trends for MALE UAV piston propulsion.
 """
 
 from .engine_model import EngineModel, ENGINE_CONFIG, calculate_air_density_ratio
-from .degradation_model import DegradationModel, DEFAULT_DEGRADATION_RATES, STRESS_THRESHOLDS
+from .degradation_model import (
+    DegradationModel,
+    DEFAULT_DEGRADATION_RATES,
+    STRESS_THRESHOLDS,
+    SCENARIO_DEGRADATION_MAP
+)
 from .state_estimator import StateEstimator, RESIDUAL_SCALES, SENSOR_ALIASES
-from .health_index import HealthIndexCalculator, DEFAULT_HEALTH_WEIGHTS
+from .health_index import (
+    HealthIndexCalculator,
+    DEFAULT_HEALTH_WEIGHTS,
+    DEFAULT_STATUS_THRESHOLDS,
+    CRITICAL_OPERATING_LIMITS
+)
 from .digital_twin_core import DigitalTwinCore
 
 __all__ = [
@@ -19,10 +29,13 @@ __all__ = [
     "DegradationModel",
     "DEFAULT_DEGRADATION_RATES",
     "STRESS_THRESHOLDS",
+    "SCENARIO_DEGRADATION_MAP",
     "StateEstimator",
     "RESIDUAL_SCALES",
     "SENSOR_ALIASES",
     "HealthIndexCalculator",
     "DEFAULT_HEALTH_WEIGHTS",
+    "DEFAULT_STATUS_THRESHOLDS",
+    "CRITICAL_OPERATING_LIMITS",
     "DigitalTwinCore"
 ]
