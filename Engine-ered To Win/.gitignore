@@ -39,3 +39,5 @@ yarn-error.log*
 *.csv
 *.sqlite3
 *.db
+data/missions/*.json
+!data/missions/.gitkeep

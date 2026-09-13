@@ -28,6 +28,11 @@ from src.sensor_diagnosis import SensorDiagnosisEngine
 from src.unified_telemetry import TelemetryProcessor
 from src.digital_twin import DigitalTwinCore
 from src.fault_diagnosis import FaultFusionEngine
+from src.mission import (
+    MissionRecorder,
+    LocalMissionStore,
+    MissionReplay,
+)
 
 # Load environment variables from .env file
 load_dotenv()
@@ -109,7 +114,8 @@ simulation_state = {
     "altitude": 15000.0,
     "ambient_temp": 15.0,
     "mission_profile": "CRUISE",
-    "simulation_speed": 1.0
+    "simulation_speed": 1.0,
+    "simulation_mode": "LIVE"  # "LIVE" or "REPLAY"
 }
 
 # Predictive Maintenance State
@@ -123,6 +129,11 @@ sensor_diagnosis_engine = SensorDiagnosisEngine(
 telemetry_processor = TelemetryProcessor()
 digital_twin_core = DigitalTwinCore()
 fault_fusion_engine = FaultFusionEngine()
+
+# Phase 5: Mission Recording, History & Replay Subsystem
+mission_store = LocalMissionStore(storage_dir="data/missions")
+mission_recorder = MissionRecorder()
+mission_replay = MissionReplay()
 def generate_initial_buffer(count=40):
     """Seed the regression plot buffer with realistic nominal telemetry.
     Baselines aligned with TelemetryProcessor nominal cruise output."""
@@ -442,6 +453,23 @@ async def tick_and_broadcast():
     if len(recent_telemetry_buffer) > 100:
         recent_telemetry_buffer.pop(0)
 
+    # 5. Mission Recording (Observer Hook)
+    if mission_recorder.is_recording():
+        mission_recorder.record_sample(unified_data)
+        unified_data["recording"] = {
+            "is_recording": True,
+            "mission_id": mission_recorder.current_mission.metadata.mission_id if mission_recorder.current_mission else None,
+            "sample_count": len(mission_recorder.current_mission.samples) if mission_recorder.current_mission else 0
+        }
+    else:
+        unified_data["recording"] = {
+            "is_recording": False,
+            "mission_id": None,
+            "sample_count": 0
+        }
+
+    unified_data["mode"] = "LIVE"
+
     # Broadcast unified packet
     await manager.broadcast(json.dumps(unified_data))
     simulation_state["tick"] += 1
@@ -467,6 +495,8 @@ async def websocket_telemetry(websocket: WebSocket):
                     sensor_diagnosis_engine.reset_persistence()
                     digital_twin_core.reset_degradation()
                     fault_fusion_engine.reset()
+                    if mission_recorder.is_recording():
+                        mission_recorder.log_scenario_injection(cmd["scenario"])
                     print(f"*** WS Injected scenario: {cmd['scenario']} ***")
                     # Immediately tick and broadcast with zero latency
                     await tick_and_broadcast()
@@ -495,11 +525,62 @@ async def websocket_telemetry(websocket: WebSocket):
                     simulation_state["altitude"] = prof_data["altitude_target"]
                     if "ambient_temp_target" in prof_data:
                         simulation_state["ambient_temp"] = prof_data["ambient_temp_target"]
+                    if mission_recorder.is_recording():
+                        mission_recorder.log_profile_change(prof_data["phase"])
                     await tick_and_broadcast()
                 if "simulation_speed" in cmd or "speed" in cmd:
                     spd_in = cmd.get("simulation_speed") or cmd.get("speed")
                     simulation_state["simulation_speed"] = float(spd_in)
                     digital_twin_core.set_simulation_speed(simulation_state["simulation_speed"])
+                
+                # Phase 5: Mission Recording and Replay WebSocket commands
+                if "action" in cmd:
+                    act = cmd["action"]
+                    if act == "start_mission":
+                        mission_recorder.start_mission(
+                            mission_name=cmd.get("mission_name", "Autonomous Patrol"),
+                            uav_id=cmd.get("uav_id", "AEROTWIN-MALE-01"),
+                            notes=cmd.get("notes", ""),
+                            tags=cmd.get("tags", []),
+                            initial_profile=simulation_state.get("mission_profile", "CRUISE"),
+                            initial_scenario=simulation_state.get("scenario", "Normal"),
+                        )
+                        await tick_and_broadcast()
+                    elif act == "stop_mission":
+                        m = mission_recorder.stop_mission()
+                        if m:
+                            mission_store.save_mission(m)
+                        await tick_and_broadcast()
+                    elif act == "start_replay":
+                        m_id = cmd.get("mission_id")
+                        m = mission_store.load_mission(m_id) if m_id else None
+                        if m:
+                            mission_replay.load_mission(m)
+                            mission_replay.start_replay(speed=float(cmd.get("speed", 1.0)))
+                            simulation_state["simulation_mode"] = "REPLAY"
+                            f = mission_replay.get_current_sample()
+                            if f:
+                                await manager.broadcast(json.dumps(f))
+                    elif act == "pause_replay":
+                        mission_replay.pause_replay()
+                    elif act == "resume_replay":
+                        mission_replay.resume_replay()
+                    elif act == "stop_replay":
+                        mission_replay.stop_replay()
+                        simulation_state["simulation_mode"] = "LIVE"
+                        await tick_and_broadcast()
+                    elif act == "seek_replay":
+                        if "seconds" in cmd:
+                            mission_replay.seek_to_time(float(cmd["seconds"]))
+                        elif "percent" in cmd:
+                            mission_replay.seek_to_percentage(float(cmd["percent"]))
+                        elif "index" in cmd:
+                            mission_replay.seek_to_index(int(cmd["index"]))
+                        f = mission_replay.get_current_sample()
+                        if f:
+                            await manager.broadcast(json.dumps(f))
+                    elif act == "set_replay_speed":
+                        mission_replay.set_speed(float(cmd.get("speed", 1.0)))
             except Exception as e:
                 print(f"Error parsing command: {e}")
     except WebSocketDisconnect:
@@ -515,6 +596,8 @@ async def api_inject_scenario(payload: dict):
     sensor_diagnosis_engine.reset_persistence()
     digital_twin_core.reset_degradation()
     fault_fusion_engine.reset()
+    if mission_recorder.is_recording():
+        mission_recorder.log_scenario_injection(sc)
     print(f"*** HTTP POST Injected scenario: {sc} ***")
     await tick_and_broadcast()
     return {"status": "ok", "scenario": sc, "health_index": simulation_state.get("health_index")}
@@ -547,6 +630,8 @@ async def api_set_mission(payload: dict):
     simulation_state["altitude"] = prof_data["altitude_target"]
     if "ambient_temp_target" in prof_data:
         simulation_state["ambient_temp"] = prof_data["ambient_temp_target"]
+    if mission_recorder.is_recording():
+        mission_recorder.log_profile_change(prof_data["phase"])
     await tick_and_broadcast()
     return {"status": "ok", "profile": prof_data, "environment": digital_twin_core.get_environment()}
 
@@ -558,12 +643,173 @@ async def api_set_endurance(payload: dict):
     digital_twin_core.set_simulation_speed(speed)
     return {"status": "ok", "simulation_speed": speed, "environment": digital_twin_core.get_environment()}
 
+# ==========================================
+# Phase 5: Mission Recording & Replay REST APIs
+# ==========================================
+
+@app.post("/api/missions/start")
+async def api_start_mission(payload: dict = None):
+    """Start recording a new mission."""
+    payload = payload or {}
+    mission_name = payload.get("mission_name", "Autonomous Patrol")
+    uav_id = payload.get("uav_id", "AEROTWIN-MALE-01")
+    notes = payload.get("notes", "")
+    tags = payload.get("tags", [])
+    mission = mission_recorder.start_mission(
+        mission_name=mission_name,
+        uav_id=uav_id,
+        notes=notes,
+        tags=tags,
+        initial_profile=simulation_state.get("mission_profile", "CRUISE"),
+        initial_scenario=simulation_state.get("scenario", "Normal"),
+    )
+    return {
+        "status": "ok",
+        "mission_id": mission.metadata.mission_id,
+        "metadata": mission.metadata.to_dict()
+    }
+
+@app.post("/api/missions/stop")
+async def api_stop_mission():
+    """Stop active mission recording and persist to store."""
+    mission = mission_recorder.stop_mission()
+    if not mission:
+        return {"status": "error", "message": "No active mission recording to stop."}
+    mission_store.save_mission(mission)
+    return {
+        "status": "ok",
+        "mission_id": mission.metadata.mission_id,
+        "summary": mission.summary.to_dict() if mission.summary else None,
+        "sample_count": len(mission.samples),
+        "event_count": len(mission.events)
+    }
+
+@app.get("/api/missions")
+async def api_list_missions():
+    """List all stored missions with metadata and summaries."""
+    missions = mission_store.list_missions()
+    return {
+        "status": "ok",
+        "count": len(missions),
+        "missions": missions,
+        "active_recording": {
+            "is_recording": mission_recorder.is_recording(),
+            "mission_id": mission_recorder.current_mission.metadata.mission_id if mission_recorder.current_mission else None,
+            "sample_count": len(mission_recorder.current_mission.samples) if mission_recorder.current_mission else 0
+        },
+        "simulation_mode": simulation_state.get("simulation_mode", "LIVE"),
+        "replay_state": mission_replay.get_state()
+    }
+
+@app.get("/api/missions/{mission_id}")
+async def api_get_mission(mission_id: str):
+    """Retrieve full mission document including samples, events, and summary."""
+    mission = mission_store.load_mission(mission_id)
+    if not mission:
+        return {"status": "error", "message": f"Mission '{mission_id}' not found."}
+    return {"status": "ok", "mission": mission.to_dict()}
+
+@app.delete("/api/missions/{mission_id}")
+async def api_delete_mission(mission_id: str):
+    """Delete a mission file from the mission store."""
+    if mission_replay.is_active and mission_replay.current_mission and mission_replay.current_mission.metadata.mission_id == mission_id:
+        mission_replay.stop_replay()
+        simulation_state["simulation_mode"] = "LIVE"
+    deleted = mission_store.delete_mission(mission_id)
+    if not deleted:
+        return {"status": "error", "message": f"Mission '{mission_id}' could not be deleted or was not found."}
+    return {"status": "ok", "deleted_id": mission_id}
+
+@app.post("/api/missions/{mission_id}/replay")
+async def api_start_replay(mission_id: str, payload: dict = None):
+    """Load and begin replaying a historical mission."""
+    payload = payload or {}
+    speed = float(payload.get("speed", 1.0))
+    mission = mission_store.load_mission(mission_id)
+    if not mission:
+        return {"status": "error", "message": f"Mission '{mission_id}' not found."}
+    mission_replay.load_mission(mission)
+    mission_replay.start_replay(speed=speed)
+    simulation_state["simulation_mode"] = "REPLAY"
+    frame = mission_replay.get_current_sample()
+    if frame and len(manager.active_connections) > 0:
+        await manager.broadcast(json.dumps(frame))
+    return {
+        "status": "ok",
+        "mission_id": mission_id,
+        "replay_state": mission_replay.get_state()
+    }
+
+@app.post("/api/missions/replay/pause")
+async def api_pause_replay():
+    """Pause mission replay."""
+    mission_replay.pause_replay()
+    return {"status": "ok", "replay_state": mission_replay.get_state()}
+
+@app.post("/api/missions/replay/resume")
+async def api_resume_replay():
+    """Resume mission replay."""
+    mission_replay.resume_replay()
+    return {"status": "ok", "replay_state": mission_replay.get_state()}
+
+@app.post("/api/missions/replay/stop")
+async def api_stop_replay():
+    """Stop mission replay and restore LIVE simulation mode."""
+    mission_replay.stop_replay()
+    simulation_state["simulation_mode"] = "LIVE"
+    await tick_and_broadcast()
+    return {"status": "ok", "simulation_mode": "LIVE", "replay_state": mission_replay.get_state()}
+
+@app.post("/api/missions/replay/seek")
+async def api_seek_replay(payload: dict):
+    """Seek mission replay by seconds, percent (0-100), or index."""
+    if "seconds" in payload:
+        mission_replay.seek_to_time(float(payload["seconds"]))
+    elif "percent" in payload:
+        mission_replay.seek_to_percentage(float(payload["percent"]))
+    elif "index" in payload:
+        mission_replay.seek_to_index(int(payload["index"]))
+    frame = mission_replay.get_current_sample()
+    if frame and len(manager.active_connections) > 0:
+        await manager.broadcast(json.dumps(frame))
+    return {"status": "ok", "replay_state": mission_replay.get_state()}
+
+@app.post("/api/missions/replay/speed")
+async def api_set_replay_speed(payload: dict):
+    """Adjust replay playback speed multiplier."""
+    speed = float(payload.get("speed", 1.0))
+    mission_replay.set_speed(speed)
+    return {"status": "ok", "speed": mission_replay.speed, "replay_state": mission_replay.get_state()}
+
 async def simulation_loop():
-    """Background task that ticks the simulation and broadcasts data at 1 Hz."""
+    """Background task that ticks the simulation or advances replay and broadcasts data."""
     while True:
-        if simulation_state["is_running"] and len(manager.active_connections) > 0:
-            await tick_and_broadcast()
-        await asyncio.sleep(1.0)
+        try:
+            if simulation_state.get("simulation_mode") == "REPLAY":
+                if mission_replay.is_active:
+                    frame = mission_replay.step()
+                    if frame is not None:
+                        if len(manager.active_connections) > 0:
+                            await manager.broadcast(json.dumps(frame))
+                        if mission_replay.is_paused:
+                            await asyncio.sleep(0.5)
+                        else:
+                            interval = max(0.05, 1.0 / max(0.1, mission_replay.speed))
+                            await asyncio.sleep(interval)
+                        continue
+                    else:
+                        # Replay completed
+                        mission_replay.stop_replay()
+                        simulation_state["simulation_mode"] = "LIVE"
+                else:
+                    simulation_state["simulation_mode"] = "LIVE"
+
+            if simulation_state["is_running"] and len(manager.active_connections) > 0:
+                await tick_and_broadcast()
+            await asyncio.sleep(1.0)
+        except Exception as e:
+            print(f"Error in simulation loop: {e}")
+            await asyncio.sleep(1.0)
 
 @app.get("/api/regression_plot")
 async def get_regression_plot(type: str = "all"):

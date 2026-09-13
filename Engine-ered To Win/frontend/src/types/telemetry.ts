@@ -120,6 +120,9 @@ export interface TelemetryData {
   treatment?: string;
   prevention?: string;
   anomaly_score?: number;
+  mode?: "LIVE" | "REPLAY";
+  replay?: MissionReplayState;
+  recording?: MissionRecordingState;
   sensor_diagnosis?: SensorDiagnosis;
   digital_twin?: DigitalTwinPayload;
   environment?: EnvironmentPayload;
@@ -238,6 +241,9 @@ export interface UnifiedTelemetryPayload {
   alerts: PhmAlertItem[];
   fault_label: string;
   scenario: string;
+  mode?: "LIVE" | "REPLAY";
+  replay?: MissionReplayState;
+  recording?: MissionRecordingState;
   sensor_diagnosis?: SensorDiagnosis;
   digital_twin?: DigitalTwinPayload;
   environment?: EnvironmentPayload;
@@ -288,3 +294,100 @@ export interface FaultDiagnosisPayload {
   persistence_ticks: number;
   is_sensor_fault: boolean;
 }
+
+// ==========================================
+// Phase 5: Mission Recording & Replay Types
+// ==========================================
+
+export interface MissionMetadata {
+  mission_id: string;
+  mission_name: string;
+  uav_id: string;
+  start_time: string;
+  end_time?: string | null;
+  duration_sec: number;
+  initial_profile: string;
+  initial_scenario: string;
+  status: "RECORDING" | "COMPLETED" | "ABORTED" | string;
+  sample_count: number;
+  event_count: number;
+  notes?: string;
+  tags?: string[];
+  sample_rate_hz?: number;
+}
+
+export interface MissionEvent {
+  event_id: string;
+  tick: number;
+  timestamp: string;
+  event_type: "MISSION_START" | "MISSION_STOP" | "PROFILE_CHANGE" | "SCENARIO_INJECTED" | "FAULT_DETECTED" | "FAULT_CONFIRMED" | "FAULT_CLEARED" | "OPERATOR_COMMAND" | string;
+  description: string;
+  data?: Record<string, any>;
+}
+
+export interface MissionEnvelope {
+  min: number;
+  max: number;
+  avg: number;
+}
+
+export interface MissionFaultTimelineItem {
+  fault: string;
+  fault_code: string;
+  start_tick: number;
+  end_tick: number;
+  duration_ticks: number;
+  max_severity: string;
+}
+
+export interface MissionSummary {
+  mission_id: string;
+  start_time: string;
+  end_time: string;
+  duration_sec: number;
+  sample_count: number;
+  event_count: number;
+  initial_health: number;
+  final_health: number;
+  min_health: number;
+  max_health: number;
+  health_delta: number;
+  time_degraded_sec: number;
+  time_critical_sec: number;
+  rpm_envelope: MissionEnvelope;
+  cht_envelope: MissionEnvelope;
+  egt_envelope: MissionEnvelope;
+  oil_pressure_envelope: MissionEnvelope;
+  oil_temp_envelope: MissionEnvelope;
+  vibration_envelope: MissionEnvelope;
+  fuel_total_consumed_l: number;
+  fault_timeline: MissionFaultTimelineItem[];
+  subsystems_final: Record<string, number>;
+  health_trend_curve: Array<{ tick: number; health: number }>;
+}
+
+export interface MissionReplayState {
+  is_active: boolean;
+  is_paused: boolean;
+  is_complete: boolean;
+  mission_id: string | null;
+  mission_name?: string;
+  current_index: number;
+  total_samples: number;
+  progress_pct: number;
+  mission_time_sec: number;
+  total_duration_sec: number;
+  speed: number;
+}
+
+export interface MissionRecordingState {
+  is_recording: boolean;
+  mission_id: string | null;
+  sample_count: number;
+}
+
+export interface MissionListItem {
+  metadata: MissionMetadata;
+  summary?: MissionSummary | null;
+}
+
