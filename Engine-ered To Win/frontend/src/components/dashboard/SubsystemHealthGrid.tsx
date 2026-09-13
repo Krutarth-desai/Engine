@@ -92,7 +92,7 @@ const SUBSYSTEMS: SubsystemConfig[] = [
 ];
 
 export default function SubsystemHealthGrid() {
-  const { subsystemHealth, degradation, telemetry, isConnected } = useTelemetry();
+  const { subsystemHealth, degradation, telemetry, isConnected, connectionStatus } = useTelemetry();
 
   return (
     <div
@@ -114,7 +114,13 @@ export default function SubsystemHealthGrid() {
           </div>
         </div>
         <div style={{ fontSize: "0.68rem", color: "var(--text-muted, #64748b)" }}>
-          {isConnected ? "6 Subsystems Monitored" : "Offline"}
+          {connectionStatus === "CONNECTED"
+            ? "6 Subsystems Monitored"
+            : connectionStatus === "CONNECTING"
+            ? "Connecting..."
+            : connectionStatus === "RECONNECTING"
+            ? "Reconnecting..."
+            : "Offline"}
         </div>
       </div>
 
@@ -130,8 +136,14 @@ export default function SubsystemHealthGrid() {
           const rawScore = subsystemHealth ? subsystemHealth[sys.id] : null;
           const score = rawScore != null ? Math.round(rawScore) : (isConnected ? 95 : null);
           const status =
-            score == null
+            connectionStatus === "DISCONNECTED"
               ? "DISCONNECTED"
+              : connectionStatus === "CONNECTING" && score == null
+              ? "CONNECTING"
+              : connectionStatus === "RECONNECTING" && score == null
+              ? "RECONNECTING"
+              : score == null
+              ? "INITIALIZING"
               : score >= 85
               ? "HEALTHY"
               : score >= 60

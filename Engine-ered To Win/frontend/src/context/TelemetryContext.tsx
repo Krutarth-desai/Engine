@@ -190,6 +190,7 @@ export function TelemetryProvider({ children }: { children: ReactNode }) {
 
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const hasConnectedOnce = useRef<boolean>(false);
 
   // Connect to Central Telemetry WebSocket
   const connectWebSocket = useCallback(() => {
@@ -199,12 +200,13 @@ export function TelemetryProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    setConnectionStatus((prev) => (prev === "DISCONNECTED" ? "RECONNECTING" : "CONNECTING"));
+    setConnectionStatus(hasConnectedOnce.current ? "RECONNECTING" : "CONNECTING");
     const wsUrl = getWsUrl();
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
 
     ws.onopen = () => {
+      hasConnectedOnce.current = true;
       setIsConnected(true);
       setConnectionStatus("CONNECTED");
     };
@@ -228,7 +230,7 @@ export function TelemetryProvider({ children }: { children: ReactNode }) {
 
     ws.onclose = () => {
       setIsConnected(false);
-      setConnectionStatus("DISCONNECTED");
+      setConnectionStatus(hasConnectedOnce.current ? "RECONNECTING" : "DISCONNECTED");
       wsRef.current = null;
       if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current);
       reconnectTimeoutRef.current = setTimeout(connectWebSocket, 2000);
@@ -236,7 +238,7 @@ export function TelemetryProvider({ children }: { children: ReactNode }) {
 
     ws.onerror = () => {
       setIsConnected(false);
-      setConnectionStatus("DISCONNECTED");
+      setConnectionStatus(hasConnectedOnce.current ? "RECONNECTING" : "DISCONNECTED");
     };
   }, []);
 

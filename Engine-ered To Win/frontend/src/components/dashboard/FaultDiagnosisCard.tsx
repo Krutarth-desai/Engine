@@ -4,9 +4,9 @@ import React from "react";
 import { useTelemetry } from "@/context/TelemetryContext";
 
 export default function FaultDiagnosisCard() {
-  const { faultDiagnosis, isConnected } = useTelemetry();
+  const { faultDiagnosis, isConnected, connectionStatus } = useTelemetry();
 
-  if (!isConnected || !faultDiagnosis) {
+  if (!faultDiagnosis || (!isConnected && connectionStatus !== "RECONNECTING")) {
     return (
       <div
         className="fault-diagnosis-card"
@@ -21,7 +21,11 @@ export default function FaultDiagnosisCard() {
           AI FAULT DIAGNOSIS &amp; FUSION
         </div>
         <div style={{ fontSize: "0.75rem", color: "var(--text-muted, #64748b)", marginTop: "0.5rem" }}>
-          Connecting to AI Fault Fusion Engine...
+          {connectionStatus === "CONNECTING"
+            ? "Connecting to AI Fault Fusion Engine..."
+            : connectionStatus === "RECONNECTING"
+            ? "Reconnecting to AI Fault Fusion Engine..."
+            : "Fault Fusion Engine Offline (Disconnected)"}
         </div>
       </div>
     );
@@ -89,6 +93,22 @@ export default function FaultDiagnosisCard() {
             >
               {state}
             </span>
+            {connectionStatus === "RECONNECTING" && (
+              <span
+                style={{
+                  fontSize: "0.62rem",
+                  fontWeight: 800,
+                  padding: "0.15rem 0.45rem",
+                  borderRadius: "4px",
+                  background: "rgba(245, 158, 11, 0.2)",
+                  color: "var(--accent-amber, #f59e0b)",
+                  border: "1px solid rgba(245, 158, 11, 0.4)",
+                  letterSpacing: "0.5px",
+                }}
+              >
+                STALE
+              </span>
+            )}
           </div>
           <div style={{ fontSize: "0.72rem", color: "var(--text-secondary, #94a3b8)", marginTop: "0.15rem" }}>
             Real-time multi-signal sensor cross isolation &amp; physics-informed fusion

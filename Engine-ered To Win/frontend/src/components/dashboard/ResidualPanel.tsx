@@ -22,7 +22,7 @@ const RESIDUAL_ROWS: ResidualRowDef[] = [
 ];
 
 export default function ResidualPanel() {
-  const { telemetry, expectedState, residuals, isConnected } = useTelemetry();
+  const { telemetry, expectedState, residuals, isConnected, connectionStatus } = useTelemetry();
 
   return (
     <div
@@ -40,8 +40,10 @@ export default function ResidualPanel() {
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div>
-          <div style={{ fontSize: "0.95rem", fontWeight: 800, letterSpacing: "0.5px", color: "#f8fafc" }}>
-            RESIDUAL &amp; DEVIATION MATRIX
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <span style={{ fontSize: "0.95rem", fontWeight: 800, letterSpacing: "0.5px", color: "#f8fafc" }}>
+              RESIDUAL &amp; DEVIATION MATRIX
+            </span>
           </div>
           <div style={{ fontSize: "0.72rem", color: "var(--text-secondary, #94a3b8)", marginTop: "0.15rem" }}>
             Calculates raw error r = y - y_expected and relative divergence from virtual baseline
@@ -50,14 +52,32 @@ export default function ResidualPanel() {
         <div
           style={{
             fontSize: "0.65rem",
-            color: "var(--text-muted, #64748b)",
+            color:
+              connectionStatus === "CONNECTED"
+                ? "var(--accent-cyan, #38bdf8)"
+                : connectionStatus === "RECONNECTING"
+                ? "var(--accent-amber, #f59e0b)"
+                : "var(--text-muted, #64748b)",
             background: "rgba(255, 255, 255, 0.04)",
+            border: `1px solid ${
+              connectionStatus === "CONNECTED"
+                ? "rgba(56, 189, 248, 0.2)"
+                : connectionStatus === "RECONNECTING"
+                ? "rgba(245, 158, 11, 0.2)"
+                : "rgba(255, 255, 255, 0.06)"
+            }`,
             padding: "0.2rem 0.5rem",
             borderRadius: "4px",
             fontFamily: "var(--font-mono, monospace)",
           }}
         >
-          {residuals ? "BACKEND RESIDUAL PIPELINE ACTIVE" : "SYNCHRONIZING..."}
+          {connectionStatus === "CONNECTED"
+            ? (residuals ? "BACKEND RESIDUAL PIPELINE ACTIVE" : "SYNCHRONIZING...")
+            : connectionStatus === "CONNECTING"
+            ? "CONNECTING..."
+            : connectionStatus === "RECONNECTING"
+            ? "RECONNECTING (BUFFERED)"
+            : "RESIDUAL PIPELINE OFFLINE"}
         </div>
       </div>
 

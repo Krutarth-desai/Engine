@@ -23,7 +23,7 @@ const PARAMS: ParamCardDef[] = [
 ];
 
 export default function DigitalTwinComparison() {
-  const { telemetry, expectedState, residuals, isConnected } = useTelemetry();
+  const { telemetry, expectedState, residuals, isConnected, connectionStatus } = useTelemetry();
 
   return (
     <div
@@ -51,12 +51,40 @@ export default function DigitalTwinComparison() {
                 fontWeight: 800,
                 padding: "0.15rem 0.45rem",
                 borderRadius: "4px",
-                background: "rgba(56, 189, 248, 0.15)",
-                color: "var(--accent-cyan, #38bdf8)",
-                border: "1px solid rgba(56, 189, 248, 0.3)",
+                background:
+                  connectionStatus === "CONNECTED"
+                    ? "rgba(56, 189, 248, 0.15)"
+                    : connectionStatus === "CONNECTING"
+                    ? "rgba(56, 189, 248, 0.1)"
+                    : connectionStatus === "RECONNECTING"
+                    ? "rgba(245, 158, 11, 0.15)"
+                    : "rgba(239, 68, 68, 0.15)",
+                color:
+                  connectionStatus === "CONNECTED"
+                    ? "var(--accent-cyan, #38bdf8)"
+                    : connectionStatus === "CONNECTING"
+                    ? "#38bdf8"
+                    : connectionStatus === "RECONNECTING"
+                    ? "#f59e0b"
+                    : "#ef4444",
+                border: `1px solid ${
+                  connectionStatus === "CONNECTED"
+                    ? "rgba(56, 189, 248, 0.3)"
+                    : connectionStatus === "CONNECTING"
+                    ? "rgba(56, 189, 248, 0.2)"
+                    : connectionStatus === "RECONNECTING"
+                    ? "rgba(245, 158, 11, 0.3)"
+                    : "rgba(239, 68, 68, 0.3)"
+                }`,
               }}
             >
-              PHYSICS TWIN ACTIVE
+              {connectionStatus === "CONNECTED"
+                ? "PHYSICS TWIN ACTIVE"
+                : connectionStatus === "CONNECTING"
+                ? "CONNECTING..."
+                : connectionStatus === "RECONNECTING"
+                ? "RECONNECTING..."
+                : "TWIN OFFLINE"}
             </span>
           </div>
           <div style={{ fontSize: "0.72rem", color: "var(--text-secondary, #94a3b8)", marginTop: "0.15rem" }}>
@@ -65,7 +93,13 @@ export default function DigitalTwinComparison() {
         </div>
 
         <div style={{ fontSize: "0.72rem", color: "var(--text-muted, #64748b)" }}>
-          {isConnected && expectedState ? "Virtual Engine Synchronized" : "Connecting to Twin..."}
+          {connectionStatus === "CONNECTED" && expectedState
+            ? "Virtual Engine Synchronized"
+            : connectionStatus === "CONNECTING"
+            ? "Connecting to Twin..."
+            : connectionStatus === "RECONNECTING"
+            ? "Reconnecting to Twin (Paused)..."
+            : "Digital Twin Disconnected"}
         </div>
       </div>
 

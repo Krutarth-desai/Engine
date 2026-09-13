@@ -4,7 +4,7 @@ import React from "react";
 import { useTelemetry } from "@/context/TelemetryContext";
 
 export default function EngineHealthCard() {
-  const { payload, healthIndex, isConnected } = useTelemetry();
+  const { payload, healthIndex, isConnected, connectionStatus } = useTelemetry();
 
   const healthBlock = payload.digital_twin?.health;
   const trend = payload.digital_twin?.trend;
@@ -62,13 +62,41 @@ export default function EngineHealthCard() {
                 fontWeight: 800,
                 padding: "0.2rem 0.5rem",
                 borderRadius: "4px",
-                background: `${statusColor}22`,
-                color: statusColor,
-                border: `1px solid ${statusColor}55`,
+                background:
+                  connectionStatus === "CONNECTED"
+                    ? `${statusColor}22`
+                    : connectionStatus === "CONNECTING"
+                    ? "rgba(56, 189, 248, 0.15)"
+                    : connectionStatus === "RECONNECTING"
+                    ? "rgba(245, 158, 11, 0.15)"
+                    : "rgba(239, 68, 68, 0.15)",
+                color:
+                  connectionStatus === "CONNECTED"
+                    ? statusColor
+                    : connectionStatus === "CONNECTING"
+                    ? "var(--accent-cyan, #38bdf8)"
+                    : connectionStatus === "RECONNECTING"
+                    ? "var(--accent-amber, #f59e0b)"
+                    : "var(--accent-rose, #ef4444)",
+                border: `1px solid ${
+                  connectionStatus === "CONNECTED"
+                    ? `${statusColor}55`
+                    : connectionStatus === "CONNECTING"
+                    ? "rgba(56, 189, 248, 0.3)"
+                    : connectionStatus === "RECONNECTING"
+                    ? "rgba(245, 158, 11, 0.3)"
+                    : "rgba(239, 68, 68, 0.3)"
+                }`,
                 letterSpacing: "0.5px",
               }}
             >
-              {isConnected ? status : "NO SIGNAL"}
+              {connectionStatus === "CONNECTED"
+                ? status
+                : connectionStatus === "CONNECTING"
+                ? "CONNECTING..."
+                : connectionStatus === "RECONNECTING"
+                ? "RECONNECTING (STALE)"
+                : "DISCONNECTED"}
             </span>
           </div>
           <div style={{ fontSize: "0.72rem", color: "var(--text-secondary, #94a3b8)", marginTop: "0.15rem" }}>

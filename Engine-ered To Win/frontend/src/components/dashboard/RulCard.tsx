@@ -9,7 +9,7 @@ interface RulCardProps {
 }
 
 export default function RulCard({ onNavigate }: RulCardProps) {
-  const { prognostics, healthIndex, environment, isConnected } = useTelemetry();
+  const { prognostics, healthIndex, environment, isConnected, connectionStatus } = useTelemetry();
 
   const rulVal = prognostics?.predicted_rul != null ? Math.round(prognostics.predicted_rul) : null;
   const actualRul = prognostics?.actual_rul != null ? Math.round(prognostics.actual_rul) : null;
@@ -56,6 +56,21 @@ export default function RulCard({ onNavigate }: RulCardProps) {
             >
               LSTM ENGINE
             </span>
+            {connectionStatus === "RECONNECTING" && (
+              <span
+                style={{
+                  fontSize: "0.62rem",
+                  fontWeight: 800,
+                  padding: "0.15rem 0.45rem",
+                  borderRadius: "4px",
+                  background: "rgba(245, 158, 11, 0.2)",
+                  color: "var(--accent-amber, #f59e0b)",
+                  border: "1px solid rgba(245, 158, 11, 0.4)",
+                }}
+              >
+                STALE
+              </span>
+            )}
           </div>
           <div style={{ fontSize: "0.72rem", color: "var(--text-secondary, #94a3b8)", marginTop: "0.15rem" }}>
             Deep learning cycle-by-cycle degradation estimation trained on aero engine wear
@@ -80,7 +95,7 @@ export default function RulCard({ onNavigate }: RulCardProps) {
       </div>
 
       {/* Main RUL Value & Progress */}
-      {isConnected && rulVal != null ? (
+      {(isConnected || connectionStatus === "RECONNECTING") && rulVal != null ? (
         <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
             <div style={{ display: "flex", alignItems: "baseline", gap: "0.4rem" }}>
@@ -162,7 +177,11 @@ export default function RulCard({ onNavigate }: RulCardProps) {
         </div>
       ) : (
         <div style={{ padding: "1.5rem 0", color: "var(--text-muted, #64748b)", fontSize: "0.8rem" }}>
-          RUL prediction unavailable. Connecting to prognostics engine...
+          {connectionStatus === "CONNECTING"
+            ? "Connecting to prognostics engine..."
+            : connectionStatus === "RECONNECTING"
+            ? "Reconnecting to prognostics engine..."
+            : "Prognostics engine offline (Disconnected)."}
         </div>
       )}
     </div>

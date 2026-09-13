@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { TelemetryData } from "@/types/telemetry";
+import { useTelemetry } from "@/context/TelemetryContext";
 
 interface DigitalTwinCenterpieceProps {
   telemetry: any;
@@ -20,6 +21,7 @@ export default function DigitalTwinCenterpiece({
   selectedHotspot,
   onSelectHotspot,
 }: DigitalTwinCenterpieceProps) {
+  const { connectionStatus } = useTelemetry();
   const [viewMode, setViewMode] = useState<"full" | "engine" | "thermal">("full");
   const [tooltip, setTooltip] = useState<{ title: string; desc: string } | null>(null);
 
@@ -57,12 +59,12 @@ export default function DigitalTwinCenterpiece({
   const aiConfidence = faultDiagnosis?.confidence != null ? Math.round(faultDiagnosis.confidence * 100) : (scenario !== "Normal" ? 92 : 98);
   const affectedSub = faultDiagnosis?.affected_subsystem || (scenario === "Overheating" ? "Thermal" : scenario === "Lubrication" ? "Lubrication" : scenario === "Injector_Degradation" ? "Combustion" : scenario === "Vibration_Fault" ? "Mechanical" : "Nominal");
 
-  // Compute SVG transform based on camera view mode
-  let svgTransform = "scale(1) translate(0, 0)";
+  // Compute SVG transform based on camera view mode (enlarged ~20% for prominent visual centerpiece)
+  let svgTransform = "scale(1.20) translate(-4px, 0)";
   if (viewMode === "engine") {
-    svgTransform = "scale(1.85) translate(-100px, 0)";
+    svgTransform = "scale(1.95) translate(-100px, 0)";
   } else if (viewMode === "thermal") {
-    svgTransform = "scale(1.35) translate(-40px, 0)";
+    svgTransform = "scale(1.45) translate(-40px, 0)";
   }
 
   // Dynamic Subsystem hotspot classes based on Phase 2 health scores + scenario
@@ -137,6 +139,25 @@ export default function DigitalTwinCenterpiece({
       anomalyTitle = `PROPULSION DEGRADATION: ${aiFault.toUpperCase()}`;
       anomalyPart = `AI DIAGNOSIS: ${aiState} (${aiConfidence}% CONFIDENCE)`;
     }
+  }
+
+  // Handle centralized connection state in the status banner
+  if (connectionStatus === "CONNECTING") {
+    reticleVisible = false;
+    dotColor = "var(--accent-cyan, #38bdf8)";
+    anomalyTitle = "CONNECTING TO LIVE UAV PROPULSION SYSTEM...";
+    anomalyTitleColor = "var(--accent-cyan, #38bdf8)";
+    anomalyPart = "ESTABLISHING WEBSOCKET TELEMETRY UPLINK";
+  } else if (connectionStatus === "DISCONNECTED") {
+    reticleVisible = false;
+    dotColor = "var(--accent-rose, #ef4444)";
+    anomalyTitle = "TELEMETRY LINK OFFLINE (DISCONNECTED)";
+    anomalyTitleColor = "var(--accent-rose, #ef4444)";
+    anomalyPart = "UAV GROUND CONTROL STATION LINK STANDBY";
+  } else if (connectionStatus === "RECONNECTING") {
+    dotColor = "var(--accent-amber, #f59e0b)";
+    anomalyTitleColor = "var(--accent-amber, #f59e0b)";
+    anomalyPart = `RECONNECTING... [BUFFERED STALE DATA] — OVERALL HEALTH: ${health}/100`;
   }
 
   const scenariosList = [

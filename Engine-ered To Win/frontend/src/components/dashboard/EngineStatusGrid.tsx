@@ -131,7 +131,7 @@ const CHANNELS: TelemetryChannel[] = [
 ];
 
 export default function EngineStatusGrid({ onNavigate, onSelectParam }: EngineStatusGridProps) {
-  const { telemetry, isConnected } = useTelemetry();
+  const { telemetry, isConnected, connectionStatus } = useTelemetry();
 
   return (
     <div
@@ -158,12 +158,32 @@ export default function EngineStatusGrid({ onNavigate, onSelectParam }: EngineSt
               fontWeight: 700,
               padding: "0.1rem 0.35rem",
               borderRadius: "3px",
-              background: isConnected ? "rgba(16, 185, 129, 0.15)" : "rgba(100, 116, 139, 0.2)",
-              color: isConnected ? "var(--accent-emerald, #10b981)" : "#94a3b8",
+              background:
+                connectionStatus === "CONNECTED"
+                  ? "rgba(16, 185, 129, 0.15)"
+                  : connectionStatus === "CONNECTING"
+                  ? "rgba(56, 189, 248, 0.15)"
+                  : connectionStatus === "RECONNECTING"
+                  ? "rgba(245, 158, 11, 0.15)"
+                  : "rgba(239, 68, 68, 0.15)",
+              color:
+                connectionStatus === "CONNECTED"
+                  ? "var(--accent-emerald, #10b981)"
+                  : connectionStatus === "CONNECTING"
+                  ? "var(--accent-cyan, #38bdf8)"
+                  : connectionStatus === "RECONNECTING"
+                  ? "var(--accent-amber, #f59e0b)"
+                  : "var(--accent-rose, #ef4444)",
               fontFamily: "var(--font-mono, monospace)",
             }}
           >
-            {isConnected ? "8 CHANNELS LIVE" : "DISCONNECTED"}
+            {connectionStatus === "CONNECTED"
+              ? "8 CHANNELS LIVE"
+              : connectionStatus === "CONNECTING"
+              ? "CONNECTING..."
+              : connectionStatus === "RECONNECTING"
+              ? "RECONNECTING (STALE)"
+              : "DISCONNECTED"}
           </span>
         </div>
 

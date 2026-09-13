@@ -26,6 +26,7 @@ function GcsWorkspace({
   const {
     payload,
     isConnected,
+    connectionStatus,
     mode,
     activeScenario,
     injectScenario,
@@ -76,6 +77,7 @@ function GcsWorkspace({
       <Header
         userEmail={currentUser?.email || "Operator"}
         isConnected={isConnected}
+        connectionStatus={connectionStatus}
         vehicleId={selectedEngine}
         missionId={payload.vehicle?.mission_id || "ISR_PATROL_27"}
         altitude={environment?.altitude_ft ?? payload.vehicle?.altitude ?? 15000}

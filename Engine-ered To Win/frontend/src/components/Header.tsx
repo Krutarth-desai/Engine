@@ -1,10 +1,11 @@
 "use client";
 
-import React from "react";
+import { ConnectionState } from "@/context/TelemetryContext";
 
 interface HeaderProps {
   userEmail: string;
   isConnected: boolean;
+  connectionStatus?: ConnectionState;
   vehicleId?: string;
   missionId?: string;
   altitude?: number;
@@ -18,6 +19,7 @@ interface HeaderProps {
 export default function Header({
   userEmail,
   isConnected,
+  connectionStatus = isConnected ? "CONNECTED" : "CONNECTING",
   vehicleId = "UAV_ENG_001",
   missionId = "ISR_PATROL_27",
   altitude = 15000,
@@ -114,12 +116,54 @@ export default function Header({
           id="conn-badge"
           className="status-pill"
           style={{
-            borderColor: isConnected ? "rgba(16, 185, 129, 0.3)" : "rgba(239, 68, 68, 0.3)",
-            color: isConnected ? "#10b981" : "#ef4444",
+            borderColor:
+              connectionStatus === "CONNECTED"
+                ? "rgba(16, 185, 129, 0.4)"
+                : connectionStatus === "CONNECTING"
+                ? "rgba(56, 189, 248, 0.4)"
+                : connectionStatus === "RECONNECTING"
+                ? "rgba(245, 158, 11, 0.4)"
+                : "rgba(239, 68, 68, 0.4)",
+            color:
+              connectionStatus === "CONNECTED"
+                ? "#10b981"
+                : connectionStatus === "CONNECTING"
+                ? "#38bdf8"
+                : connectionStatus === "RECONNECTING"
+                ? "#f59e0b"
+                : "#ef4444",
+            background:
+              connectionStatus === "CONNECTED"
+                ? "rgba(16, 185, 129, 0.1)"
+                : connectionStatus === "CONNECTING"
+                ? "rgba(56, 189, 248, 0.1)"
+                : connectionStatus === "RECONNECTING"
+                ? "rgba(245, 158, 11, 0.1)"
+                : "rgba(239, 68, 68, 0.1)",
           }}
         >
-          <span className="status-dot"></span>
-          <span id="conn-text">{isConnected ? "ONLINE 1 Hz" : "RECONNECTING"}</span>
+          <span
+            className="status-dot"
+            style={{
+              backgroundColor:
+                connectionStatus === "CONNECTED"
+                  ? "#10b981"
+                  : connectionStatus === "CONNECTING"
+                  ? "#38bdf8"
+                  : connectionStatus === "RECONNECTING"
+                  ? "#f59e0b"
+                  : "#ef4444",
+            }}
+          ></span>
+          <span id="conn-text">
+            {connectionStatus === "CONNECTED"
+              ? "LIVE 1 Hz"
+              : connectionStatus === "CONNECTING"
+              ? "CONNECTING..."
+              : connectionStatus === "RECONNECTING"
+              ? "RECONNECTING..."
+              : "DISCONNECTED"}
+          </span>
         </div>
 
         <div className="auth-user-info">
