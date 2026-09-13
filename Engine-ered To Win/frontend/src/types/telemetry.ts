@@ -209,6 +209,7 @@ export interface UnifiedTelemetryPayload {
   scenario: string;
   sensor_diagnosis?: SensorDiagnosis;
   digital_twin?: DigitalTwinPayload;
+  diagnosis?: FaultDiagnosisPayload;
   rpm?: number;
   cht_c?: number;
   egt_c?: number;
@@ -218,4 +219,40 @@ export interface UnifiedTelemetryPayload {
   vibration_g?: number;
   battery_voltage_v?: number;
   injection_timing_deg?: number;
+}
+
+export interface AlternativeFault {
+  fault: string;
+  fault_code: string;
+  confidence: number;
+  severity: "INFO" | "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+  affected_subsystem: string;
+}
+
+export interface MaintenanceContext {
+  fault: string;
+  fault_code: string;
+  severity: "INFO" | "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+  confidence: number;
+  affected_subsystem: string;
+  health_score: number;
+  degradation_wear: number;
+  trend: string;
+  persistence_ticks: number;
+}
+
+export interface FaultDiagnosisPayload {
+  fault: string;
+  fault_code: string;
+  state: "NORMAL" | "ANOMALY" | "SUSPECTED" | "CONFIRMED" | "CRITICAL" | "RECOVERING";
+  confidence: number;
+  severity: "INFO" | "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+  affected_subsystem: string;
+  evidence: string[];
+  supporting_signals: Record<string, number>;
+  suspected_sensor: string | null;
+  alternative_faults: AlternativeFault[];
+  maintenance_context: MaintenanceContext;
+  persistence_ticks: number;
+  is_sensor_fault: boolean;
 }

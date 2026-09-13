@@ -27,6 +27,7 @@ from src.predictive_maintenance import AeroTwinAnomalyDetector
 from src.sensor_diagnosis import SensorDiagnosisEngine
 from src.unified_telemetry import TelemetryProcessor
 from src.digital_twin import DigitalTwinCore
+from src.fault_diagnosis import FaultFusionEngine
 
 # Load environment variables from .env file
 load_dotenv()
@@ -119,6 +120,7 @@ sensor_diagnosis_engine = SensorDiagnosisEngine(
 )
 telemetry_processor = TelemetryProcessor()
 digital_twin_core = DigitalTwinCore()
+fault_fusion_engine = FaultFusionEngine()
 def generate_initial_buffer(count=40):
     """Seed the regression plot buffer with realistic nominal telemetry.
     Baselines aligned with TelemetryProcessor nominal cruise output."""
@@ -354,25 +356,50 @@ async def tick_and_broadcast():
     flat_telemetry["digital_twin"] = dt_output
     unified_data["digital_twin"] = dt_output
     
+    # 2d. Phase 3 Physics-Informed AI Fault Diagnosis + Sensor/Engine Fault Fusion
+    fusion_diagnosis = fault_fusion_engine.diagnose(
+        telemetry=flat_telemetry,
+        digital_twin=dt_output,
+        anomaly={"is_anomaly": is_anomaly, "score": score},
+        sensor_diagnosis=diag_result,
+        existing_fault=fault_info,
+        degradation=dt_output.get("degradation", {}),
+        subsystem_health=dt_output.get("health", {}).get("subsystems") or dt_output.get("subsystem_health", {}),
+        scenario=simulation_state.get("scenario", "Normal")
+    )
+    flat_telemetry["diagnosis"] = fusion_diagnosis
+    unified_data["diagnosis"] = fusion_diagnosis
+    
+    # Update fault label if non-normal diagnosis
+    if fusion_diagnosis.get("fault") and fusion_diagnosis["fault"] != "Nominal Operation":
+        unified_data["fault_label"] = fusion_diagnosis["fault"]
+        flat_telemetry["fault_label"] = fusion_diagnosis["fault"]
+    
     # Merge flat fields into unified_data so all components can access whichever they need
     unified_data.update(flat_telemetry)
     unified_data["sensor_diagnosis"] = diag_result
     
-    # Align risk with sensor diagnosis while preserving rich user-friendly messaging
-    if diag_result["diagnosis_type"] == "POSSIBLE_SENSOR_FAILURE" and diag_result["suspected_sensor"]:
+    # 3. Align risk with fused diagnosis & sensor diagnosis while preserving rich user-friendly messaging
+    if fusion_diagnosis.get("is_sensor_fault") or (diag_result["diagnosis_type"] == "POSSIBLE_SENSOR_FAILURE" and diag_result["suspected_sensor"]):
         unified_data["risk"]["anomaly"] = "CAUTION"
         unified_data["risk"]["level"] = "MEDIUM"
-        if not unified_data["risk"].get("action") or "Nominal" in unified_data["risk"].get("action", ""):
-            sensor_label = diag_result["suspected_sensor"].upper().replace("_C", "").replace("_BAR", "")
-            unified_data["risk"]["action"] = f"{sensor_label} sensor reading is anomalous, but engine is healthy. Inspect sensor harness post-flight."
-            unified_data["risk"]["status_label"] = "SENSOR ADVISORY"
-    elif diag_result["diagnosis_type"] == "POSSIBLE_ENGINE_FAILURE":
+        suspected = fusion_diagnosis.get("suspected_sensor") or diag_result.get("suspected_sensor") or "CHT"
+        sensor_label = suspected.upper().replace("_C", "").replace("_BAR", "")
+        unified_data["risk"]["action"] = f"{sensor_label} sensor reading is anomalous, but engine is healthy. Inspect sensor harness post-flight."
+        unified_data["risk"]["status_label"] = "SENSOR ADVISORY"
+    elif fusion_diagnosis.get("severity") == "CRITICAL" or diag_result["diagnosis_type"] == "POSSIBLE_ENGINE_FAILURE":
         unified_data["risk"]["anomaly"] = "ALERT"
         unified_data["risk"]["level"] = "CRITICAL"
         if not unified_data["risk"].get("action") or "Nominal" in unified_data["risk"].get("action", ""):
-            unified_data["risk"]["action"] = "Multiple engine systems degrading. Reduce power and prepare to divert to nearest airfield."
+            unified_data["risk"]["action"] = f"CRITICAL: {fusion_diagnosis.get('fault', 'Multiple engine systems degrading')}. Reduce power and prepare to divert."
             unified_data["risk"]["status_label"] = "EMERGENCY DIRECTIVE"
-    elif simulation_state.get("scenario") == "Normal":
+    elif fusion_diagnosis.get("severity") == "HIGH":
+        unified_data["risk"]["anomaly"] = "ALERT"
+        unified_data["risk"]["level"] = "HIGH"
+        if not unified_data["risk"].get("action") or "Nominal" in unified_data["risk"].get("action", ""):
+            unified_data["risk"]["action"] = f"WARNING: {fusion_diagnosis.get('fault')}. Monitor parameters closely and reduce engine strain."
+            unified_data["risk"]["status_label"] = "SYSTEM CAUTION"
+    elif simulation_state.get("scenario") == "Normal" and fusion_diagnosis.get("fault_code") == "NORMAL":
         unified_data["risk"]["anomaly"] = "NORMAL"
         unified_data["risk"]["level"] = "LOW"
         unified_data["risk"]["action"] = "All engine systems and sensors are performing nominally. Continue planned cruise profile."
@@ -380,21 +407,22 @@ async def tick_and_broadcast():
         unified_data["risk"]["guidance"] = "All thermal, hydraulic, and electrical parameters are within standard operating limits. No pilot intervention required."
     
     # 4. Optional Supabase anomaly logging
-    if supabase_client and fault_info.get("status") != "Normal":
+    if supabase_client and (fault_info.get("status") != "Normal" or fusion_diagnosis.get("fault_code") != "NORMAL"):
+        fused_evidence_str = "\n".join(fusion_diagnosis.get("evidence", [])) if fusion_diagnosis.get("evidence") else fault_info.get("evidence", "")
         anomaly_record = {
             "engine_id": "UAV_ENG_001",
             "anomaly_score": float(score),
-            "severity": fault_info.get("severity", "MEDIUM"),
-            "fault_type": fault_info.get("fault", "Operational Alert"),
-            "evidence": fault_info.get("evidence", ""),
+            "severity": fusion_diagnosis.get("severity", fault_info.get("severity", "MEDIUM")),
+            "fault_type": fusion_diagnosis.get("fault", fault_info.get("fault", "Operational Alert")),
+            "evidence": fused_evidence_str,
             "treatment_action": unified_data["risk"]["action"],
             "prevention_action": fault_info.get("prevention", ""),
             "diagnosis_type": diag_result["diagnosis_type"],
-            "diagnosis_confidence": max(
+            "diagnosis_confidence": float(fusion_diagnosis.get("confidence", max(
                 diag_result["sensor_fault_confidence"],
                 diag_result["engine_fault_confidence"]
-            ),
-            "suspected_sensor": diag_result.get("suspected_sensor"),
+            ))),
+            "suspected_sensor": diag_result.get("suspected_sensor") or fusion_diagnosis.get("suspected_sensor"),
             "affected_sensors": json.dumps(diag_result.get("affected_sensors", [])),
             "sensor_anomaly_scores": json.dumps(diag_result.get("sensor_scores", {}))
         }
@@ -434,6 +462,7 @@ async def websocket_telemetry(websocket: WebSocket):
                     # Reset sensor diagnosis persistence and digital twin wear on scenario change
                     sensor_diagnosis_engine.reset_persistence()
                     digital_twin_core.reset_degradation()
+                    fault_fusion_engine.reset()
                     print(f"*** WS Injected scenario: {cmd['scenario']} ***")
                     # Immediately tick and broadcast with zero latency
                     await tick_and_broadcast()
@@ -453,6 +482,7 @@ async def api_inject_scenario(payload: dict):
     simulation_state["tick"] = 0
     sensor_diagnosis_engine.reset_persistence()
     digital_twin_core.reset_degradation()
+    fault_fusion_engine.reset()
     print(f"*** HTTP POST Injected scenario: {sc} ***")
     await tick_and_broadcast()
     return {"status": "ok", "scenario": sc, "health_index": simulation_state.get("health_index")}
