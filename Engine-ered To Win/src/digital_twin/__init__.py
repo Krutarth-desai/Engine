@@ -21,6 +21,16 @@ from .health_index import (
     CRITICAL_OPERATING_LIMITS
 )
 from .digital_twin_core import DigitalTwinCore
+from .environment import (
+    EnvironmentModel,
+    OperatingCondition,
+    AtmosphericState,
+    compute_atmospheric_state,
+    MissionPhase,
+    MISSION_PROFILES,
+    get_mission_profile,
+    ThrottleTransientModel
+)
 
 __all__ = [
     "EngineModel",
@@ -37,5 +47,13 @@ __all__ = [
     "DEFAULT_HEALTH_WEIGHTS",
     "DEFAULT_STATUS_THRESHOLDS",
     "CRITICAL_OPERATING_LIMITS",
-    "DigitalTwinCore"
+    "DigitalTwinCore",
+    "EnvironmentModel",
+    "OperatingCondition",
+    "AtmosphericState",
+    "compute_atmospheric_state",
+    "MissionPhase",
+    "MISSION_PROFILES",
+    "get_mission_profile",
+    "ThrottleTransientModel"
 ]

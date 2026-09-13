@@ -117,17 +117,47 @@ class TelemetryProcessor:
             
         prog = min(tick / 20.0, 1.0)
         
-        # 1. Generate core sensor values with noise
+        # 0. Environmental physical baseline shift
+        th_val = float(simulation_state.get("throttle", 75.0))
+        alt_val = float(simulation_state.get("altitude", 15000.0))
+        amb_val = float(simulation_state.get("ambient_temp", 15.0))
+
+        d_th = th_val - 75.0
+        d_amb = amb_val - 15.0
+
+        # Physical density ratio relative to nominal cruise (15,000 ft)
+        alt_m = max(0.0, min(40000.0, alt_val)) * 0.3048
+        current_dens = max(0.1, 1.0 - 2.25577e-5 * alt_m) ** 4.25588
+        cruise_dens = 0.6292
+        dens_deficit = max(0.0, 1.0 - (current_dens / cruise_dens))
+
+        env_base_rpm = self.base_sensors["rpm"] + 12.0 * d_th
+        env_base_cht = self.base_sensors["cht"] + 0.90 * d_th + 0.35 * d_amb + 18.0 * dens_deficit
+        env_base_egt = self.base_sensors["egt"] + 2.40 * d_th + 0.20 * d_amb + 8.0 * dens_deficit
+        env_base_oil_t = self.base_sensors["oil_temperature"] + 0.40 * d_th + 0.30 * d_amb + 10.0 * dens_deficit
+
+        d_rpm = env_base_rpm - self.base_sensors["rpm"]
+        d_oil_t = env_base_oil_t - self.base_sensors["oil_temperature"]
+        env_base_oil_p_bar = 4.69 + 0.0015 * d_rpm - 0.018 * d_oil_t
+        env_base_oil_p_psi = env_base_oil_p_bar * 14.5038
+
+        env_base_fuel = self.base_sensors["fuel_flow"] + 0.28 * d_th
+        rpm_ratio = max(0.5, env_base_rpm / self.base_sensors["rpm"])
+        env_base_vib = self.base_sensors["vibration"] * (rpm_ratio ** 1.80)
+        env_base_timing = self.base_sensors["injection_timing"] + 0.004 * d_rpm - 0.008 * d_th
+        env_base_volt = self.base_sensors["bus_voltage"]
+
+        # 1. Generate core sensor values with noise around environmental baseline
         curr_sensors = {
-            "rpm": self.base_sensors["rpm"] + random.gauss(0, 12),
-            "cht": self.base_sensors["cht"] + random.gauss(0, 1.2),
-            "egt": self.base_sensors["egt"] + random.gauss(0, 3.0),
-            "oil_pressure": self.base_sensors["oil_pressure"] + random.gauss(0, 0.5),
-            "oil_temperature": self.base_sensors["oil_temperature"] + random.gauss(0, 1.0),
-            "fuel_flow": self.base_sensors["fuel_flow"] + random.gauss(0, 0.2),
-            "vibration": self.base_sensors["vibration"] + random.gauss(0, 0.02),
-            "bus_voltage": self.base_sensors["bus_voltage"] + random.gauss(0, 0.1),
-            "injection_timing": self.base_sensors["injection_timing"] + random.gauss(0, 0.12)
+            "rpm": max(800.0, env_base_rpm + random.gauss(0, 12)),
+            "cht": env_base_cht + random.gauss(0, 1.2),
+            "egt": env_base_egt + random.gauss(0, 3.0),
+            "oil_pressure": max(10.0, env_base_oil_p_psi + random.gauss(0, 0.5)),
+            "oil_temperature": env_base_oil_t + random.gauss(0, 1.0),
+            "fuel_flow": max(2.0, env_base_fuel + random.gauss(0, 0.2)),
+            "vibration": max(0.2, env_base_vib + random.gauss(0, 0.02)),
+            "bus_voltage": env_base_volt + random.gauss(0, 0.1),
+            "injection_timing": env_base_timing + random.gauss(0, 0.12)
         }
         
         # 2. Inject scenarios: modify sensor values with immediate impact + progressive compounding
@@ -211,22 +241,38 @@ class TelemetryProcessor:
             return score
         
         # Thermal subsystem: CHT, EGT, Oil Temperature
-        cht_score = _deviation_score(curr_sensors["cht"], 142.0, 165.0, 195.0)
-        egt_score = _deviation_score(curr_sensors["egt"], 615.0, 680.0, 760.0)
-        oil_t_score = _deviation_score(curr_sensors["oil_temperature"], 92.0, 108.0, 125.0)
+        cht_caution = max(165.0, env_base_cht + 20.0)
+        cht_alert = max(195.0, env_base_cht + 45.0)
+        cht_score = _deviation_score(curr_sensors["cht"], env_base_cht, cht_caution, cht_alert)
+
+        egt_caution = max(680.0, env_base_egt + 50.0)
+        egt_alert = max(760.0, env_base_egt + 110.0)
+        egt_score = _deviation_score(curr_sensors["egt"], env_base_egt, egt_caution, egt_alert)
+
+        oil_t_caution = max(108.0, env_base_oil_t + 15.0)
+        oil_t_alert = max(125.0, env_base_oil_t + 30.0)
+        oil_t_score = _deviation_score(curr_sensors["oil_temperature"], env_base_oil_t, oil_t_caution, oil_t_alert)
         thermal_health = 0.40 * cht_score + 0.35 * egt_score + 0.25 * oil_t_score
         
         # Lubrication subsystem: Oil Pressure (low-is-bad), Oil Temperature
-        oil_p_score = _deviation_score(curr_sensors["oil_pressure"], 68.0, 50.0, 35.0)
+        oil_p_caution = min(50.0, env_base_oil_p_psi - 15.0)
+        oil_p_alert = min(35.0, env_base_oil_p_psi - 25.0)
+        oil_p_score = _deviation_score(curr_sensors["oil_pressure"], env_base_oil_p_psi, oil_p_caution, oil_p_alert)
         lub_health = 0.65 * oil_p_score + 0.35 * oil_t_score
         
         # Mechanical subsystem: Vibration
-        vib_score = _deviation_score(curr_sensors["vibration"], 1.42, 2.1, 2.9)
+        vib_caution = max(2.1, env_base_vib + 0.6)
+        vib_alert = max(2.9, env_base_vib + 1.2)
+        vib_score = _deviation_score(curr_sensors["vibration"], env_base_vib, vib_caution, vib_alert)
         mech_health = vib_score
         
         # Combustion subsystem: Fuel Flow, RPM
-        fuel_score = _deviation_score(curr_sensors["fuel_flow"], 17.6, 24.0, 28.0)
-        rpm_score = _deviation_score(curr_sensors["rpm"], 2450.0, 2100.0, 1800.0)
+        fuel_caution = max(24.0, env_base_fuel + 5.0)
+        fuel_alert = max(28.0, env_base_fuel + 9.0)
+        fuel_score = _deviation_score(curr_sensors["fuel_flow"], env_base_fuel, fuel_caution, fuel_alert)
+        rpm_caution = min(2100.0, env_base_rpm - 300.0)
+        rpm_alert = min(1800.0, env_base_rpm - 550.0)
+        rpm_score = _deviation_score(curr_sensors["rpm"], env_base_rpm, rpm_caution, rpm_alert)
         comb_health = 0.50 * fuel_score + 0.50 * rpm_score
         
         # Sensor confidence: for sensor-only faults, CHT diverges from what other

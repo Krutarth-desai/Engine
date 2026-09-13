@@ -19,12 +19,14 @@ from .engine_model import EngineModel
 from .degradation_model import DegradationModel
 from .state_estimator import StateEstimator
 from .health_index import HealthIndexCalculator
+from .environment import EnvironmentModel
 
 
 class DigitalTwinCore:
     """
-    Phase 2 Digital Twin Core Orchestrator.
-    Maintains real-time synchronization between live UAV telemetry and the virtual engine model.
+    Phase 4 Digital Twin Core Orchestrator.
+    Maintains real-time synchronization between live UAV telemetry, environmental
+    atmosphere / mission profiles, and the virtual engine model.
     Tracks rolling health history, deltas, and rapid degradation indicators.
     """
 
@@ -34,12 +36,14 @@ class DigitalTwinCore:
         degradation_model: Optional[DegradationModel] = None,
         state_estimator: Optional[StateEstimator] = None,
         health_calculator: Optional[HealthIndexCalculator] = None,
+        environment_model: Optional[EnvironmentModel] = None,
         max_history: int = 60
     ):
         self.engine_model = engine_model or EngineModel()
         self.degradation_model = degradation_model or DegradationModel()
         self.state_estimator = state_estimator or StateEstimator()
         self.health_calculator = health_calculator or HealthIndexCalculator()
+        self.environment_model = environment_model or EnvironmentModel()
         
         # Bounded rolling history buffer to avoid memory leaks
         self.max_history = max_history
@@ -72,6 +76,7 @@ class DigitalTwinCore:
         Returns:
             Structured Digital Twin payload containing:
             - timestamp, actual, expected, residuals
+            - environment: atmospheric state, throttle transients, and operating conditions
             - health: {overall, status, thermal, combustion, lubrication, mechanical, electrical, sensor}
             - subsystem_health (Phase 1 backward compatibility)
             - health_index (Phase 1 backward compatibility)
@@ -80,6 +85,18 @@ class DigitalTwinCore:
             - history: rolling window of past health states
         """
         self._tick_counter += 1
+
+        # 0. Synchronize & Advance Environmental Simulation
+        if environment:
+            alt = environment.get("altitude_ft") if "altitude_ft" in environment else environment.get("altitude")
+            amb = environment.get("ambient_temp_c") if "ambient_temp_c" in environment else environment.get("ambient_temp")
+            thr = environment.get("throttle_pct") if "throttle_pct" in environment else environment.get("throttle")
+            self.environment_model.set_environment(
+                altitude_ft=alt,
+                ambient_temp_c=amb,
+                throttle_pct=thr
+            )
+        env_state = self.environment_model.update(dt=dt)
 
         # 1. Update Subsystem Degradation
         # Apply operational stress wear
@@ -94,7 +111,7 @@ class DigitalTwinCore:
         # 2. Predict Expected Engine Operating State
         expected_state = self.engine_model.predict(
             telemetry=telemetry,
-            environment=environment,
+            environment=env_state,
             degradation=degradation_state
         )
 
@@ -112,7 +129,7 @@ class DigitalTwinCore:
             residuals=residuals,
             degradation=degradation_state,
             sensor_diagnosis=sensor_diagnosis,
-            environment=environment
+            environment=env_state
         )
 
         current_overall = health_result["overall"]
@@ -182,6 +199,8 @@ class DigitalTwinCore:
             "expected": expected_state,
             "residuals": residuals,
             "degradation": degradation_state,
+            # Phase 4 Environment & Mission Simulation
+            "environment": env_state,
             # Phase 2 Enhanced Health Block
             "health": enhanced_health_block,
             # Phase 1 Backward Compatibility fields
@@ -191,6 +210,32 @@ class DigitalTwinCore:
             "trend": trend_data,
             "history": list(self._history)
         }
+
+    def set_environment(
+        self,
+        altitude_ft: Optional[float] = None,
+        ambient_temp_c: Optional[float] = None,
+        throttle_pct: Optional[float] = None
+    ) -> Dict[str, Any]:
+        """Sets environmental conditions and returns updated state."""
+        self.environment_model.set_environment(
+            altitude_ft=altitude_ft,
+            ambient_temp_c=ambient_temp_c,
+            throttle_pct=throttle_pct
+        )
+        return self.environment_model.get_state()
+
+    def set_mission_profile(self, profile_name: str) -> Dict[str, Any]:
+        """Sets flight phase mission profile."""
+        return self.environment_model.set_mission_profile(profile_name)
+
+    def set_simulation_speed(self, speed_multiplier: float) -> None:
+        """Sets simulation speed multiplier for accelerated endurance."""
+        self.environment_model.set_simulation_speed(speed_multiplier)
+
+    def get_environment(self) -> Dict[str, Any]:
+        """Returns current environmental and mission state."""
+        return self.environment_model.get_state()
 
     def set_degradation(self, subsystem: str, value: float) -> None:
         """Manually sets degradation for a subsystem [0.0 - 1.0]."""

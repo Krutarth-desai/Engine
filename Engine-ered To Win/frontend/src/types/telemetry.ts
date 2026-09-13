@@ -53,6 +53,35 @@ export interface DigitalTwinHistoryPoint {
   sensor: number;
 }
 
+export interface EnvironmentEnduranceStress {
+  thermal_stress: number;
+  mechanical_stress: number;
+  lubrication_stress: number;
+}
+
+export interface EnvironmentPayload {
+  altitude_ft: number;
+  ambient_temp_c: number;
+  pressure_kpa: number;
+  air_density_kg_m3: number;
+  density_ratio: number;
+  relative_density_to_cruise: number;
+  isa_temp_c: number;
+  isa_temp_dev_c: number;
+  throttle_pct: number;
+  effective_throttle_pct: number;
+  throttle_rate: number;
+  is_transient: boolean;
+  operating_conditions: string[];
+  primary_condition: string;
+  operating_condition: string;
+  mission_profile: string;
+  mission_time_sec: number;
+  simulation_speed: number;
+  endurance_hours: number;
+  endurance_stress?: EnvironmentEnduranceStress;
+}
+
 export interface DigitalTwinPayload {
   timestamp: string;
   actual: Record<string, number>;
@@ -64,6 +93,7 @@ export interface DigitalTwinPayload {
   health?: DigitalTwinHealthBlock;
   trend?: DigitalTwinTrend;
   history?: DigitalTwinHistoryPoint[];
+  environment?: EnvironmentPayload;
 }
 
 export interface TelemetryData {
@@ -92,6 +122,7 @@ export interface TelemetryData {
   anomaly_score?: number;
   sensor_diagnosis?: SensorDiagnosis;
   digital_twin?: DigitalTwinPayload;
+  environment?: EnvironmentPayload;
 }
 
 export interface RulTickData {
@@ -209,6 +240,7 @@ export interface UnifiedTelemetryPayload {
   scenario: string;
   sensor_diagnosis?: SensorDiagnosis;
   digital_twin?: DigitalTwinPayload;
+  environment?: EnvironmentPayload;
   diagnosis?: FaultDiagnosisPayload;
   rpm?: number;
   cht_c?: number;

@@ -116,6 +116,8 @@ class HealthIndexCalculator:
 
         cht_act = cht_data.get("actual", float(telemetry.get("cht_c") or 142.0))
         egt_act = egt_data.get("actual", float(telemetry.get("egt_c") or 615.0))
+        cht_exp = cht_data.get("expected", 142.0)
+        egt_exp = egt_data.get("expected", 615.0)
 
         # Check for isolated single-sensor CHT spike (thermocouple issue, not physical engine heating)
         is_isolated_cht = (abs(cht_norm) > 2.5) and (abs(egt_norm) < 1.5) and (abs(oil_t_norm) < 1.5)
@@ -126,12 +128,16 @@ class HealthIndexCalculator:
         oil_t_res_score = _residual_penalty_score(oil_t_norm, linear_penalty=10.0)
 
         # 2. Absolute operating condition penalty (exceeding redline)
+        # Adapt caution limit to expected physics under extreme ambient / high altitude conditions
+        cht_caution_eff = max(CRITICAL_OPERATING_LIMITS["cht_caution"], cht_exp + 18.0)
+        egt_caution_eff = max(CRITICAL_OPERATING_LIMITS["egt_caution"], egt_exp + 45.0)
+
         abs_penalty = 0.0
         if not is_isolated_cht:
-            if cht_act > CRITICAL_OPERATING_LIMITS["cht_caution"]:
-                abs_penalty += min(25.0, (cht_act - CRITICAL_OPERATING_LIMITS["cht_caution"]) * 0.8)
-            if egt_act > CRITICAL_OPERATING_LIMITS["egt_caution"]:
-                abs_penalty += min(20.0, (egt_act - CRITICAL_OPERATING_LIMITS["egt_caution"]) * 0.25)
+            if cht_act > cht_caution_eff:
+                abs_penalty += min(25.0, (cht_act - cht_caution_eff) * 0.8)
+            if egt_act > egt_caution_eff:
+                abs_penalty += min(20.0, (egt_act - egt_caution_eff) * 0.25)
 
         # 3. Cooling physical degradation
         cooling_deg = degradation.get("cooling", 0.0)

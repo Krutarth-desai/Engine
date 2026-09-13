@@ -135,13 +135,18 @@ class EngineModel:
         env = environment or {}
         
         # 1. Resolve operational inputs with graceful fallback hierarchy
-        throttle = float(
-            env.get("throttle_pct") or 
-            env.get("throttle") or 
-            telemetry.get("throttle_pct") or 
-            telemetry.get("throttle") or 
-            self.base["throttle_pct"]
-        )
+        # Prioritize transient-filtered effective throttle if available
+        effective_throttle = env.get("effective_throttle_pct") or env.get("effective_throttle")
+        if effective_throttle is not None:
+            throttle = float(effective_throttle)
+        else:
+            throttle = float(
+                env.get("throttle_pct") or 
+                env.get("throttle") or 
+                telemetry.get("throttle_pct") or 
+                telemetry.get("throttle") or 
+                self.base["throttle_pct"]
+            )
         throttle = max(0.0, min(100.0, throttle))
 
         altitude = float(

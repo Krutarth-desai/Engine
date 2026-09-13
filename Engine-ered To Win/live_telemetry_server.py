@@ -107,7 +107,9 @@ simulation_state = {
     "tick": 0,
     "throttle": 75.0,
     "altitude": 15000.0,
-    "ambient_temp": 15.0
+    "ambient_temp": 15.0,
+    "mission_profile": "CRUISE",
+    "simulation_speed": 1.0
 }
 
 # Predictive Maintenance State
@@ -355,6 +357,8 @@ async def tick_and_broadcast():
     )
     flat_telemetry["digital_twin"] = dt_output
     unified_data["digital_twin"] = dt_output
+    flat_telemetry["environment"] = dt_output.get("environment", {})
+    unified_data["environment"] = dt_output.get("environment", {})
     
     # 2d. Phase 3 Physics-Informed AI Fault Diagnosis + Sensor/Engine Fault Fusion
     fusion_diagnosis = fault_fusion_engine.diagnose(
@@ -468,6 +472,34 @@ async def websocket_telemetry(websocket: WebSocket):
                     await tick_and_broadcast()
                 if "is_running" in cmd:
                     simulation_state["is_running"] = cmd["is_running"]
+                if "altitude" in cmd or "altitude_ft" in cmd:
+                    alt_in = cmd.get("altitude") or cmd.get("altitude_ft")
+                    simulation_state["altitude"] = float(alt_in)
+                    digital_twin_core.set_environment(altitude_ft=simulation_state["altitude"])
+                    await tick_and_broadcast()
+                if "ambient_temp" in cmd or "ambient_temp_c" in cmd:
+                    amb_in = cmd.get("ambient_temp") or cmd.get("ambient_temp_c")
+                    simulation_state["ambient_temp"] = float(amb_in)
+                    digital_twin_core.set_environment(ambient_temp_c=simulation_state["ambient_temp"])
+                    await tick_and_broadcast()
+                if "throttle" in cmd or "throttle_pct" in cmd:
+                    thr_in = cmd.get("throttle") or cmd.get("throttle_pct")
+                    simulation_state["throttle"] = float(thr_in)
+                    digital_twin_core.set_environment(throttle_pct=simulation_state["throttle"])
+                    await tick_and_broadcast()
+                if "mission_profile" in cmd or "profile" in cmd:
+                    prof_name = cmd.get("mission_profile") or cmd.get("profile")
+                    prof_data = digital_twin_core.set_mission_profile(str(prof_name))
+                    simulation_state["mission_profile"] = prof_data["phase"]
+                    simulation_state["throttle"] = prof_data["throttle_target"]
+                    simulation_state["altitude"] = prof_data["altitude_target"]
+                    if "ambient_temp_target" in prof_data:
+                        simulation_state["ambient_temp"] = prof_data["ambient_temp_target"]
+                    await tick_and_broadcast()
+                if "simulation_speed" in cmd or "speed" in cmd:
+                    spd_in = cmd.get("simulation_speed") or cmd.get("speed")
+                    simulation_state["simulation_speed"] = float(spd_in)
+                    digital_twin_core.set_simulation_speed(simulation_state["simulation_speed"])
             except Exception as e:
                 print(f"Error parsing command: {e}")
     except WebSocketDisconnect:
@@ -486,6 +518,45 @@ async def api_inject_scenario(payload: dict):
     print(f"*** HTTP POST Injected scenario: {sc} ***")
     await tick_and_broadcast()
     return {"status": "ok", "scenario": sc, "health_index": simulation_state.get("health_index")}
+
+@app.post("/api/environment")
+async def api_set_environment(payload: dict):
+    """Update ambient environmental and operational conditions."""
+    if "altitude" in payload or "altitude_ft" in payload:
+        simulation_state["altitude"] = float(payload.get("altitude") or payload.get("altitude_ft"))
+    if "ambient_temp" in payload or "ambient_temp_c" in payload:
+        simulation_state["ambient_temp"] = float(payload.get("ambient_temp") or payload.get("ambient_temp_c"))
+    if "throttle" in payload or "throttle_pct" in payload:
+        simulation_state["throttle"] = float(payload.get("throttle") or payload.get("throttle_pct"))
+    
+    state = digital_twin_core.set_environment(
+        altitude_ft=simulation_state.get("altitude"),
+        ambient_temp_c=simulation_state.get("ambient_temp"),
+        throttle_pct=simulation_state.get("throttle")
+    )
+    await tick_and_broadcast()
+    return {"status": "ok", "environment": state}
+
+@app.post("/api/mission")
+async def api_set_mission(payload: dict):
+    """Set mission flight phase profile."""
+    prof_name = payload.get("profile") or payload.get("mission_profile") or "CRUISE"
+    prof_data = digital_twin_core.set_mission_profile(str(prof_name))
+    simulation_state["mission_profile"] = prof_data["phase"]
+    simulation_state["throttle"] = prof_data["throttle_target"]
+    simulation_state["altitude"] = prof_data["altitude_target"]
+    if "ambient_temp_target" in prof_data:
+        simulation_state["ambient_temp"] = prof_data["ambient_temp_target"]
+    await tick_and_broadcast()
+    return {"status": "ok", "profile": prof_data, "environment": digital_twin_core.get_environment()}
+
+@app.post("/api/endurance")
+async def api_set_endurance(payload: dict):
+    """Set accelerated endurance simulation speed multiplier."""
+    speed = float(payload.get("simulation_speed") or payload.get("speed") or 1.0)
+    simulation_state["simulation_speed"] = speed
+    digital_twin_core.set_simulation_speed(speed)
+    return {"status": "ok", "simulation_speed": speed, "environment": digital_twin_core.get_environment()}
 
 async def simulation_loop():
     """Background task that ticks the simulation and broadcasts data at 1 Hz."""
