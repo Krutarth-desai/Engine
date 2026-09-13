@@ -1618,13 +1618,69 @@
         /* 1. Header / Mission Bar */
         .gcs-mission-header {
             display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0.65rem 1.5rem;
+            flex-direction: column;
+            padding: 0.35rem 1.5rem 0.55rem;
             background: rgba(10, 16, 30, 0.95);
             border-bottom: 1px solid rgba(56, 189, 248, 0.2);
             backdrop-filter: blur(12px);
             z-index: 50;
+            position: sticky;
+            top: 0;
+        }
+
+        .gcs-header-top-banner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.15rem 0.5rem 0.35rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            margin-bottom: 0.35rem;
+            width: 100%;
+        }
+
+        .gcs-header-title-wrap {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            font-family: 'Chakra Petch', sans-serif;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        .gcs-header-system-title {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #f1f5f9;
+            letter-spacing: 1.5px;
+            margin: 0;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .gcs-header-divider {
+            color: rgba(56, 189, 248, 0.5);
+            font-size: 0.75rem;
+        }
+
+        .gcs-header-suite-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--accent-cyan, #38bdf8);
+            letter-spacing: 1.2px;
+            line-height: 1;
+        }
+
+        .gcs-header-accent-pip {
+            font-size: 0.55rem;
+            color: rgba(56, 189, 248, 0.5);
+        }
+
+        .gcs-header-main-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            gap: 1rem;
         }
 
         .mission-center-bar {
@@ -3886,5 +3942,58 @@
                 grid-template-columns: repeat(2, 1fr);
             }
         }
+
+        /* ==================================================== */
+        /* PHASE 6.1 AEROSPACE COMMAND DASHBOARD REFINEMENT     */
+        /* ==================================================== */
+        .hero-command-grid {
+            display: grid;
+            grid-template-columns: minmax(440px, 42%) 1fr;
+            gap: 1.1rem;
+            align-items: stretch;
+        }
+
+        .hero-health-rul-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.85rem;
+        }
+
+        .twin-benchmark-grid {
+            display: grid;
+            grid-template-columns: minmax(480px, 1.25fr) 1fr;
+            gap: 1rem;
+        }
+
+        .env-mission-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        @media (max-width: 1400px) {
+            .hero-command-grid {
+                grid-template-columns: minmax(380px, 40%) 1fr;
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .hero-command-grid {
+                grid-template-columns: 1fr;
+            }
+            .twin-benchmark-grid {
+                grid-template-columns: 1fr;
+            }
+            .env-mission-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 800px) {
+            .hero-health-rul-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
 
 

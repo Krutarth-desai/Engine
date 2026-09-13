@@ -10,6 +10,8 @@ interface HeaderProps {
   altitude?: number;
   throttle?: number;
   remainingTimeStr?: string;
+  mode?: "LIVE" | "REPLAY";
+  missionStatus?: string;
   onLogout: () => void;
 }
 
@@ -21,18 +23,29 @@ export default function Header({
   altitude = 15000,
   throttle = 75,
   remainingTimeStr = "01:57:32",
+  mode = "LIVE",
+  missionStatus = "NOMINAL CRUISE",
   onLogout,
 }: HeaderProps) {
   return (
     <header id="app-header" className="gcs-mission-header">
-      {/* Left: Mission Brand */}
-      <div className="brand">
-        <div className="logo-badge"><span className="aerotwin-icon">▲</span> AEROTWIN</div>
-        <div>
-          <div className="brand-title"><strong>MALE UAV PISTON ENGINE DIGITAL TWIN</strong></div>
-          <div className="brand-subtitle">GROUND CONTROL STATION &amp; PHM SUITE</div>
+      {/* Top Banner Row: Centralized System Title across top with reduced, crisp typography */}
+      <div className="gcs-header-top-banner">
+        <div className="gcs-header-title-wrap">
+          <span className="gcs-header-accent-pip">◀</span>
+          <h1 className="gcs-header-system-title">MALE UAV PISTON ENGINE DIGITAL TWIN</h1>
+          <span className="gcs-header-divider">•</span>
+          <span className="gcs-header-suite-title">GROUND CONTROL STATION &amp; PHM SUITE</span>
+          <span className="gcs-header-accent-pip">▶</span>
         </div>
       </div>
+
+      {/* Main Operational Bar Row */}
+      <div className="gcs-header-main-row">
+        {/* Left: Mission Brand Identity */}
+        <div className="brand">
+          <div className="logo-badge"><span className="aerotwin-icon">▲</span> AEROTWIN</div>
+        </div>
 
       {/* Center: Mission Operational Telemetry */}
       <div className="mission-center-bar">
@@ -66,6 +79,37 @@ export default function Header({
           </div>
         </div>
 
+        {/* Mode Badge [ LIVE / REPLAY ] */}
+        <div
+          id="mode-badge"
+          className="status-pill"
+          style={{
+            borderColor: mode === "REPLAY" ? "rgba(56, 189, 248, 0.5)" : "rgba(16, 185, 129, 0.4)",
+            color: mode === "REPLAY" ? "#38bdf8" : "#10b981",
+            background: mode === "REPLAY" ? "rgba(56, 189, 248, 0.15)" : "rgba(16, 185, 129, 0.1)",
+            fontWeight: 800,
+          }}
+        >
+          <span
+            className="status-dot"
+            style={{ backgroundColor: mode === "REPLAY" ? "#38bdf8" : "#10b981" }}
+          ></span>
+          <span>{mode === "REPLAY" ? "REPLAY" : "LIVE"}</span>
+        </div>
+
+        {/* Mission Status Badge */}
+        <div
+          id="mission-status-badge"
+          className="status-pill"
+          style={{
+            borderColor: "rgba(255, 255, 255, 0.12)",
+            color: "#e2e8f0",
+            fontSize: "0.68rem",
+          }}
+        >
+          <span>{missionStatus}</span>
+        </div>
+
         <div
           id="conn-badge"
           className="status-pill"
@@ -75,7 +119,7 @@ export default function Header({
           }}
         >
           <span className="status-dot"></span>
-          <span id="conn-text">{isConnected ? "LIVE 1 Hz" : "RECONNECTING"}</span>
+          <span id="conn-text">{isConnected ? "ONLINE 1 Hz" : "RECONNECTING"}</span>
         </div>
 
         <div className="auth-user-info">
@@ -87,6 +131,7 @@ export default function Header({
           </button>
         </div>
       </div>
-    </header>
+    </div>
+  </header>
   );
 }

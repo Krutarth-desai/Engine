@@ -169,6 +169,38 @@ export default function AuthScreen({ onAuthenticated }: AuthScreenProps) {
           Sign in with Google
         </button>
 
+        <button
+          type="button"
+          id="btn-demo-bypass"
+          onClick={() =>
+            onAuthenticated({
+              id: "demo-operator-id",
+              email: "commander@aerotwin.aero",
+              user_metadata: { full_name: "Flight Commander", name: "Flight Commander" },
+            })
+          }
+          style={{
+            width: "100%",
+            marginTop: "0.65rem",
+            background: "linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(37, 99, 235, 0.2))",
+            border: "1px solid rgba(56, 189, 248, 0.4)",
+            color: "#38bdf8",
+            borderRadius: "6px",
+            padding: "0.6rem",
+            fontSize: "0.78rem",
+            fontWeight: 800,
+            cursor: "pointer",
+            letterSpacing: "0.5px",
+            fontFamily: "var(--font-mono, monospace)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "0.5rem",
+          }}
+        >
+          <span>⚡ DEMO OPERATOR ACCESS (INSTANT GCS)</span>
+        </button>
+
         <div className="auth-toggle">
           <span>{isSignUpMode ? "Already have an account?" : "Don't have an account?"}</span>{" "}
           <a onClick={toggleAuthMode}>{isSignUpMode ? "Sign In" : "Sign Up"}</a>
