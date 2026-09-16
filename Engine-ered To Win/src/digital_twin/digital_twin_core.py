@@ -20,6 +20,7 @@ from .degradation_model import DegradationModel
 from .state_estimator import StateEstimator
 from .health_index import HealthIndexCalculator
 from .environment import EnvironmentModel
+from .fault_propagation import FaultPropagationEngine, EngineConditionState
 
 
 class DigitalTwinCore:
@@ -37,6 +38,7 @@ class DigitalTwinCore:
         state_estimator: Optional[StateEstimator] = None,
         health_calculator: Optional[HealthIndexCalculator] = None,
         environment_model: Optional[EnvironmentModel] = None,
+        fault_propagation_engine: Optional[FaultPropagationEngine] = None,
         max_history: int = 60
     ):
         self.engine_model = engine_model or EngineModel()
@@ -44,6 +46,7 @@ class DigitalTwinCore:
         self.state_estimator = state_estimator or StateEstimator()
         self.health_calculator = health_calculator or HealthIndexCalculator()
         self.environment_model = environment_model or EnvironmentModel()
+        self.fault_propagation_engine = fault_propagation_engine or FaultPropagationEngine()
         
         # Bounded rolling history buffer to avoid memory leaks
         self.max_history = max_history
@@ -53,6 +56,7 @@ class DigitalTwinCore:
         self._prev_overall_health: Optional[float] = None
         self._tick_counter: int = 0
 
+
     def update(
         self,
         telemetry: Dict[str, Any],
@@ -60,7 +64,8 @@ class DigitalTwinCore:
         dt: float = 1.0,
         scenario: Optional[str] = None,
         scenario_progress: float = 1.0,
-        sensor_diagnosis: Optional[Dict[str, Any]] = None
+        sensor_diagnosis: Optional[Dict[str, Any]] = None,
+        active_faults: Optional[Any] = None
     ) -> Dict[str, Any]:
         """
         Executes one complete Digital Twin update cycle.
@@ -72,6 +77,7 @@ class DigitalTwinCore:
             scenario: Optional active fault scenario name for degradation synchronization.
             scenario_progress: Progress [0.0 to 1.0] of current scenario.
             sensor_diagnosis: Optional ML diagnosis from SensorDiagnosisEngine.
+            active_faults: Optional set/list of active fault IDs or single fault string.
 
         Returns:
             Structured Digital Twin payload containing:
@@ -81,12 +87,30 @@ class DigitalTwinCore:
             - subsystem_health (Phase 1 backward compatibility)
             - health_index (Phase 1 backward compatibility)
             - degradation: {injector, lubrication, cooling, mechanical, electrical, sensors}
+            - active_faults, engine_condition, accumulated_wear, fault_timeline, sensor_confidence
             - trend: {overall_delta, degradation_rate, rapid_degradation, warning}
             - history: rolling window of past health states
         """
         self._tick_counter += 1
 
-        # 0. Synchronize & Advance Environmental Simulation
+        # 0. Synchronize & Advance Fault Propagation Engine
+        if active_faults is not None:
+            if isinstance(active_faults, (list, tuple, set)):
+                self.fault_propagation_engine.set_active_faults(active_faults)
+            elif isinstance(active_faults, str) and active_faults:
+                if active_faults.lower() != "normal":
+                    self.fault_propagation_engine.inject_fault(active_faults)
+                else:
+                    self.fault_propagation_engine.clear_all_faults()
+        elif scenario and scenario.lower() != "normal":
+            self.fault_propagation_engine.inject_fault(scenario)
+
+        # Advance physics-based fault propagation and compound wear
+        self.fault_propagation_engine.update(dt=dt, base_telemetry=telemetry)
+        accumulated_wear = self.fault_propagation_engine.get_accumulated_wear()
+        self.degradation_model.apply_fault_propagation_wear(accumulated_wear)
+
+        # 0b. Synchronize & Advance Environmental Simulation
         if environment:
             alt = environment.get("altitude_ft") if "altitude_ft" in environment else environment.get("altitude")
             amb = environment.get("ambient_temp_c") if "ambient_temp_c" in environment else environment.get("ambient_temp")
@@ -107,6 +131,7 @@ class DigitalTwinCore:
             self.degradation_model.apply_scenario_degradation(scenario, scenario_progress)
 
         degradation_state = self.degradation_model.get_all_degradation()
+
 
         # 2. Predict Expected Engine Operating State
         expected_state = self.engine_model.predict(
@@ -208,7 +233,50 @@ class DigitalTwinCore:
             "health_index": current_overall,
             # Phase 2 Trend & History
             "trend": trend_data,
-            "history": list(self._history)
+            "history": list(self._history),
+            # Phase 6.2 Realistic Fault Propagation & Degradation Engine
+            "active_faults": list(self.fault_propagation_engine.get_active_fault_ids()),
+            "engine_condition": self.fault_propagation_engine.get_condition_state().value,
+            "accumulated_wear": accumulated_wear,
+            "fault_timeline": self.fault_propagation_engine.get_fault_timeline(),
+            "sensor_confidence": self.fault_propagation_engine.get_sensor_confidence(),
+            "cascaded_faults": list(self.fault_propagation_engine.get_cascaded_fault_ids())
+        }
+
+    def inject_fault(self, fault_id: str, severity: str = "MODERATE") -> None:
+        """Injects a fault into the active fault set."""
+        self.fault_propagation_engine.inject_fault(fault_id, severity)
+
+    def remove_fault(self, fault_id: str) -> None:
+        """Removes a fault from the active fault set without resetting accumulated wear."""
+        self.fault_propagation_engine.remove_fault(fault_id)
+
+    def clear_all_faults(self) -> None:
+        """Clears all active driving faults without resetting accumulated wear."""
+        self.fault_propagation_engine.clear_all_faults()
+
+    def reset_all_faults_and_wear(self) -> None:
+        """Full maintenance reset of active faults, timeline, and accumulated wear."""
+        self.fault_propagation_engine.reset()
+        self.degradation_model.reset_degradation()
+
+    def get_active_faults(self) -> List[str]:
+        """Returns currently active fault IDs."""
+        return list(self.fault_propagation_engine.get_active_fault_ids())
+
+    def get_engine_condition(self) -> str:
+        """Returns current engine condition state string."""
+        return self.fault_propagation_engine.get_condition_state().value
+
+    def get_fault_propagation_state(self) -> Dict[str, Any]:
+        """Returns comprehensive diagnostic state of fault propagation engine."""
+        return {
+            "active_faults": list(self.fault_propagation_engine.get_active_fault_ids()),
+            "condition_state": self.fault_propagation_engine.get_condition_state().value,
+            "accumulated_wear": self.fault_propagation_engine.get_accumulated_wear(),
+            "sensor_confidence": self.fault_propagation_engine.get_sensor_confidence(),
+            "timeline": self.fault_propagation_engine.get_fault_timeline(),
+            "cascades": list(self.fault_propagation_engine.get_cascaded_fault_ids())
         }
 
     def set_environment(
@@ -256,3 +324,4 @@ class DigitalTwinCore:
     def get_health_history(self) -> List[Dict[str, Any]]:
         """Retrieves the rolling history of health records."""
         return list(self._history)
+

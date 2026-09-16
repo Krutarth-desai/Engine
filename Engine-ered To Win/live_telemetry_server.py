@@ -108,6 +108,7 @@ async def serve_root():
 simulation_state = {
     "is_running": True,  # Auto-start for convenience
     "scenario": "Normal",
+    "active_faults": set(),  # Active fault IDs set for multi-fault support
     "selected_unit": 1,
     "tick": 0,
     "throttle": 75.0,
@@ -117,6 +118,7 @@ simulation_state = {
     "simulation_speed": 1.0,
     "simulation_mode": "LIVE"  # "LIVE" or "REPLAY"
 }
+
 
 # Predictive Maintenance State
 anomaly_detector = AeroTwinAnomalyDetector(contamination=0.05)
@@ -358,16 +360,19 @@ async def tick_and_broadcast():
         "ambient_temp_c": simulation_state.get("ambient_temp", 15.0)
     }
     sc_progress = min(simulation_state.get("tick", 0) / 20.0, 1.0)
+    current_active_faults = list(simulation_state.get("active_faults", []))
     dt_output = digital_twin_core.update(
         telemetry=flat_telemetry,
         environment=env_state,
         dt=1.0,
         scenario=simulation_state.get("scenario", "Normal"),
         scenario_progress=sc_progress,
-        sensor_diagnosis=diag_result
+        sensor_diagnosis=diag_result,
+        active_faults=current_active_faults
     )
     flat_telemetry["digital_twin"] = dt_output
     unified_data["digital_twin"] = dt_output
+
     flat_telemetry["environment"] = dt_output.get("environment", {})
     unified_data["environment"] = dt_output.get("environment", {})
     
@@ -469,6 +474,9 @@ async def tick_and_broadcast():
         }
 
     unified_data["mode"] = "LIVE"
+    unified_data["active_faults"] = list(simulation_state.get("active_faults", []))
+    unified_data["engine_condition"] = digital_twin_core.get_engine_condition()
+    unified_data["scenario"] = simulation_state.get("scenario", "Normal")
 
     # Broadcast unified packet
     await manager.broadcast(json.dumps(unified_data))
@@ -489,17 +497,66 @@ async def websocket_telemetry(websocket: WebSocket):
             try:
                 cmd = json.loads(data)
                 if "scenario" in cmd:
-                    simulation_state["scenario"] = cmd["scenario"]
-                    simulation_state["tick"] = 0
-                    # Reset sensor diagnosis persistence and digital twin wear on scenario change
-                    sensor_diagnosis_engine.reset_persistence()
-                    digital_twin_core.reset_degradation()
-                    fault_fusion_engine.reset()
+                    sc = cmd["scenario"]
+                    if sc == "Normal":
+                        simulation_state["active_faults"].clear()
+                        simulation_state["scenario"] = "Normal"
+                        digital_twin_core.clear_all_faults()
+                        telemetry_processor.clear_active_faults()
+                    else:
+                        norm_sc = digital_twin_core.fault_propagation_engine.normalize_id(sc)
+                        simulation_state["active_faults"].add(norm_sc)
+                        simulation_state["scenario"] = sc
+                        digital_twin_core.inject_fault(norm_sc)
+                        telemetry_processor.inject_fault(norm_sc)
                     if mission_recorder.is_recording():
-                        mission_recorder.log_scenario_injection(cmd["scenario"])
-                    print(f"*** WS Injected scenario: {cmd['scenario']} ***")
-                    # Immediately tick and broadcast with zero latency
+                        mission_recorder.log_scenario_injection(sc)
+                    print(f"*** WS Scenario/Fault updated: {sc} (Active: {list(simulation_state['active_faults'])}) ***")
                     await tick_and_broadcast()
+                if "active_faults" in cmd:
+                    raw_faults = cmd["active_faults"]
+                    if isinstance(raw_faults, (list, set, tuple)):
+                        norm_faults = {digital_twin_core.fault_propagation_engine.normalize_id(f) for f in raw_faults if f and str(f).lower() != "normal"}
+                        simulation_state["active_faults"] = norm_faults
+                        digital_twin_core.fault_propagation_engine.set_active_faults(norm_faults)
+                        telemetry_processor.fault_propagation_engine.set_active_faults(norm_faults)
+                        simulation_state["scenario"] = list(norm_faults)[-1] if norm_faults else "Normal"
+                    await tick_and_broadcast()
+                if "inject_fault" in cmd:
+                    fid = digital_twin_core.fault_propagation_engine.normalize_id(cmd["inject_fault"])
+                    sev = cmd.get("severity", "MODERATE")
+                    if fid and fid != "normal":
+                        simulation_state["active_faults"].add(fid)
+                        digital_twin_core.inject_fault(fid, sev)
+                        telemetry_processor.inject_fault(fid, sev)
+                        simulation_state["scenario"] = fid
+                    await tick_and_broadcast()
+                if "remove_fault" in cmd:
+                    fid = digital_twin_core.fault_propagation_engine.normalize_id(cmd["remove_fault"])
+                    simulation_state["active_faults"].discard(fid)
+                    digital_twin_core.remove_fault(fid)
+                    telemetry_processor.remove_fault(fid)
+                    simulation_state["scenario"] = list(simulation_state["active_faults"])[-1] if simulation_state["active_faults"] else "Normal"
+                    await tick_and_broadcast()
+                if "clear_faults" in cmd:
+                    simulation_state["active_faults"].clear()
+                    simulation_state["scenario"] = "Normal"
+                    digital_twin_core.clear_all_faults()
+                    telemetry_processor.clear_active_faults()
+                    await tick_and_broadcast()
+                if "toggle_fault" in cmd:
+                    fid = digital_twin_core.fault_propagation_engine.normalize_id(cmd["toggle_fault"])
+                    if fid in simulation_state["active_faults"]:
+                        simulation_state["active_faults"].discard(fid)
+                        digital_twin_core.remove_fault(fid)
+                        telemetry_processor.remove_fault(fid)
+                    else:
+                        simulation_state["active_faults"].add(fid)
+                        digital_twin_core.inject_fault(fid)
+                        telemetry_processor.inject_fault(fid)
+                    simulation_state["scenario"] = list(simulation_state["active_faults"])[-1] if simulation_state["active_faults"] else "Normal"
+                    await tick_and_broadcast()
+
                 if "is_running" in cmd:
                     simulation_state["is_running"] = cmd["is_running"]
                 if "altitude" in cmd or "altitude_ft" in cmd:
@@ -589,18 +646,134 @@ async def websocket_telemetry(websocket: WebSocket):
 @app.post("/api/scenario")
 @app.post("/api/inject_scenario")
 async def api_inject_scenario(payload: dict):
-    """HTTP POST fallback to inject fault scenarios with immediate broadcast."""
-    sc = payload.get("scenario", "Normal")
-    simulation_state["scenario"] = sc
-    simulation_state["tick"] = 0
-    sensor_diagnosis_engine.reset_persistence()
-    digital_twin_core.reset_degradation()
-    fault_fusion_engine.reset()
+    """HTTP POST to inject or toggle fault scenarios with immediate broadcast."""
+    raw_sc = payload.get("scenario", "Normal")
+    action = payload.get("action", "toggle" if payload.get("toggle") else "inject")
+
+    if raw_sc == "Normal" or action == "clear":
+        simulation_state["active_faults"].clear()
+        simulation_state["scenario"] = "Normal"
+        digital_twin_core.clear_all_faults()
+        telemetry_processor.clear_active_faults()
+    else:
+        sc = digital_twin_core.fault_propagation_engine.normalize_id(raw_sc)
+        if action == "remove":
+            simulation_state["active_faults"].discard(sc)
+            digital_twin_core.remove_fault(sc)
+            telemetry_processor.remove_fault(sc)
+            simulation_state["scenario"] = list(simulation_state["active_faults"])[-1] if simulation_state["active_faults"] else "Normal"
+        elif action == "toggle":
+            if sc in simulation_state["active_faults"]:
+                simulation_state["active_faults"].discard(sc)
+                digital_twin_core.remove_fault(sc)
+                telemetry_processor.remove_fault(sc)
+            else:
+                simulation_state["active_faults"].add(sc)
+                digital_twin_core.inject_fault(sc)
+                telemetry_processor.inject_fault(sc)
+            simulation_state["scenario"] = list(simulation_state["active_faults"])[-1] if simulation_state["active_faults"] else "Normal"
+        else:  # inject
+            simulation_state["active_faults"].add(sc)
+            simulation_state["scenario"] = sc
+            digital_twin_core.inject_fault(sc)
+            telemetry_processor.inject_fault(sc)
+
     if mission_recorder.is_recording():
-        mission_recorder.log_scenario_injection(sc)
-    print(f"*** HTTP POST Injected scenario: {sc} ***")
+        mission_recorder.log_scenario_injection(raw_sc)
+    print(f"*** HTTP POST Injected scenario/fault: {raw_sc} (Active: {list(simulation_state['active_faults'])}) ***")
     await tick_and_broadcast()
-    return {"status": "ok", "scenario": sc, "health_index": simulation_state.get("health_index")}
+    return {
+        "status": "ok",
+        "scenario": simulation_state["scenario"],
+        "active_faults": list(simulation_state["active_faults"]),
+        "engine_condition": digital_twin_core.get_engine_condition()
+    }
+
+@app.get("/api/faults")
+async def api_get_faults():
+    """Retrieve active faults, engine condition state, wear, and catalog."""
+    from src.digital_twin.fault_propagation import FAULT_CATALOG
+    return {
+        "status": "ok",
+        "active_faults": list(simulation_state.get("active_faults", [])),
+        "engine_condition": digital_twin_core.get_engine_condition(),
+        "accumulated_wear": digital_twin_core.fault_propagation_engine.get_accumulated_wear(),
+        "timeline": digital_twin_core.fault_propagation_engine.get_fault_timeline(),
+        "sensor_confidence": digital_twin_core.fault_propagation_engine.get_sensor_confidence(),
+        "catalog": [
+            {
+                "fault_id": f.fault_id,
+                "name": f.name,
+                "category": f.category.value,
+                "base_severity": f.base_severity,
+                "description": f.description
+            }
+            for f in FAULT_CATALOG.values()
+        ]
+    }
+
+@app.post("/api/faults/inject")
+async def api_fault_inject(payload: dict):
+    raw_fid = payload.get("fault_id") or payload.get("scenario")
+    sev = payload.get("severity", "MODERATE")
+    if raw_fid:
+        fault_id = digital_twin_core.fault_propagation_engine.normalize_id(raw_fid)
+        if fault_id and fault_id != "normal":
+            simulation_state["active_faults"].add(fault_id)
+            simulation_state["scenario"] = fault_id
+            digital_twin_core.inject_fault(fault_id, sev)
+            telemetry_processor.inject_fault(fault_id, sev)
+            await tick_and_broadcast()
+    return {"status": "ok", "active_faults": list(simulation_state["active_faults"])}
+
+@app.post("/api/faults/remove")
+async def api_fault_remove(payload: dict):
+    raw_fid = payload.get("fault_id") or payload.get("scenario")
+    if raw_fid:
+        fault_id = digital_twin_core.fault_propagation_engine.normalize_id(raw_fid)
+        simulation_state["active_faults"].discard(fault_id)
+        digital_twin_core.remove_fault(fault_id)
+        telemetry_processor.remove_fault(fault_id)
+        simulation_state["scenario"] = list(simulation_state["active_faults"])[-1] if simulation_state["active_faults"] else "Normal"
+        await tick_and_broadcast()
+    return {"status": "ok", "active_faults": list(simulation_state["active_faults"])}
+
+@app.post("/api/faults/toggle")
+async def api_fault_toggle(payload: dict):
+    raw_fid = payload.get("fault_id") or payload.get("scenario")
+    if raw_fid:
+        fault_id = digital_twin_core.fault_propagation_engine.normalize_id(raw_fid)
+        if fault_id in simulation_state["active_faults"]:
+            simulation_state["active_faults"].discard(fault_id)
+            digital_twin_core.remove_fault(fault_id)
+            telemetry_processor.remove_fault(fault_id)
+        else:
+            simulation_state["active_faults"].add(fault_id)
+            digital_twin_core.inject_fault(fault_id)
+            telemetry_processor.inject_fault(fault_id)
+        simulation_state["scenario"] = list(simulation_state["active_faults"])[-1] if simulation_state["active_faults"] else "Normal"
+        await tick_and_broadcast()
+    return {"status": "ok", "active_faults": list(simulation_state["active_faults"])}
+
+@app.post("/api/faults/clear")
+async def api_fault_clear():
+    simulation_state["active_faults"].clear()
+    simulation_state["scenario"] = "Normal"
+    digital_twin_core.clear_all_faults()
+    telemetry_processor.clear_active_faults()
+    await tick_and_broadcast()
+    return {"status": "ok", "active_faults": []}
+
+@app.post("/api/faults/overhaul")
+async def api_fault_overhaul():
+    """Full maintenance overhaul: clears faults, zeroes accumulated wear, restores nominal."""
+    simulation_state["active_faults"].clear()
+    simulation_state["scenario"] = "Normal"
+    digital_twin_core.reset_all_faults_and_wear()
+    telemetry_processor.reset_all()
+    await tick_and_broadcast()
+    return {"status": "ok", "message": "Engine overhaul completed. Pristine baseline restored."}
+
 
 @app.post("/api/environment")
 async def api_set_environment(payload: dict):

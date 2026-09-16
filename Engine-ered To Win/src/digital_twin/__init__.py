@@ -31,6 +31,22 @@ from .environment import (
     get_mission_profile,
     ThrottleTransientModel
 )
+from .fault_propagation import (
+    FaultPropagationEngine,
+    EngineConditionState,
+    FaultCategory,
+    FaultDefinition,
+    FAULT_CATALOG,
+    FAULT_MISFIRE,
+    FAULT_INJECTOR,
+    FAULT_COATING,
+    FAULT_LUBRICATION,
+    FAULT_SENSOR_DRIFT,
+    FAULT_COMBUSTION_INSTABILITY,
+    FAULT_OVERHEATING,
+    FAULT_VIBRATION,
+    FAULT_ENGINE_FAILURE_MULTI
+)
 
 __all__ = [
     "EngineModel",
@@ -55,5 +71,20 @@ __all__ = [
     "MissionPhase",
     "MISSION_PROFILES",
     "get_mission_profile",
-    "ThrottleTransientModel"
+    "ThrottleTransientModel",
+    "FaultPropagationEngine",
+    "EngineConditionState",
+    "FaultCategory",
+    "FaultDefinition",
+    "FAULT_CATALOG",
+    "FAULT_MISFIRE",
+    "FAULT_INJECTOR",
+    "FAULT_COATING",
+    "FAULT_LUBRICATION",
+    "FAULT_SENSOR_DRIFT",
+    "FAULT_COMBUSTION_INSTABILITY",
+    "FAULT_OVERHEATING",
+    "FAULT_VIBRATION",
+    "FAULT_ENGINE_FAILURE_MULTI"
 ]
+

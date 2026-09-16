@@ -43,6 +43,8 @@ export interface TelemetryContextType {
   isConnected: boolean;
   connectionStatus: ConnectionState;
   activeScenario: string;
+  activeFaults: string[];
+  engineCondition: string;
   mode: "LIVE" | "REPLAY";
   
   // Directly accessible telemetry slices
@@ -61,6 +63,11 @@ export interface TelemetryContextType {
 
   // Action Dispatchers
   injectScenario: (scenario: string) => Promise<void>;
+  toggleFault: (faultId: string) => Promise<void>;
+  injectFault: (faultId: string, severity?: string) => Promise<void>;
+  removeFault: (faultId: string) => Promise<void>;
+  clearFaults: () => Promise<void>;
+  resetOverhaul: () => Promise<void>;
   setEnvironment: (env: {
     altitude_ft?: number;
     ambient_temp_c?: number;
@@ -78,6 +85,7 @@ export interface TelemetryContextType {
   seekReplay: (sampleIndex: number) => Promise<any>;
   setReplaySpeed: (speed: number) => Promise<any>;
 }
+
 
 const DEFAULT_SENSORS: SensorItem[] = [
   { key: "rpm", name: "RPM", value: 2450, unit: "RPM", min: 0, max: 3200, status: "NORMAL", trend: "STABLE", progressPct: 76.5 },
@@ -187,6 +195,8 @@ export function TelemetryProvider({ children }: { children: ReactNode }) {
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [connectionStatus, setConnectionStatus] = useState<ConnectionState>("CONNECTING");
   const [activeScenario, setActiveScenario] = useState<string>("Normal");
+  const [activeFaults, setActiveFaults] = useState<string[]>([]);
+  const [engineCondition, setEngineCondition] = useState<string>("NOMINAL");
 
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -222,11 +232,22 @@ export function TelemetryProvider({ children }: { children: ReactNode }) {
           if (raw.scenario) {
             setActiveScenario(raw.scenario);
           }
+          if (raw.active_faults && Array.isArray(raw.active_faults)) {
+            setActiveFaults(raw.active_faults);
+          } else if (raw.digital_twin?.active_faults && Array.isArray(raw.digital_twin.active_faults)) {
+            setActiveFaults(raw.digital_twin.active_faults);
+          }
+          if (raw.engine_condition) {
+            setEngineCondition(raw.engine_condition);
+          } else if (raw.digital_twin?.engine_condition) {
+            setEngineCondition(raw.digital_twin.engine_condition);
+          }
         }
       } catch (err) {
         console.error("[TelemetryContext] Frame parsing error:", err);
       }
     };
+
 
     ws.onclose = () => {
       setIsConnected(false);
@@ -269,20 +290,135 @@ export function TelemetryProvider({ children }: { children: ReactNode }) {
   const injectScenario = useCallback(
     async (scenario: string) => {
       setActiveScenario(scenario);
-      sendWsMessage({ scenario });
-      try {
-        const baseUrl = getApiBaseUrl();
-        await fetch(`${baseUrl}/api/scenario`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ scenario }),
-        });
-      } catch (e) {
-        console.warn("[TelemetryContext] HTTP scenario injection fallback failed:", e);
+      const sent = sendWsMessage({ scenario });
+      if (!sent) {
+        try {
+          const baseUrl = getApiBaseUrl();
+          await fetch(`${baseUrl}/api/scenario`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ scenario }),
+          });
+        } catch (e) {
+          console.warn("[TelemetryContext] HTTP scenario injection fallback failed:", e);
+        }
       }
     },
     [sendWsMessage]
   );
+
+  const injectFault = useCallback(
+    async (faultId: string, severity: string = "MODERATE") => {
+      const sent = sendWsMessage({ inject_fault: faultId, severity });
+      if (!sent) {
+        try {
+          const baseUrl = getApiBaseUrl();
+          const res = await fetch(`${baseUrl}/api/faults/inject`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ fault_id: faultId, severity }),
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (data.active_faults) {
+              setActiveFaults(data.active_faults);
+            }
+          }
+        } catch (e) {
+          console.warn("[TelemetryContext] injectFault fallback failed:", e);
+        }
+      }
+    },
+    [sendWsMessage]
+  );
+
+  const removeFault = useCallback(
+    async (faultId: string) => {
+      const sent = sendWsMessage({ remove_fault: faultId });
+      if (!sent) {
+        try {
+          const baseUrl = getApiBaseUrl();
+          const res = await fetch(`${baseUrl}/api/faults/remove`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ fault_id: faultId }),
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (data.active_faults) {
+              setActiveFaults(data.active_faults);
+            }
+          }
+        } catch (e) {
+          console.warn("[TelemetryContext] removeFault fallback failed:", e);
+        }
+      }
+    },
+    [sendWsMessage]
+  );
+
+  const toggleFault = useCallback(
+    async (faultId: string) => {
+      const sent = sendWsMessage({ toggle_fault: faultId });
+      if (!sent) {
+        try {
+          const baseUrl = getApiBaseUrl();
+          const res = await fetch(`${baseUrl}/api/faults/toggle`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ fault_id: faultId }),
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (data.active_faults) {
+              setActiveFaults(data.active_faults);
+            }
+          }
+        } catch (e) {
+          console.warn("[TelemetryContext] toggleFault fallback failed:", e);
+        }
+      }
+    },
+    [sendWsMessage]
+  );
+
+  const clearFaults = useCallback(
+    async () => {
+      setActiveFaults([]);
+      setActiveScenario("Normal");
+      const sent = sendWsMessage({ clear_faults: true, scenario: "Normal" });
+      if (!sent) {
+        try {
+          const baseUrl = getApiBaseUrl();
+          await fetch(`${baseUrl}/api/faults/clear`, {
+            method: "POST",
+          });
+        } catch (e) {
+          console.warn("[TelemetryContext] clearFaults fallback failed:", e);
+        }
+      }
+    },
+    [sendWsMessage]
+  );
+
+  const resetOverhaul = useCallback(
+    async () => {
+      setActiveFaults([]);
+      setActiveScenario("Normal");
+      setEngineCondition("NOMINAL");
+      sendWsMessage({ clear_faults: true, scenario: "Normal" });
+      try {
+        const baseUrl = getApiBaseUrl();
+        await fetch(`${baseUrl}/api/faults/overhaul`, {
+          method: "POST",
+        });
+      } catch (e) {
+        console.warn("[TelemetryContext] resetOverhaul failed:", e);
+      }
+    },
+    [sendWsMessage]
+  );
+
 
   const setEnvironment = useCallback(
     async (env: { altitude_ft?: number; ambient_temp_c?: number; throttle_pct?: number }) => {
@@ -530,6 +666,8 @@ export function TelemetryProvider({ children }: { children: ReactNode }) {
       isConnected,
       connectionStatus,
       activeScenario,
+      activeFaults,
+      engineCondition,
       mode,
       telemetry,
       expectedState,
@@ -544,6 +682,11 @@ export function TelemetryProvider({ children }: { children: ReactNode }) {
       prognostics,
       sensorList,
       injectScenario,
+      toggleFault,
+      injectFault,
+      removeFault,
+      clearFaults,
+      resetOverhaul,
       setEnvironment,
       setMissionProfile,
       setSimulationSpeed,
@@ -562,6 +705,8 @@ export function TelemetryProvider({ children }: { children: ReactNode }) {
       isConnected,
       connectionStatus,
       activeScenario,
+      activeFaults,
+      engineCondition,
       mode,
       telemetry,
       expectedState,
@@ -576,6 +721,11 @@ export function TelemetryProvider({ children }: { children: ReactNode }) {
       prognostics,
       sensorList,
       injectScenario,
+      toggleFault,
+      injectFault,
+      removeFault,
+      clearFaults,
+      resetOverhaul,
       setEnvironment,
       setMissionProfile,
       setSimulationSpeed,
@@ -590,6 +740,7 @@ export function TelemetryProvider({ children }: { children: ReactNode }) {
       setReplaySpeed,
     ]
   );
+
 
   return <TelemetryContext.Provider value={value}>{children}</TelemetryContext.Provider>;
 }

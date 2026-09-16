@@ -229,6 +229,40 @@ class DegradationModel:
 
         return self.get_state()
 
+    def apply_fault_propagation_wear(self, wear_dict: Dict[str, float]) -> Dict[str, float]:
+        """
+        Applies accumulated component wear from the FaultPropagationEngine.
+        Maps physical component wear (coating, bearings, thermal, etc.) to subsystem degradation.
+        Wear is strictly cumulative (only increases or preserves existing wear).
+        """
+        if not wear_dict:
+            return self.get_state()
+
+        # Map component wear to subsystems
+        # coating wear affects mechanical and cooling
+        coating_wear = wear_dict.get("coating", 0.0)
+        # bearing wear affects mechanical and lubrication
+        bearing_wear = wear_dict.get("bearings", 0.0)
+        # injector wear affects injector subsystem
+        injector_wear = wear_dict.get("injector", 0.0)
+        # thermal stress wear affects cooling
+        thermal_wear = wear_dict.get("thermal", 0.0)
+        # mechanical wear
+        mech_wear = wear_dict.get("mechanical", 0.0)
+
+        if injector_wear > 0:
+            self.state["injector"] = round(max(self.state["injector"], min(1.0, injector_wear)), 5)
+        if bearing_wear > 0:
+            self.state["lubrication"] = round(max(self.state["lubrication"], min(1.0, bearing_wear)), 5)
+        if mech_wear > 0 or bearing_wear > 0 or coating_wear > 0:
+            combined_mech = max(mech_wear, bearing_wear * 0.8, coating_wear * 0.7)
+            self.state["mechanical"] = round(max(self.state["mechanical"], min(1.0, combined_mech)), 5)
+        if thermal_wear > 0 or coating_wear > 0:
+            combined_cool = max(thermal_wear, coating_wear * 0.6)
+            self.state["cooling"] = round(max(self.state["cooling"], min(1.0, combined_cool)), 5)
+
+        return self.get_state()
+
     def apply_degradation(self, **kwargs) -> Dict[str, float]:
         """
         Convenience method to set multiple subsystem values simultaneously.

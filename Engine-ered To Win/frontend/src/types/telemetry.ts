@@ -248,6 +248,12 @@ export interface UnifiedTelemetryPayload {
   digital_twin?: DigitalTwinPayload;
   environment?: EnvironmentPayload;
   diagnosis?: FaultDiagnosisPayload;
+  active_faults?: string[];
+  engine_condition?: "NOMINAL" | "MINOR_DEGRADATION" | "DEGRADED" | "SEVERE" | "CRITICAL" | "FAILURE" | string;
+  accumulated_wear?: Record<string, number>;
+  cascaded_faults?: string[];
+  fault_timeline?: Array<{ tick: number; time_str: string; timestamp: string; event: string }>;
+  sensor_confidence?: number;
   rpm?: number;
   cht_c?: number;
   egt_c?: number;
@@ -258,6 +264,7 @@ export interface UnifiedTelemetryPayload {
   battery_voltage_v?: number;
   injection_timing_deg?: number;
 }
+
 
 export interface AlternativeFault {
   fault: string;
