@@ -7,9 +7,12 @@ import {
   Activity,
   Cpu,
   Gauge,
+  Compass,
   TrendingUp,
+  Zap,
   Wrench,
   BellRing,
+  Settings,
   PanelLeftClose,
   PanelLeftOpen,
   Radio,
@@ -20,9 +23,12 @@ export type NavView =
   | "telemetry"
   | "diagnostics"
   | "rul"
+  | "mission"
   | "regression"
+  | "faults"
   | "maintenance"
-  | "alerts";
+  | "alerts"
+  | "settings";
 
 interface NavItem {
   id: NavView;
@@ -31,6 +37,7 @@ interface NavItem {
   shortcut: string;
   tag?: string;
   badge?: number;
+  badgeSeverity?: "nominal" | "caution" | "warning";
 }
 
 interface NavSection {
@@ -43,7 +50,8 @@ interface SidebarProps {
   onSelectView: (view: NavView) => void;
   selectedEngine: string;
   onSelectEngine: (engine: string) => void;
-  activeAlertCount: number;
+  activeAlertCount?: number;
+  alertsSeverity?: "nominal" | "caution" | "warning";
 }
 
 export default function Sidebar({
@@ -51,14 +59,41 @@ export default function Sidebar({
   onSelectView,
   selectedEngine,
   onSelectEngine,
-  activeAlertCount,
+  activeAlertCount = 0,
+  alertsSeverity = "nominal",
 }: SidebarProps) {
   const { linkState, payload } = useTelemetry();
-  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  // Collapsed state initialized from localStorage for persistent preference
+  const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        return localStorage.getItem("aerotwin_sidebar_collapsed") === "true";
+      } catch {
+        return false;
+      }
+    }
+    return false;
+  });
+
+  const toggleCollapse = () => {
+    setIsCollapsed((prev) => {
+      const next = !prev;
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem("aerotwin_sidebar_collapsed", String(next));
+        } catch {
+          // ignore storage quota / sandbox issues
+        }
+      }
+      return next;
+    });
+  };
 
   const sensorChannelCount = payload.sensor_list?.length || 9;
   const linkLabel = linkState === "live" ? "LIVE" : linkState.toUpperCase();
 
+  // 5 strict groups per layout specification
   const navSections: NavSection[] = [
     {
       heading: "OVERVIEW",
@@ -66,7 +101,7 @@ export default function Sidebar({
         {
           id: "dashboard",
           label: "Dashboard",
-          icon: <LayoutDashboard size={17} />,
+          icon: <LayoutDashboard size={16} />,
           shortcut: "1",
           tag: linkLabel,
         },
@@ -78,7 +113,7 @@ export default function Sidebar({
         {
           id: "telemetry",
           label: "Live Telemetry",
-          icon: <Activity size={17} />,
+          icon: <Activity size={16} />,
           shortcut: "2",
           tag: `${sensorChannelCount} CH`,
         },
@@ -90,20 +125,37 @@ export default function Sidebar({
         {
           id: "diagnostics",
           label: "Diagnostics",
-          icon: <Cpu size={17} />,
+          icon: <Cpu size={16} />,
           shortcut: "3",
         },
         {
           id: "rul",
           label: "RUL & Prognostics",
-          icon: <Gauge size={17} />,
+          icon: <Gauge size={16} />,
           shortcut: "4",
+        },
+        {
+          id: "mission",
+          label: "Mission Profile",
+          icon: <Compass size={16} />,
+          shortcut: "5",
         },
         {
           id: "regression",
           label: "Regression & Trends",
-          icon: <TrendingUp size={17} />,
-          shortcut: "5",
+          icon: <TrendingUp size={16} />,
+          shortcut: "6",
+        },
+      ],
+    },
+    {
+      heading: "FAULTS",
+      items: [
+        {
+          id: "faults",
+          label: "Fault Injection",
+          icon: <Zap size={16} />,
+          shortcut: "7",
         },
       ],
     },
@@ -113,21 +165,22 @@ export default function Sidebar({
         {
           id: "maintenance",
           label: "Maintenance",
-          icon: <Wrench size={17} />,
-          shortcut: "6",
+          icon: <Wrench size={16} />,
+          shortcut: "8",
         },
         {
           id: "alerts",
           label: "Alerts",
-          icon: <BellRing size={17} />,
-          shortcut: "7",
+          icon: <BellRing size={16} />,
+          shortcut: "9",
           badge: activeAlertCount > 0 ? activeAlertCount : undefined,
+          badgeSeverity: alertsSeverity,
         },
       ],
     },
   ];
 
-  // Global keyboard shortcuts: 1-7 switch views
+  // Global keyboard shortcuts: 1-9 switch views, 0 for Settings
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       const activeElement = document.activeElement;
@@ -143,9 +196,12 @@ export default function Sidebar({
         "2": "telemetry",
         "3": "diagnostics",
         "4": "rul",
-        "5": "regression",
-        "6": "maintenance",
-        "7": "alerts",
+        "5": "mission",
+        "6": "regression",
+        "7": "faults",
+        "8": "maintenance",
+        "9": "alerts",
+        "0": "settings",
       };
 
       if (keyMap[e.key]) {
@@ -161,45 +217,56 @@ export default function Sidebar({
 
   return (
     <aside className={`gcs-sidebar ${isCollapsed ? "collapsed" : ""}`}>
-      {/* Sidebar Top: Clean Station Title (No Duplicate AeroTwin Branding) */}
+      {/* Sidebar Top: Collapse Toggle and Brand / Vehicle Header */}
       <div className="sidebar-header">
         <div className="sidebar-brand-title">
           {!isCollapsed && (
             <span
               style={{
-                fontSize: "0.72rem",
-                fontWeight: 800,
-                letterSpacing: "1px",
+                fontSize: "12px",
+                fontWeight: 600,
+                letterSpacing: "0.05em",
                 color: "var(--text-muted)",
                 textTransform: "uppercase",
-                fontFamily: "var(--font-mono), monospace",
+                fontFamily: "var(--font-sans), system-ui, sans-serif",
               }}
             >
-              GCS WORKSTATION
+              GCS Station
             </span>
           )}
         </div>
         <button
           className="sidebar-collapse-btn"
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
-          aria-label="Toggle Sidebar"
+          onClick={toggleCollapse}
+          title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-label="Toggle sidebar"
         >
           {isCollapsed ? <PanelLeftOpen size={15} /> : <PanelLeftClose size={15} />}
         </button>
       </div>
 
-      {/* Engine Target Selector */}
+      {/* Target-Engine Selector at top */}
       <div className="sidebar-engine-selector">
-        {!isCollapsed && <span className="engine-selector-label"><strong>ACTIVE VEHICLE</strong></span>}
+        {!isCollapsed && <span className="engine-selector-label">Target Engine</span>}
         <div className="engine-dropdown-wrap">
-          <span className="engine-chip-icon">SYS:</span>
+          <span
+            className="engine-chip-icon"
+            style={{
+              color: "var(--text-muted)",
+              fontSize: "11px",
+              fontFamily: "var(--font-mono), monospace",
+              fontWeight: 500,
+            }}
+          >
+            ENG
+          </span>
           <select
             className="engine-select"
             value={selectedEngine}
             onChange={(e) => onSelectEngine(e.target.value)}
             disabled={isCollapsed}
             title={selectedEngine}
+            aria-label="Target engine selection"
           >
             {engineOptions.map((eng) => (
               <option key={eng} value={eng}>
@@ -218,6 +285,7 @@ export default function Sidebar({
             <ul className="nav-list">
               {sec.items.map((item) => {
                 const isActive = currentView === item.id;
+                const isWarningBadge = item.badgeSeverity === "warning";
                 return (
                   <li key={item.id}>
                     <button
@@ -241,23 +309,27 @@ export default function Sidebar({
                           {item.tag}
                         </span>
                       )}
-                      {!isCollapsed && item.badge !== undefined && (
+                      {item.badge !== undefined && (
                         <span
                           className="nav-badge-count"
                           style={{
-                            background: "var(--border)",
-                            color: "var(--status-warning)",
-                            border: "1px solid color-mix(in srgb, var(--status-warning) 14%, var(--surface-1))",
+                            background: isWarningBadge
+                              ? "color-mix(in srgb, var(--status-warning) 16%, var(--surface-1))"
+                              : "color-mix(in srgb, var(--status-caution) 16%, var(--surface-1))",
+                            color: isWarningBadge ? "var(--status-warning)" : "var(--status-caution)",
+                            border: `1px solid ${isWarningBadge ? "color-mix(in srgb, var(--status-warning) 30%, transparent)" : "color-mix(in srgb, var(--status-caution) 30%, transparent)"}`,
                             borderRadius: "10px",
                             padding: "0.1rem 0.45rem",
-                            fontSize: "0.62rem",
-                            fontWeight: 700,
+                            fontSize: "11px",
+                            fontWeight: 600,
+                            fontFamily: "var(--font-mono), monospace",
+                            marginLeft: isCollapsed ? "auto" : undefined,
                           }}
                         >
                           {item.badge}
                         </span>
                       )}
-                      {!isCollapsed && (
+                      {!isCollapsed && !item.badge && (
                         <span className="sidebar-shortcut-hint">
                           {item.shortcut}
                         </span>
@@ -271,6 +343,28 @@ export default function Sidebar({
         ))}
       </nav>
 
+      {/* Pinned Settings at bottom above hairline divider */}
+      <div
+        className="sidebar-pinned-settings"
+        style={{
+          borderTop: "1px solid var(--border)",
+          padding: "0.5rem",
+        }}
+      >
+        <button
+          className={`nav-item-btn ${currentView === "settings" ? "active" : ""}`}
+          onClick={() => onSelectView("settings")}
+          aria-current={currentView === "settings" ? "page" : undefined}
+          title="Settings (Shortcut: [0])"
+        >
+          <span className="nav-icon">
+            <Settings size={16} />
+          </span>
+          {!isCollapsed && <span className="nav-label">Settings</span>}
+          {!isCollapsed && <span className="sidebar-shortcut-hint">0</span>}
+        </button>
+      </div>
+
       {/* Sidebar Footer Status */}
       <div className="sidebar-footer">
         {!isCollapsed ? (
@@ -279,7 +373,7 @@ export default function Sidebar({
             <span className="footer-status-text">AVIONICS BUS NOMINAL</span>
           </div>
         ) : (
-          <div style={{ textAlign: "center", padding: "0.5rem 0" }} title="Avionics Bus Nominal">
+          <div style={{ textAlign: "center", padding: "0.35rem 0" }} title="Avionics Bus Nominal">
             <span
               style={{
                 display: "inline-block",
@@ -287,7 +381,6 @@ export default function Sidebar({
                 height: "8px",
                 borderRadius: "50%",
                 background: "var(--status-nominal)",
-                boxShadow: "none",
               }}
             />
           </div>

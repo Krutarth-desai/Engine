@@ -16,6 +16,9 @@ import RulPrognosticsView from "@/components/RulPrognosticsView";
 import RegressionTrendsView from "@/components/RegressionTrendsView";
 import MaintenanceView from "@/components/MaintenanceView";
 import AlertsView from "@/components/AlertsView";
+import MissionView from "@/components/MissionView";
+import FaultInjectionView from "@/components/FaultInjectionView";
+import SettingsView from "@/components/SettingsView";
 import TimeScrubBar from "@/components/common/TimeScrubBar";
 
 interface AeroTwinAppProps {
@@ -45,9 +48,12 @@ export default function AeroTwinApp({ initialView = "dashboard" }: AeroTwinAppPr
         diagnostics: "diagnostics",
         prognostics: "rul",
         rul: "rul",
+        mission: "mission",
         regression: "regression",
+        faults: "faults",
         maintenance: "maintenance",
         alerts: "alerts",
+        settings: "settings",
       };
 
       if (validViews[target] && validViews[target] !== currentView) {
@@ -138,9 +144,25 @@ export default function AeroTwinApp({ initialView = "dashboard" }: AeroTwinAppPr
     return null;
   }
 
-  const activeAlertsCount = payload.alerts
-    ? payload.alerts.filter((a) => a.level === "ALERT" || a.level === "CAUTION").length
-    : 0;
+  // Active alerts count and severity calculation
+  const activeAlerts = payload.alerts
+    ? payload.alerts.filter(
+        (a) =>
+          a.level === "ALERT" ||
+          a.level === "CRITICAL" ||
+          a.level === "WARNING" ||
+          a.level === "CAUTION"
+      )
+    : [];
+
+  const hasWarning = activeAlerts.some(
+    (a) => a.level === "ALERT" || a.level === "CRITICAL" || a.level === "WARNING"
+  );
+  const alertsSeverity: "nominal" | "caution" | "warning" = hasWarning
+    ? "warning"
+    : activeAlerts.length > 0
+    ? "caution"
+    : "nominal";
 
   return (
     <>
@@ -174,7 +196,8 @@ export default function AeroTwinApp({ initialView = "dashboard" }: AeroTwinAppPr
               onSelectView={handleNavigate}
               selectedEngine={selectedEngine}
               onSelectEngine={setSelectedEngine}
-              activeAlertCount={activeAlertsCount}
+              activeAlertCount={activeAlerts.length}
+              alertsSeverity={alertsSeverity}
             />
 
             {/* Main Operational Workspace Column */}
@@ -220,8 +243,16 @@ export default function AeroTwinApp({ initialView = "dashboard" }: AeroTwinAppPr
                   <RulPrognosticsView payload={payload} />
                 )}
 
+                {currentView === "mission" && (
+                  <MissionView />
+                )}
+
                 {currentView === "regression" && (
                   <RegressionTrendsView payload={payload} />
+                )}
+
+                {currentView === "faults" && (
+                  <FaultInjectionView />
                 )}
 
                 {currentView === "maintenance" && (
@@ -235,6 +266,10 @@ export default function AeroTwinApp({ initialView = "dashboard" }: AeroTwinAppPr
                     onInjectScenario={injectScenario}
                   />
                 )}
+
+                {currentView === "settings" && (
+                  <SettingsView />
+                )}
               </main>
 
               {/* Bottom Docked Historical Timeline Scrub Bar */}
@@ -246,4 +281,3 @@ export default function AeroTwinApp({ initialView = "dashboard" }: AeroTwinAppPr
     </>
   );
 }
-
