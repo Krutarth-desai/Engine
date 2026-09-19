@@ -138,7 +138,7 @@ export default function MainDashboardView({
         }}
       >
         {/* Left 60%: Digital Twin Centerpiece Schematic */}
-        <div style={{ minHeight: "360px" }}>
+        <div style={{ display: "flex", flexDirection: "column", minHeight: "360px" }}>
           <DigitalTwinCenterpiece
             telemetry={payload}
             activeScenario={activeScenario}
@@ -150,10 +150,21 @@ export default function MainDashboardView({
           />
         </div>
 
-        {/* Right 40%: Live 9-Channel Sensor Strip using unified SensorCard */}
-        <div className="panel" style={{ display: "flex", flexDirection: "column", minHeight: "360px" }}>
-          <div className="panel-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div className="panel-title">
+        {/* Right 40%: Live 9-Channel Sensor Strip using unified SensorCard - LOCKED TO SINGLE FRAME, ZERO SCROLLING */}
+        <div
+          className="panel"
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            minHeight: "360px",
+            height: "100%",
+            boxSizing: "border-box",
+            overflow: "hidden",
+          }}
+        >
+          <div className="panel-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.35rem" }}>
+            <div className="panel-title" style={{ display: "flex", alignItems: "center", gap: "0.45rem" }}>
+              <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "var(--accent-cyan)", boxShadow: "0 0 6px var(--accent-cyan)" }} />
               <strong>9-CHANNEL ENGINE SENSORS</strong>
             </div>
             <button
@@ -184,8 +195,8 @@ export default function MainDashboardView({
                 background: "rgba(56, 189, 248, 0.12)",
                 border: "1px solid rgba(56, 189, 248, 0.35)",
                 borderRadius: "4px",
-                padding: "0.25rem 0.6rem",
-                marginBottom: "0.45rem",
+                padding: "0.2rem 0.5rem",
+                marginBottom: "0.35rem",
                 fontSize: "0.68rem",
                 color: "var(--accent-cyan)",
                 fontFamily: "'JetBrains Mono', monospace",
@@ -215,10 +226,11 @@ export default function MainDashboardView({
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(3, 1fr)",
-              gap: "0.45rem",
-              overflowY: "auto",
-              paddingRight: "0.2rem",
-              maxHeight: "340px",
+              gridTemplateRows: "repeat(3, 1fr)",
+              gap: "0.38rem",
+              flex: 1,
+              overflow: "hidden", // STRICTLY NO SCROLLBAR: Fits completely in one single frame
+              minHeight: 0,
             }}
           >
             {sensors.map((sensor) => {
