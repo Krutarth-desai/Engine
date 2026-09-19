@@ -182,11 +182,26 @@ export default function AlertsView({
           </p>
         </div>
 
-        {/* Tab Switcher */}
-        <div style={{ display: "flex", gap: "0.4rem", alignItems: "center" }}>
+        {/* Tab Switcher with A11y Tablist & Keyboard Nav */}
+        <div
+          role="tablist"
+          aria-label="Alerts view tabs"
+          style={{ display: "flex", gap: "0.4rem", alignItems: "center" }}
+        >
           <button
+            role="tab"
+            id="tab-active-alerts"
+            aria-selected={activeTab === "ACTIVE"}
+            aria-controls="panel-alerts-content"
+            tabIndex={activeTab === "ACTIVE" ? 0 : -1}
             className={`filter-pill-btn ${activeTab === "ACTIVE" ? "active" : ""}`}
             onClick={() => setActiveTab("ACTIVE")}
+            onKeyDown={(e) => {
+              if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+                e.preventDefault();
+                setActiveTab("LOG");
+              }
+            }}
             style={{
               display: "inline-flex",
               alignItems: "center",
@@ -207,8 +222,19 @@ export default function AlertsView({
           </button>
 
           <button
+            role="tab"
+            id="tab-incident-log"
+            aria-selected={activeTab === "LOG"}
+            aria-controls="panel-alerts-content"
+            tabIndex={activeTab === "LOG" ? 0 : -1}
             className={`filter-pill-btn ${activeTab === "LOG" ? "active" : ""}`}
             onClick={() => setActiveTab("LOG")}
+            onKeyDown={(e) => {
+              if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+                e.preventDefault();
+                setActiveTab("ACTIVE");
+              }
+            }}
             style={{
               display: "inline-flex",
               alignItems: "center",
@@ -265,7 +291,14 @@ export default function AlertsView({
       </div>
 
       {/* Alerts Feed List */}
-      <div className="alerts-full-list" style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+      <div
+        id="panel-alerts-content"
+        role="region"
+        aria-label="Alerts feed"
+        aria-live="polite"
+        className="alerts-full-list"
+        style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}
+      >
         {displayedList.length === 0 ? (
           <div
             className="empty-alerts-box"

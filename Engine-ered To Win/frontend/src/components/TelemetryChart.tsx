@@ -6,6 +6,7 @@ import annotationPlugin from "chartjs-plugin-annotation";
 import { TelemetryData } from "@/types/telemetry";
 import { useTelemetry } from "@/context/TelemetryContext";
 import { fmtTimestamp } from "@/lib/format";
+import { getThemeColors } from "@/lib/chartTheme";
 
 Chart.register(...registerables, annotationPlugin);
 
@@ -28,6 +29,8 @@ export default function TelemetryChart({ telemetry: propTelemetry }: TelemetryCh
     if (!canvasEgtRef.current) return;
     const ctx = canvasEgtRef.current.getContext("2d");
     if (!ctx) return;
+
+    const theme = getThemeColors();
 
     const chart = new Chart(ctx, {
       type: "line",
@@ -54,7 +57,7 @@ export default function TelemetryChart({ telemetry: propTelemetry }: TelemetryCh
           legend: {
             display: true,
             labels: {
-              color: "#94a3b8",
+              color: theme.textSecondary,
               font: { family: "'JetBrains Mono', monospace", size: 10 },
               boxWidth: 12,
             },
@@ -73,7 +76,7 @@ export default function TelemetryChart({ telemetry: propTelemetry }: TelemetryCh
                   content: "TRIGGER 680 °C",
                   position: "end",
                   color: "#f59e0b",
-                  backgroundColor: "rgba(10, 16, 30, 0.8)",
+                  backgroundColor: theme.tooltipBg,
                   font: { family: "'JetBrains Mono', monospace", size: 8 },
                 },
               },
@@ -82,8 +85,8 @@ export default function TelemetryChart({ telemetry: propTelemetry }: TelemetryCh
           tooltip: {
             mode: "index",
             intersect: false,
-            backgroundColor: "rgba(7, 11, 20, 0.9)",
-            borderColor: "rgba(56, 189, 248, 0.3)",
+            backgroundColor: theme.tooltipBg,
+            borderColor: theme.borderGlow,
             borderWidth: 1,
             titleFont: { family: "'JetBrains Mono', monospace", size: 11 },
             bodyFont: { family: "'JetBrains Mono', monospace", size: 10 },
@@ -91,9 +94,9 @@ export default function TelemetryChart({ telemetry: propTelemetry }: TelemetryCh
         },
         scales: {
           x: {
-            grid: { color: "rgba(255, 255, 255, 0.04)" },
+            grid: { color: theme.gridColor },
             ticks: {
-              color: "#64748b",
+              color: theme.textMuted,
               font: { family: "'JetBrains Mono', monospace", size: 9 },
               maxRotation: 0,
               autoSkip: true,
@@ -103,9 +106,9 @@ export default function TelemetryChart({ telemetry: propTelemetry }: TelemetryCh
           y: {
             min: 500,
             max: 850,
-            grid: { color: "rgba(255, 255, 255, 0.05)" },
+            grid: { color: theme.gridColor },
             ticks: {
-              color: "#64748b",
+              color: theme.textMuted,
               font: { family: "'JetBrains Mono', monospace", size: 9 },
               stepSize: 50,
             },
@@ -126,6 +129,8 @@ export default function TelemetryChart({ telemetry: propTelemetry }: TelemetryCh
     if (!canvasChtRef.current) return;
     const ctx = canvasChtRef.current.getContext("2d");
     if (!ctx) return;
+
+    const theme = getThemeColors();
 
     const chart = new Chart(ctx, {
       type: "line",
@@ -162,7 +167,7 @@ export default function TelemetryChart({ telemetry: propTelemetry }: TelemetryCh
           legend: {
             display: true,
             labels: {
-              color: "#94a3b8",
+              color: theme.textSecondary,
               font: { family: "'JetBrains Mono', monospace", size: 10 },
               boxWidth: 12,
             },
@@ -181,7 +186,7 @@ export default function TelemetryChart({ telemetry: propTelemetry }: TelemetryCh
                   content: "TRIGGER CHT 165 °C",
                   position: "end",
                   color: "#f59e0b",
-                  backgroundColor: "rgba(10, 16, 30, 0.8)",
+                  backgroundColor: theme.tooltipBg,
                   font: { family: "'JetBrains Mono', monospace", size: 8 },
                 },
               },
@@ -190,8 +195,8 @@ export default function TelemetryChart({ telemetry: propTelemetry }: TelemetryCh
           tooltip: {
             mode: "index",
             intersect: false,
-            backgroundColor: "rgba(7, 11, 20, 0.9)",
-            borderColor: "rgba(56, 189, 248, 0.3)",
+            backgroundColor: theme.tooltipBg,
+            borderColor: theme.borderGlow,
             borderWidth: 1,
             titleFont: { family: "'JetBrains Mono', monospace", size: 11 },
             bodyFont: { family: "'JetBrains Mono', monospace", size: 10 },
@@ -199,9 +204,9 @@ export default function TelemetryChart({ telemetry: propTelemetry }: TelemetryCh
         },
         scales: {
           x: {
-            grid: { color: "rgba(255, 255, 255, 0.04)" },
+            grid: { color: theme.gridColor },
             ticks: {
-              color: "#64748b",
+              color: theme.textMuted,
               font: { family: "'JetBrains Mono', monospace", size: 9 },
               maxRotation: 0,
               autoSkip: true,
@@ -211,11 +216,10 @@ export default function TelemetryChart({ telemetry: propTelemetry }: TelemetryCh
           y: {
             min: 50,
             max: 220,
-            grid: { color: "rgba(255, 255, 255, 0.05)" },
+            grid: { color: theme.gridColor },
             ticks: {
-              color: "#64748b",
+              color: theme.textMuted,
               font: { family: "'JetBrains Mono', monospace", size: 9 },
-              stepSize: 30,
             },
           },
         },

@@ -11,6 +11,7 @@ import {
 } from "chart.js";
 import { UnifiedTelemetryPayload } from "@/types/telemetry";
 import { fmt } from "@/lib/format";
+import { getThemeColors } from "@/lib/chartTheme";
 
 ChartJS.register(LinearScale, PointElement, LineElement, Tooltip, Legend);
 
@@ -188,6 +189,8 @@ export default function RegressionScatterChart({
       chartInstanceRef.current.destroy();
     }
 
+    const theme = getThemeColors();
+
     const chart = new ChartJS(ctx, {
       type: "scatter",
       data: {
@@ -219,16 +222,16 @@ export default function RegressionScatterChart({
         plugins: {
           legend: {
             labels: {
-              color: "#94a3b8",
-              font: { family: "Inter", size: 11 },
+              color: theme.textSecondary,
+              font: { family: "var(--font-inter), sans-serif", size: 11 },
               boxWidth: 12,
             },
           },
           tooltip: {
-            backgroundColor: "rgba(15, 23, 42, 0.95)",
+            backgroundColor: theme.tooltipBg,
             titleColor: "#38bdf8",
             bodyColor: "#f8fafc",
-            borderColor: "rgba(56, 189, 248, 0.3)",
+            borderColor: theme.borderGlow,
             borderWidth: 1,
             callbacks: {
               label: (context) =>
@@ -241,21 +244,21 @@ export default function RegressionScatterChart({
             title: {
               display: true,
               text: config.xLabel,
-              color: "#64748b",
-              font: { size: 10, family: "JetBrains Mono" },
+              color: theme.textMuted,
+              font: { size: 10, family: "var(--font-jetbrains-mono), monospace" },
             },
-            grid: { color: "rgba(255, 255, 255, 0.05)" },
-            ticks: { color: "#64748b", font: { family: "JetBrains Mono", size: 9 } },
+            grid: { color: theme.gridColor },
+            ticks: { color: theme.textMuted, font: { family: "var(--font-jetbrains-mono), monospace", size: 9 } },
           },
           y: {
             title: {
               display: true,
               text: config.yLabel,
-              color: "#64748b",
-              font: { size: 10, family: "JetBrains Mono" },
+              color: theme.textMuted,
+              font: { size: 10, family: "var(--font-jetbrains-mono), monospace" },
             },
-            grid: { color: "rgba(255, 255, 255, 0.05)" },
-            ticks: { color: "#64748b", font: { family: "JetBrains Mono", size: 9 } },
+            grid: { color: theme.gridColor },
+            ticks: { color: theme.textMuted, font: { family: "var(--font-jetbrains-mono), monospace", size: 9 } },
           },
         },
       },

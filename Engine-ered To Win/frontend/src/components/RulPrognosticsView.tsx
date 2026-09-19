@@ -32,12 +32,19 @@ export default function RulPrognosticsView({ payload }: RulPrognosticsViewProps)
           <ModelInfoPopover />
 
           {/* Dataset Tabs with explicit cycle definitions */}
-          <div className="rul-view-tabs" role="tablist">
+          <div className="rul-view-tabs" role="tablist" aria-label="Prognostics engine model tabs">
             <button
               role="tab"
               aria-selected={activeTab === "piston"}
+              tabIndex={activeTab === "piston" ? 0 : -1}
               className={`rul-tab-btn ${activeTab === "piston" ? "active" : ""}`}
               onClick={() => setActiveTab("piston")}
+              onKeyDown={(e) => {
+                if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+                  e.preventDefault();
+                  setActiveTab("cmapss");
+                }
+              }}
               title="Live MALE UAV Piston Engine (1 cycle = 60s cruise)"
             >
               <strong>UAV PISTON (60s/CYCLE)</strong>
@@ -45,8 +52,15 @@ export default function RulPrognosticsView({ payload }: RulPrognosticsViewProps)
             <button
               role="tab"
               aria-selected={activeTab === "cmapss"}
+              tabIndex={activeTab === "cmapss" ? 0 : -1}
               className={`rul-tab-btn ${activeTab === "cmapss" ? "active" : ""}`}
               onClick={() => setActiveTab("cmapss")}
+              onKeyDown={(e) => {
+                if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+                  e.preventDefault();
+                  setActiveTab("piston");
+                }
+              }}
               title="NASA C-MAPSS Turbofan Fleet Benchmarks (1 cycle = 1 flight mission)"
             >
               <strong>NASA C-MAPSS FLEET</strong>

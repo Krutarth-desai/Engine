@@ -5,6 +5,7 @@ import { Chart, registerables } from "chart.js";
 import annotationPlugin from "chartjs-plugin-annotation";
 import { TrajectoryPoint } from "../types/telemetry";
 import { RUL_ZONES } from "@/lib/limits";
+import { getThemeColors } from "@/lib/chartTheme";
 
 Chart.register(...registerables, annotationPlugin);
 
@@ -54,6 +55,8 @@ export default function RulTrajectoryChart({
 
     const ctx = canvasRef.current.getContext("2d");
     if (!ctx) return;
+
+    const theme = getThemeColors();
 
     chartInstanceRef.current = new Chart(ctx, {
       type: "line",
@@ -115,7 +118,7 @@ export default function RulTrajectoryChart({
             display: true,
             position: "top",
             labels: {
-              color: "#94a3b8",
+              color: theme.textSecondary,
               font: { family: "'JetBrains Mono', monospace", size: 10 },
               boxWidth: 14,
               filter: (item) => item.text !== "Lower MAE Bound",
@@ -168,17 +171,17 @@ export default function RulTrajectoryChart({
                   content: "FAILURE THRESHOLD (15 CYCLES)",
                   position: "start",
                   color: "#ef4444",
-                  backgroundColor: "rgba(15, 23, 42, 0.85)",
+                  backgroundColor: theme.tooltipBg,
                   font: { family: "'JetBrains Mono', monospace", size: 8 },
                 },
               },
             },
           },
           tooltip: {
-            backgroundColor: "rgba(15, 23, 42, 0.95)",
+            backgroundColor: theme.tooltipBg,
             titleColor: "#38bdf8",
             bodyColor: "#f8fafc",
-            borderColor: "rgba(56, 189, 248, 0.3)",
+            borderColor: theme.borderGlow,
             borderWidth: 1,
             padding: 8,
             titleFont: { family: "'JetBrains Mono', monospace", weight: "bold" },
@@ -187,32 +190,32 @@ export default function RulTrajectoryChart({
         },
         scales: {
           x: {
-            grid: { color: "rgba(255, 255, 255, 0.04)" },
+            grid: { color: theme.gridColor },
             ticks: {
-              color: "#64748b",
+              color: theme.textMuted,
               font: { family: "'JetBrains Mono', monospace", size: 9 },
               maxTicksLimit: 12,
             },
             title: {
               display: true,
               text: "OPERATING FLIGHT CYCLES (30-CYCLE LSTM SLIDING WINDOW)",
-              color: "#64748b",
+              color: theme.textMuted,
               font: { size: 9, family: "'JetBrains Mono', monospace" },
             },
           },
           y: {
             min: 0,
             max: 250,
-            grid: { color: "rgba(255, 255, 255, 0.04)" },
+            grid: { color: theme.gridColor },
             ticks: {
-              color: "#64748b",
+              color: theme.textMuted,
               font: { family: "'JetBrains Mono', monospace", size: 9 },
               stepSize: 50,
             },
             title: {
               display: true,
               text: "REMAINING USEFUL LIFE (CYCLES)",
-              color: "#64748b",
+              color: theme.textMuted,
               font: { size: 9, family: "'JetBrains Mono', monospace" },
             },
           },

@@ -234,15 +234,27 @@ export default function MaintenanceChecklist() {
       )}
 
       {/* Checklist Tabs */}
-      <div style={{ display: "flex", gap: "0.35rem", marginBottom: "0.65rem", flexWrap: "wrap" }} role="tablist">
-        {(["pre_flight", "post_flight", "50h", "100h"] as const).map((tab) => (
+      <div style={{ display: "flex", gap: "0.35rem", marginBottom: "0.65rem", flexWrap: "wrap" }} role="tablist" aria-label="Maintenance intervals">
+        {(["pre_flight", "post_flight", "50h", "100h"] as const).map((tab, idx, arr) => (
           <button
             key={tab}
             role="tab"
             aria-selected={activeTab === tab}
+            tabIndex={activeTab === tab ? 0 : -1}
             onClick={() => setActiveTab(tab)}
+            onKeyDown={(e) => {
+              if (e.key === "ArrowRight") {
+                e.preventDefault();
+                const next = arr[(idx + 1) % arr.length];
+                setActiveTab(next);
+              } else if (e.key === "ArrowLeft") {
+                e.preventDefault();
+                const prev = arr[(idx - 1 + arr.length) % arr.length];
+                setActiveTab(prev);
+              }
+            }}
             className={`filter-pill-btn ${activeTab === tab ? "active" : ""}`}
-            style={{ fontSize: "0.64rem", padding: "0.2rem 0.55rem" }}
+            style={{ fontSize: "0.68rem", padding: "0.25rem 0.55rem" }}
           >
             <strong>{tab.replace("_", "-").toUpperCase()}</strong>
           </button>

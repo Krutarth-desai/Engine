@@ -246,6 +246,8 @@ export default function Header({
         <div
           id="conn-badge"
           className="status-pill"
+          role="status"
+          aria-live="polite"
           style={{
             borderColor: `${getLinkColor()}60`,
             color: getLinkColor(),
