@@ -39,7 +39,7 @@ export default function LstmMetricsPanel({ prognostics }: LstmMetricsPanelProps)
         <div className="metric-box">
           <span className="metric-box-label"><strong>ABS ERROR</strong></span>
           <span className="metric-box-val text-yellow font-mono">
-            {prognostics.abs_error.toFixed(1)}
+            {Math.abs(prognostics.predicted_rul - prognostics.actual_rul).toFixed(1)}
           </span>
           <span className="metric-box-sub">|Predicted - Actual|</span>
         </div>

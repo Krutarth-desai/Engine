@@ -210,7 +210,7 @@ export default function RulPrognosticsPanel({ isVisible }: RulPrognosticsPanelPr
               `Cycle ${cycle} | Actual: ${actual.toFixed(0)} | Pred: ${predicted !== null ? predicted.toFixed(1) : "buffering"} | Err: ${err}`
             );
           }
-        } catch (e) {
+        } catch {
           // ignore parse err
         }
       };

@@ -24,8 +24,12 @@ export default function RulTrajectoryChart({
     if (!canvasRef.current) return;
 
     const labels = trajectory.map((pt) => `C${pt.cycle}`);
-    const actualData = trajectory.map((pt) => pt.actual_rul);
-    const predictedData = trajectory.map((pt) => pt.predicted_rul);
+    const actualData = trajectory.map((pt, idx) =>
+      idx === trajectory.length - 1 ? currentActualRul : pt.actual_rul
+    );
+    const predictedData = trajectory.map((pt, idx) =>
+      idx === trajectory.length - 1 ? currentPredictedRul : pt.predicted_rul
+    );
 
     if (chartInstanceRef.current) {
       chartInstanceRef.current.data.labels = labels;
@@ -44,7 +48,7 @@ export default function RulTrajectoryChart({
         labels,
         datasets: [
           {
-            label: "Actual RUL (Ground Truth)",
+            label: "Ground Truth (Replay)",
             data: actualData,
             borderColor: "#10b981", // Emerald Green
             backgroundColor: "transparent",
@@ -142,7 +146,7 @@ export default function RulTrajectoryChart({
         chartInstanceRef.current = null;
       }
     };
-  }, [trajectory]);
+  }, [trajectory, currentActualRul, currentPredictedRul]);
 
   return (
     <div className="panel rul-trajectory-panel">

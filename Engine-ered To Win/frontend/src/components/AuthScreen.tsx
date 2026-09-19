@@ -2,16 +2,28 @@
 
 import React, { useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { User } from "@supabase/supabase-js";
 
 interface AuthScreenProps {
-  onAuthenticated: (user: any) => void;
+  onAuthenticated: (user: User) => void;
 }
 
 export default function AuthScreen({ onAuthenticated }: AuthScreenProps) {
   const [isSignUpMode, setIsSignUpMode] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [errorMsg, setErrorMsg] = useState("");
+  const [errorMsg, setErrorMsg] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const err = params.get("error_description") || params.get("error");
+      if (err) {
+        const cleanUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, cleanUrl);
+        return decodeURIComponent(err);
+      }
+    }
+    return "";
+  });
   const [successMsg, setSuccessMsg] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -37,7 +49,7 @@ export default function AuthScreen({ onAuthenticated }: AuthScreenProps) {
 
         if (data.user && data.user.identities && data.user.identities.length === 0) {
           setErrorMsg("An account with this email already exists.");
-        } else if (data.session) {
+        } else if (data.session && data.user) {
           onAuthenticated(data.user);
         } else {
           setSuccessMsg("Account created! Check your email to confirm, then sign in.");
@@ -53,8 +65,9 @@ export default function AuthScreen({ onAuthenticated }: AuthScreenProps) {
           onAuthenticated(data.user);
         }
       }
-    } catch (err: any) {
-      setErrorMsg(err.message || "Authentication failed. Please try again.");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Authentication failed. Please try again.";
+      setErrorMsg(msg);
     } finally {
       setLoading(false);
     }
@@ -62,17 +75,22 @@ export default function AuthScreen({ onAuthenticated }: AuthScreenProps) {
 
   const handleGoogleSignIn = async () => {
     try {
+      const redirectUrl =
+        typeof window !== "undefined"
+          ? `${window.location.origin}/auth/callback`
+          : undefined;
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: typeof window !== "undefined" ? window.location.origin : undefined,
+          redirectTo: redirectUrl,
         },
       });
       if (error) {
         setErrorMsg(error.message || "Google sign-in failed.");
       }
-    } catch (err: any) {
-      setErrorMsg(err.message || "Google sign-in failed.");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Google sign-in failed.";
+      setErrorMsg(msg);
     }
   };
 

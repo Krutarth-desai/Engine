@@ -2,6 +2,7 @@
 
 import React from "react";
 import { TelemetryData } from "../types/telemetry";
+import { getConfidenceColor } from "../lib/limits";
 
 interface SensorDiagnosisPanelProps {
   telemetry: TelemetryData | null;
@@ -27,19 +28,21 @@ export default function SensorDiagnosisPanel({ telemetry }: SensorDiagnosisPanel
 
   const diagBadgeText = diagType.replace(/_/g, " ");
   const suspectedSensor = diag?.suspected_sensor;
-  const sensorConf = diag ? (diag.sensor_fault_confidence * 100).toFixed(0) + "%" : "0%";
-  const engineConf = diag ? (diag.engine_fault_confidence * 100).toFixed(0) + "%" : "0%";
+  const sensorConfRatio = diag?.sensor_fault_confidence ?? 0;
+  const engineConfRatio = diag?.engine_fault_confidence ?? 0;
+  const sensorConf = (sensorConfRatio * 100).toFixed(0) + "%";
+  const engineConf = (engineConfRatio * 100).toFixed(0) + "%";
   const persistence = diag ? `${diag.persistence_count}/5` : "0/5";
 
   const scores = diag?.sensor_scores || {};
   const sensorsList = [
-    { key: "rpm", label: "RPM" },
-    { key: "cht_c", label: "CHT" },
-    { key: "egt_c", label: "EGT" },
-    { key: "oil_pressure_bar", label: "OIL P" },
-    { key: "oil_temperature_c", label: "OIL T" },
-    { key: "fuel_flow_lh", label: "FUEL" },
-    { key: "vibration_g", label: "VIB" },
+    { key: "rpm", label: "Engine RPM" },
+    { key: "cht_c", label: "Cylinder Head Temp" },
+    { key: "egt_c", label: "Exhaust Gas Temp" },
+    { key: "oil_pressure_bar", label: "Oil Pressure" },
+    { key: "oil_temperature_c", label: "Oil Temperature" },
+    { key: "fuel_flow_lh", label: "Fuel Flow Rate" },
+    { key: "vibration_g", label: "Vibration RMS" },
   ];
 
   const evidence =
@@ -71,13 +74,21 @@ export default function SensorDiagnosisPanel({ telemetry }: SensorDiagnosisPanel
       <div className="diag-confidence-row">
         <div className="diag-conf-item">
           <div className="diag-conf-label"><strong>SENSOR FAULT CONF.</strong></div>
-          <div className="diag-conf-val" id="diag-sensor-conf" style={{ color: "var(--accent-amber)" }}>
+          <div
+            className="diag-conf-val"
+            id="diag-sensor-conf"
+            style={{ color: getConfidenceColor(sensorConfRatio) }}
+          >
             {sensorConf}
           </div>
         </div>
         <div className="diag-conf-item">
           <div className="diag-conf-label"><strong>ENGINE FAULT CONF.</strong></div>
-          <div className="diag-conf-val" id="diag-engine-conf" style={{ color: "var(--accent-rose)" }}>
+          <div
+            className="diag-conf-val"
+            id="diag-engine-conf"
+            style={{ color: getConfidenceColor(engineConfRatio) }}
+          >
             {engineConf}
           </div>
         </div>
@@ -90,17 +101,23 @@ export default function SensorDiagnosisPanel({ telemetry }: SensorDiagnosisPanel
       </div>
 
       {/* Sensor Anomaly Score Bars */}
-      <div className="diag-section-header" style={{ marginTop: "0.85rem", padding: "0 0.2rem" }}>
+      <div className="diag-section-header" style={{ marginTop: "0.85rem", padding: "0 0.2rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <span><strong>Sensor Anomaly Scores</strong></span>
-        <span
-          style={{
-            fontFamily: "'JetBrains Mono', monospace",
-            fontSize: "0.68rem",
-            color: "var(--accent-cyan)",
-          }}
-        >
-          CROSS-PREDICTION Σ
-        </span>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem", fontSize: "0.65rem", color: "var(--accent-rose)", fontFamily: "'JetBrains Mono', monospace" }}>
+            <span style={{ display: "inline-block", width: "8px", height: "2px", background: "var(--accent-rose)" }}></span>
+            3σ THRESHOLD (3.0)
+          </span>
+          <span
+            style={{
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: "0.65rem",
+              color: "var(--accent-cyan)",
+            }}
+          >
+            CROSS-PREDICTION Σ
+          </span>
+        </div>
       </div>
       <div className="sensor-bars-container" id="sensor-bars-container">
         {sensorsList.map((s) => {
@@ -112,12 +129,29 @@ export default function SensorDiagnosisPanel({ telemetry }: SensorDiagnosisPanel
 
           return (
             <div key={s.key} className="sensor-bar-row">
-              <span className="sensor-bar-label">{s.label}</span>
-              <div className="sensor-bar-track">
+              <span className="sensor-bar-label" style={{ width: "120px", textTransform: "none", fontSize: "0.7rem" }}>
+                {s.label}
+              </span>
+              <div className="sensor-bar-track" style={{ position: "relative" }}>
                 <div
                   className={fillClass}
                   id={`sbar-${s.key}`}
                   style={{ width: `${Math.max(pct, 2)}%` }}
+                />
+                {/* 3-sigma threshold line at 3.0 / 10 = 30% */}
+                <div
+                  style={{
+                    position: "absolute",
+                    left: "30%",
+                    top: 0,
+                    bottom: 0,
+                    width: "2px",
+                    background: "rgba(239, 68, 68, 0.8)",
+                    boxShadow: "0 0 4px rgba(239, 68, 68, 0.5)",
+                    zIndex: 2,
+                    pointerEvents: "none",
+                  }}
+                  title="3σ Anomaly Threshold (3.0)"
                 />
               </div>
               <span className="sensor-bar-score" id={`sscore-${s.key}`}>

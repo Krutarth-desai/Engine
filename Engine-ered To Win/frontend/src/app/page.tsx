@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { User } from "@supabase/supabase-js";
 import { UnifiedTelemetryPayload, SensorItem } from "@/types/telemetry";
 import AuthScreen from "@/components/AuthScreen";
 import Header from "@/components/Header";
@@ -115,7 +116,7 @@ const DEFAULT_PAYLOAD: UnifiedTelemetryPayload = {
 };
 
 export default function Home() {
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [currentView, setCurrentView] = useState<NavView>("dashboard");
@@ -127,6 +128,17 @@ export default function Home() {
 
   // Sync with browser hash on initial mount and hashchange
   useEffect(() => {
+    // Catch and clean any auth errors from OAuth redirect
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const err = params.get("error_description") || params.get("error");
+      if (err) {
+        console.warn("[AeroTwin Auth Notice]:", decodeURIComponent(err));
+        const cleanUrl = window.location.pathname + window.location.hash;
+        window.history.replaceState({}, document.title, cleanUrl);
+      }
+    }
+
     const handleHash = () => {
       const hash = window.location.hash.replace("#", "").toLowerCase() as NavView;
       const validViews: NavView[] = [
@@ -154,7 +166,7 @@ export default function Home() {
   };
 
   // Helper to ensure public.profiles row
-  const ensureProfile = async (user: any) => {
+  const ensureProfile = async (user: User) => {
     try {
       await supabase.from("profiles").upsert(
         {

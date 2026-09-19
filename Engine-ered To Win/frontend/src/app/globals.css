@@ -3479,19 +3479,41 @@
         }
 
         .plot-stats-footer {
-            display: flex;
-            justify-content: space-around;
-            background: rgba(255, 255, 255, 0.02);
-            border-radius: 6px;
-            padding: 0.5rem;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 0.5rem;
+            background: rgba(14, 21, 38, 0.75);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 0.65rem 0.5rem;
+            margin-top: 0.75rem;
         }
 
         .stat-pill {
             display: flex;
-            align-items: baseline;
-            gap: 0.35rem;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.7rem;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            padding: 0.4rem 0.25rem;
+        }
+
+        .stat-pill .pill-lbl {
+            font-size: 0.62rem;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-bottom: 0.2rem;
+        }
+
+        .stat-pill .pill-val {
+            font-family: var(--font-jetbrains-mono), monospace;
+            font-size: 0.92rem;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
         }
 
         .pill-lbl {

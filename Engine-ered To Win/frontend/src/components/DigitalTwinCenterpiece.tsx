@@ -1,10 +1,24 @@
 "use client";
 
 import React, { useState } from "react";
-import { TelemetryData } from "@/types/telemetry";
+
+export interface DigitalTwinTelemetryInput {
+  rpm?: number;
+  cht_c?: number;
+  egt_c?: number;
+  oil_pressure_bar?: number;
+  oil_temperature_c?: number;
+  fuel_flow_lh?: number;
+  vibration_g?: number;
+  health_index?: number;
+  fault_label?: string;
+  scenario?: string;
+  sensors?: Record<string, { value: number }>;
+  [key: string]: unknown;
+}
 
 interface DigitalTwinCenterpieceProps {
-  telemetry: any;
+  telemetry: DigitalTwinTelemetryInput | null;
   activeScenario: string;
   onInjectScenario: (scenario: string) => void;
 }
@@ -20,7 +34,7 @@ export default function DigitalTwinCenterpiece({
   const rpm = telemetry?.rpm ?? telemetry?.sensors?.rpm?.value ?? 2450;
   const spinPeriod = Math.max(0.08, 60 / Math.max(rpm, 1000));
   const scenario = telemetry?.fault_label || telemetry?.scenario || activeScenario || "Normal";
-  const health = telemetry ? Math.max(Math.min(telemetry.health_index, 100), 0) : 100;
+  const health = telemetry ? Math.max(Math.min(telemetry.health_index ?? 100, 100), 0) : 100;
 
   // Compute SVG transform based on camera view mode
   let svgTransform = "scale(1) translate(0, 0)";

@@ -4,6 +4,7 @@ import React from "react";
 import { UnifiedTelemetryPayload, SensorItem } from "../types/telemetry";
 import DigitalTwinCenterpiece from "./DigitalTwinCenterpiece";
 import { NavView } from "./Sidebar";
+import { getRulZone } from "../lib/limits";
 
 interface MainDashboardViewProps {
   payload: UnifiedTelemetryPayload;
@@ -20,7 +21,15 @@ export default function MainDashboardView({
 }: MainDashboardViewProps) {
   const safeHealth = Math.min(100, Math.max(0, Math.round(payload.health_index ?? 96)));
   const currentRul = Math.round(payload.prognostics?.predicted_rul || 117);
+  const rulZone = getRulZone(currentRul);
   const trend = payload.prognostics?.degradation_trend || "Stable";
+  const trendColor =
+    trend.toLowerCase() === "accelerating"
+      ? "#ef4444"
+      : trend.toLowerCase() === "decreasing"
+      ? "#f59e0b"
+      : "#10b981"; // Stable is always nominal emerald green
+
   const riskLevel = payload.risk?.level || "LOW";
   const anomalyState = payload.risk?.anomaly || "NORMAL";
   const actionText = payload.risk?.action || "All engine systems and sensors are performing nominally. Continue planned cruise profile.";
@@ -126,12 +135,33 @@ export default function MainDashboardView({
           </div>
           <div className="kpi-body">
             <div className="kpi-main-val">
-              <span className="kpi-big-num text-cyan">{currentRul}</span>
+              <span className="kpi-big-num" style={{ color: rulZone.color }}>{currentRul}</span>
               <span className="kpi-unit">CYCLES</span>
             </div>
             <div className="rul-trend-row">
-              <span className="rul-trend-badge">
-                {trend === "Accelerating" ? "ACCELERATING" : `RATE: ${trend.toUpperCase()}`}
+              <span
+                className="rul-trend-badge"
+                style={{
+                  color: trendColor,
+                  backgroundColor: `${trendColor}18`,
+                  borderColor: `${trendColor}40`,
+                }}
+              >
+                {trend.toLowerCase() === "accelerating" ? "ACCELERATING" : `RATE: ${trend.toUpperCase()}`}
+              </span>
+              <span
+                style={{
+                  fontSize: "0.62rem",
+                  fontWeight: 700,
+                  color: rulZone.color,
+                  backgroundColor: rulZone.bgColor,
+                  border: `1px solid ${rulZone.borderColor}`,
+                  padding: "0.15rem 0.4rem",
+                  borderRadius: "4px",
+                  fontFamily: "'JetBrains Mono', monospace",
+                }}
+              >
+                {rulZone.label}
               </span>
               <span className="rul-time-hint">≈ {payload.prognostics?.remaining_time_str || "01:57:32"}</span>
             </div>
