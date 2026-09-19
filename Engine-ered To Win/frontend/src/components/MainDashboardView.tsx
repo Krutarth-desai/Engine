@@ -3,8 +3,12 @@
 import React from "react";
 import { UnifiedTelemetryPayload, SensorItem } from "../types/telemetry";
 import DigitalTwinCenterpiece from "./DigitalTwinCenterpiece";
+import DashboardKpiCards from "./dashboard/DashboardKpiCards";
+import SensorCard from "./common/SensorCard";
 import { NavView } from "./Sidebar";
-import { getRulZone } from "../lib/limits";
+import { SensorKey } from "@/lib/limits";
+import { useTelemetry } from "@/context/TelemetryContext";
+import { BellRing, CheckCircle2, ChevronRight } from "lucide-react";
 
 interface MainDashboardViewProps {
   payload: UnifiedTelemetryPayload;
@@ -19,283 +23,201 @@ export default function MainDashboardView({
   onInjectScenario,
   onNavigate,
 }: MainDashboardViewProps) {
-  const safeHealth = Math.min(100, Math.max(0, Math.round(payload.health_index ?? 96)));
-  const currentRul = Math.round(payload.prognostics?.predicted_rul || 117);
-  const rulZone = getRulZone(currentRul);
-  const trend = payload.prognostics?.degradation_trend || "Stable";
-  const trendColor =
-    trend.toLowerCase() === "accelerating"
-      ? "#ef4444"
-      : trend.toLowerCase() === "decreasing"
-      ? "#f59e0b"
-      : "#10b981"; // Stable is always nominal emerald green
+  const { focusedComponent, setFocusedComponent, historyBuffer } = useTelemetry();
 
-  const riskLevel = payload.risk?.level || "LOW";
-  const anomalyState = payload.risk?.anomaly || "NORMAL";
-  const actionText = payload.risk?.action || "All engine systems and sensors are performing nominally. Continue planned cruise profile.";
-  const actionStatus = payload.risk?.status_label || (riskLevel === "LOW" ? "SYSTEMS OPTIMAL" : "OPERATIONAL ADVISORY");
-  const actionGuidance = payload.risk?.guidance || (
-    riskLevel === "CRITICAL" || riskLevel === "HIGH"
-      ? "Immediate pilot intervention recommended. Refer to maintenance procedures."
-      : "Continuous telemetry baseline nominal. No flight plan deviation required."
-  );
+  // Active alerts only (exclude nominal items)
+  const activeAlerts = (payload.alerts || []).filter((a) => {
+    const lvl = (a.level || "").toUpperCase();
+    return lvl === "ALERT" || lvl === "CRITICAL" || lvl === "WARNING" || lvl === "CAUTION" || lvl === "ADVISORY";
+  });
 
-  // Active top alert (most recent high-priority alert)
-  const activeAlert = payload.alerts && payload.alerts.length > 0 ? payload.alerts[0] : null;
-
+  const topActiveAlert = activeAlerts.length > 0 ? activeAlerts[0] : null;
   const sensors: SensorItem[] = payload.sensor_list || [];
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "ALERT":
-        return "#ef4444";
-      case "CAUTION":
-        return "#f59e0b";
-      case "NORMAL":
-      default:
-        return "#10b981";
-    }
-  };
-
-  const getRiskColor = (level: string) => {
-    switch (level) {
-      case "CRITICAL":
-        return "#ef4444";
-      case "HIGH":
-        return "#f97316";
-      case "MEDIUM":
-        return "#f59e0b";
-      case "LOW":
-      default:
-        return "#10b981";
-    }
-  };
-
   return (
-    <div className="main-dashboard-container">
-      {/* 1. TOP KPI SUMMARY ROW */}
-      <div className="dashboard-kpi-row">
-        {/* Card 1: Health Index */}
-        <div className="kpi-card kpi-health">
-          <div className="kpi-header">
-            <span className="kpi-label"><strong>HEALTH INDEX</strong></span>
-            <span className="kpi-icon">PHM</span>
-          </div>
-          <div className="kpi-body">
-            <div className="kpi-main-val">
-              <span className="kpi-big-num" style={{ color: safeHealth > 75 ? "#10b981" : safeHealth > 45 ? "#f59e0b" : "#ef4444" }}>
-                {safeHealth}
-              </span>
-              <span className="kpi-denom">/ 100</span>
-            </div>
-            <div className="kpi-subtext">
-              {safeHealth >= 80 ? "Nominal Operating Envelope" : safeHealth >= 50 ? "Moderate Degradation Detected" : "Critical Component Stress"}
-            </div>
-          </div>
-        </div>
-
-        {/* Card 2: Anomaly / Risk Status */}
-        <div
-          className="kpi-card kpi-risk clickable"
-          onClick={() => onNavigate("diagnostics")}
-          title="Click to view full Diagnostics analysis"
-        >
-          <div className="kpi-header">
-            <span className="kpi-label"><strong>ANOMALY &amp; RISK</strong></span>
-            <span className="kpi-link-hint">DETAILS →</span>
-          </div>
-          <div className="kpi-body">
-            <div className="risk-dual-readout">
-              <div className="risk-item">
-                <span className="risk-tag">ANOMALY:</span>
-                <span className={`risk-val status-${anomalyState.toLowerCase()}`}>
-                  {anomalyState}
-                </span>
-              </div>
-              <div className="risk-item">
-                <span className="risk-tag">RISK LEVEL:</span>
-                <span className="risk-val" style={{ color: getRiskColor(riskLevel) }}>
-                  {riskLevel}
-                </span>
-              </div>
-            </div>
-            <div className="kpi-subtext">Automated Multi-Sensor Cross Isolation</div>
-          </div>
-        </div>
-
-        {/* Card 3: Basic RUL Summary (Clickable -> RUL & Prognostics) */}
-        <div
-          className="kpi-card kpi-rul clickable"
-          onClick={() => onNavigate("rul")}
-          title="Click to view detailed RUL & Prognostics page"
-        >
-          <div className="kpi-header">
-            <span className="kpi-label"><strong>REMAINING USEFUL LIFE</strong></span>
-            <span className="kpi-link-hint">PROGNOSTICS →</span>
-          </div>
-          <div className="kpi-body">
-            <div className="kpi-main-val">
-              <span className="kpi-big-num" style={{ color: rulZone.color }}>{currentRul}</span>
-              <span className="kpi-unit">CYCLES</span>
-            </div>
-            <div className="rul-trend-row">
-              <span
-                className="rul-trend-badge"
-                style={{
-                  color: trendColor,
-                  backgroundColor: `${trendColor}18`,
-                  borderColor: `${trendColor}40`,
-                }}
-              >
-                {trend.toLowerCase() === "accelerating" ? "ACCELERATING" : `RATE: ${trend.toUpperCase()}`}
-              </span>
-              <span
-                style={{
-                  fontSize: "0.62rem",
-                  fontWeight: 700,
-                  color: rulZone.color,
-                  backgroundColor: rulZone.bgColor,
-                  border: `1px solid ${rulZone.borderColor}`,
-                  padding: "0.15rem 0.4rem",
-                  borderRadius: "4px",
-                  fontFamily: "'JetBrains Mono', monospace",
-                }}
-              >
-                {rulZone.label}
-              </span>
-              <span className="rul-time-hint">≈ {payload.prognostics?.remaining_time_str || "01:57:32"}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Card 4: Current Recommendation / Action (Clickable -> Maintenance) */}
-        <div
-          className="kpi-card kpi-action clickable"
-          onClick={() => onNavigate("maintenance")}
-          title="Click to view Maintenance workflows"
-        >
-          <div className="kpi-header">
-            <span className="kpi-label"><strong>ACTION RECOMMENDATION</strong></span>
-            <span className="kpi-link-hint">MAINTENANCE →</span>
-          </div>
-          <div className="kpi-body">
-            <div className="action-status-badge" style={{ color: getRiskColor(riskLevel) }}>
-              <strong>[{actionStatus}]</strong>
-            </div>
-            <div className="action-highlight-box">
-              <span className="action-title-text"><strong>{actionText}</strong></span>
-            </div>
-            <div className="kpi-subtext">
-              {actionGuidance}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 2. CENTER: ENGINE DIGITAL TWIN VISUALIZATION */}
-      <div className="dashboard-center-engine">
-        <DigitalTwinCenterpiece
-          telemetry={{
-            ...payload,
-            rpm: payload.sensors?.rpm?.value ?? payload.rpm ?? 2450,
-            cht_c: payload.sensors?.cht?.value ?? payload.cht_c ?? 142.0,
-            egt_c: payload.sensors?.egt?.value ?? payload.egt_c ?? 615.0,
-            oil_pressure_bar: payload.sensors?.oil_pressure?.value
-              ? payload.sensors.oil_pressure.value / 14.5038
-              : (payload.oil_pressure_bar ?? 4.7),
-            oil_temperature_c: payload.sensors?.oil_temperature?.value ?? payload.oil_temperature_c ?? 92.0,
-            fuel_flow_lh: payload.sensors?.fuel_flow?.value ?? payload.fuel_flow_lh ?? 17.6,
-            vibration_g: payload.sensors?.vibration?.value ?? payload.vibration_g ?? 1.42,
-            health_index: safeHealth,
-            fault_label: payload.fault_label ?? activeScenario,
-          }}
-          activeScenario={activeScenario}
-          onInjectScenario={onInjectScenario}
-        />
-      </div>
-
-      {/* 3. BELOW / SIDE: 9 LIVE ENGINE SENSORS COMPACT GRID */}
-      <div className="dashboard-sensors-section">
-        <div className="section-header-row">
-          <div className="section-title">
-            <strong>9-CHANNEL LIVE SENSORS (OPERATIONAL HUD)</strong>
-          </div>
-          <button
-            className="view-more-btn"
-            onClick={() => onNavigate("telemetry")}
+    <div className="main-dashboard-container" style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+      {/* 1. TOP: ALERT STRIP (Collapses to a slim "No active alerts" line when clear) */}
+      {topActiveAlert ? (() => {
+        const isCrit = topActiveAlert.level === "ALERT" || topActiveAlert.level === "CRITICAL" || topActiveAlert.level === "WARNING";
+        const isWarn = topActiveAlert.level === "CAUTION";
+        const stripColor = isCrit ? "#ef4444" : isWarn ? "#f59e0b" : "#38bdf8";
+        return (
+          <div
+            className={`dashboard-active-alert-strip ${isCrit ? "alert-strip-crit" : isWarn ? "alert-strip-warn" : "alert-strip-info"}`}
+            onClick={() => onNavigate("alerts")}
+            title="Click to open full Alerts manager"
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              padding: "0.45rem 0.85rem",
+              borderRadius: "6px",
+              background: isCrit ? "rgba(239, 68, 68, 0.15)" : isWarn ? "rgba(245, 158, 11, 0.15)" : "rgba(56, 189, 248, 0.15)",
+              border: `1px solid ${isCrit ? "rgba(239, 68, 68, 0.5)" : isWarn ? "rgba(245, 158, 11, 0.5)" : "rgba(56, 189, 248, 0.5)"}`,
+              cursor: "pointer",
+              transition: "all 0.2s ease",
+            }}
           >
-            VIEW FULL TELEMETRY &amp; TIME-SERIES →
-          </button>
-        </div>
-
-        <div className="compact-sensors-grid">
-          {sensors.map((sensor) => {
-            const statusColor = getStatusColor(sensor.status);
-            return (
-              <div
-                key={sensor.key}
-                className={`compact-sensor-card status-${sensor.status.toLowerCase()}`}
-                onClick={() => onNavigate("telemetry")}
-                title={`Click to view detailed ${sensor.name} telemetry`}
+            <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+              <BellRing size={15} style={{ color: stripColor }} />
+              <span
+                style={{
+                  fontSize: "0.68rem",
+                  fontWeight: 800,
+                  fontFamily: "'JetBrains Mono', monospace",
+                  color: stripColor,
+                }}
               >
-                <div className="card-header-line">
-                  <span className="compact-sensor-name"><strong>{sensor.name}</strong></span>
-                  <span
-                    className="compact-sensor-dot"
-                    style={{ backgroundColor: statusColor, boxShadow: `0 0 6px ${statusColor}` }}
-                  />
-                </div>
-                <div className="card-value-line">
-                  <span className="compact-sensor-val" style={{ color: statusColor }}>
-                    {typeof sensor.value === "number" ? sensor.value.toLocaleString() : sensor.value}
-                  </span>
-                  <span className="compact-sensor-unit">{sensor.unit}</span>
-                </div>
-                <div className="compact-progress-track">
-                  <div
-                    className="compact-progress-fill"
-                    style={{
-                      width: `${Math.min(100, Math.max(0, sensor.progressPct))}%`,
-                      backgroundColor: statusColor,
-                    }}
-                  />
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* 4. BOTTOM: ACTIVE ALERT / IMPORTANT EVENT */}
-      {activeAlert && (
-        <div
-          className={`dashboard-active-alert-bar ${
-            activeAlert.level === "ALERT"
-              ? "alert-bar-crit"
-              : activeAlert.level === "CAUTION"
-              ? "alert-bar-warn"
-              : "alert-bar-nom"
-          }`}
-          onClick={() => onNavigate("alerts")}
-          title="Click to open full Alerts log"
-        >
-          <div className="alert-bar-left">
-            <span className="alert-bar-level-tag">
-              [{activeAlert.level}]
+                [{topActiveAlert.level}]
+              </span>
+            <span style={{ fontSize: "0.76rem", fontWeight: 700, color: "#f8fafc" }}>
+              {topActiveAlert.title}
             </span>
-            <div className="alert-bar-content">
-              <div className="alert-bar-title">
-                <strong>{activeAlert.title}</strong>
-                <span className="alert-bar-time">{activeAlert.time_ago}</span>
-              </div>
-              <div className="alert-bar-msg">{activeAlert.message}</div>
-            </div>
+            <span style={{ fontSize: "0.72rem", color: "#94a3b8" }}>— {topActiveAlert.message}</span>
           </div>
-          <button className="alert-bar-action-btn">
-            VIEW ALL ALERTS ({payload.alerts.length}) →
+
+          <button
+            className="alert-bar-action-btn"
+            style={{
+              background: "transparent",
+              border: "none",
+              color: "var(--accent-cyan)",
+              fontSize: "0.68rem",
+              fontWeight: 700,
+              fontFamily: "'JetBrains Mono', monospace",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.25rem",
+              cursor: "pointer",
+            }}
+          >
+            VIEW ALL ALERTS ({activeAlerts.length}) →
           </button>
+        </div>
+        );
+      })() : (
+        /* Slim "No active alerts" collapsed line */
+        <div
+          onClick={() => onNavigate("alerts")}
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            padding: "0.3rem 0.75rem",
+            borderRadius: "4px",
+            background: "rgba(16, 185, 129, 0.05)",
+            border: "1px solid rgba(16, 185, 129, 0.2)",
+            fontSize: "0.68rem",
+            color: "#10b981",
+            fontFamily: "'JetBrains Mono', monospace",
+            cursor: "pointer",
+          }}
+          title="All systems nominal. Click to view chronological log."
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+            <CheckCircle2 size={13} style={{ color: "#10b981" }} />
+            <span>NO ACTIVE ALERTS — Propulsion envelope and predictive thresholds nominal</span>
+          </div>
+          <span style={{ color: "#64748b", display: "inline-flex", alignItems: "center", gap: "0.2rem" }}>
+            Alerts Log ({payload.alerts?.length || 0}) <ChevronRight size={12} />
+          </span>
         </div>
       )}
+
+      {/* 2. KPI SUMMARY CARDS */}
+      <DashboardKpiCards payload={payload} onNavigate={onNavigate} />
+
+      {/* 3. ~60/40 SPLIT ON WIDE SCREENS: TWIN SCHEMATIC & LIVE SENSOR CARDS */}
+      <div
+        className="dashboard-main-split"
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1.3fr 1fr",
+          gap: "0.75rem",
+          alignItems: "stretch",
+        }}
+      >
+        {/* Left 60%: Digital Twin Centerpiece Schematic */}
+        <div style={{ minHeight: "360px" }}>
+          <DigitalTwinCenterpiece
+            telemetry={payload}
+            activeScenario={activeScenario}
+            onInjectScenario={onInjectScenario}
+            focusedComponent={focusedComponent}
+            onSelectComponent={(k) => {
+              setFocusedComponent(focusedComponent === k ? null : k);
+            }}
+          />
+        </div>
+
+        {/* Right 40%: Live 9-Channel Sensor Strip using unified SensorCard */}
+        <div className="panel" style={{ display: "flex", flexDirection: "column", minHeight: "360px" }}>
+          <div className="panel-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div className="panel-title">
+              <strong>9-CHANNEL ENGINE SENSORS</strong>
+            </div>
+            <button
+              onClick={() => onNavigate("telemetry")}
+              style={{
+                background: "transparent",
+                border: "none",
+                color: "var(--accent-cyan)",
+                fontSize: "0.66rem",
+                fontWeight: 700,
+                cursor: "pointer",
+                fontFamily: "'JetBrains Mono', monospace",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.2rem",
+              }}
+            >
+              TIME-SERIES →
+            </button>
+          </div>
+
+          <div
+            className="compact-sensor-card-grid"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(3, 1fr)",
+              gap: "0.45rem",
+              overflowY: "auto",
+              paddingRight: "0.2rem",
+              maxHeight: "340px",
+            }}
+          >
+            {sensors.map((sensor) => {
+              const sKey = sensor.key as SensorKey;
+              const isFocused = focusedComponent === sKey || focusedComponent === sensor.key;
+
+              // Extract rolling history for sparkline
+              const history = historyBuffer
+                .map((h) => {
+                  const val = h.sensors?.[sKey]?.value ?? h.sensors?.[sensor.key]?.value;
+                  return typeof val === "number" ? val : null;
+                })
+                .filter((v): v is number => v !== null);
+
+              return (
+                <SensorCard
+                  key={sensor.key}
+                  sensorKey={sKey}
+                  value={typeof sensor.value === "number" ? sensor.value : Number(sensor.value)}
+                  name={sensor.name}
+                  unit={sensor.unit}
+                  history={history}
+                  trend={sensor.trend}
+                  compact={true}
+                  isFocused={isFocused}
+                  onFocus={(k) => {
+                    setFocusedComponent(focusedComponent === k ? null : k);
+                  }}
+                />
+              );
+            })}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

@@ -7,6 +7,7 @@ import RulTrajectoryChart from "./RulTrajectoryChart";
 import LstmMetricsPanel from "./LstmMetricsPanel";
 import RecentTrendsCard from "./RecentTrendsCard";
 import RulPrognosticsPanel from "./RulPrognosticsPanel";
+import ModelInfoPopover from "./prognostics/ModelInfoPopover";
 
 interface RulPrognosticsViewProps {
   payload: UnifiedTelemetryPayload;
@@ -19,29 +20,43 @@ export default function RulPrognosticsView({ payload }: RulPrognosticsViewProps)
     <div className="view-container rul-prognostics-view">
       <div className="view-header-strip">
         <div>
-          <h2 className="view-title"><strong>REMAINING USEFUL LIFE (RUL) &amp; PROGNOSTICS SUITE</strong></h2>
-          <p className="view-subtitle">Deep LSTM degradation modeling, 30-cycle temporal sequence memory, and cycle-to-failure forecasting</p>
+          <h2 className="view-title">
+            <strong>REMAINING USEFUL LIFE (RUL) &amp; PROGNOSTICS SUITE</strong>
+          </h2>
+          <p className="view-subtitle">
+            Deep LSTM degradation modeling, 30-cycle temporal sequence memory, and cycle-to-failure forecasting
+          </p>
         </div>
 
-        {/* Tab Toggle between Live Piston Engine Prognostics and NASA CMAPSS Fleet Explorer */}
-        <div className="rul-view-tabs">
-          <button
-            className={`rul-tab-btn ${activeTab === "piston" ? "active" : ""}`}
-            onClick={() => setActiveTab("piston")}
-          >
-            <strong>UAV PISTON PROGNOSTICS</strong>
-          </button>
-          <button
-            className={`rul-tab-btn ${activeTab === "cmapss" ? "active" : ""}`}
-            onClick={() => setActiveTab("cmapss")}
-          >
-            <strong>NASA CMAPSS FLEET (E1–E100)</strong>
-          </button>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+          <ModelInfoPopover />
+
+          {/* Dataset Tabs with explicit cycle definitions */}
+          <div className="rul-view-tabs" role="tablist">
+            <button
+              role="tab"
+              aria-selected={activeTab === "piston"}
+              className={`rul-tab-btn ${activeTab === "piston" ? "active" : ""}`}
+              onClick={() => setActiveTab("piston")}
+              title="Live MALE UAV Piston Engine (1 cycle = 60s cruise)"
+            >
+              <strong>UAV PISTON (60s/CYCLE)</strong>
+            </button>
+            <button
+              role="tab"
+              aria-selected={activeTab === "cmapss"}
+              className={`rul-tab-btn ${activeTab === "cmapss" ? "active" : ""}`}
+              onClick={() => setActiveTab("cmapss")}
+              title="NASA C-MAPSS Turbofan Fleet Benchmarks (1 cycle = 1 flight mission)"
+            >
+              <strong>NASA C-MAPSS FLEET</strong>
+            </button>
+          </div>
         </div>
       </div>
 
       {activeTab === "piston" ? (
-        <div className="rul-prognostics-grid">
+        <div className="rul-prognostics-grid" style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
           {/* Row 1: Left RUL Centerpiece Arc Gauge & Overview | Right LSTM Diagnostic Metrics */}
           <div className="rul-deck-row">
             <div className="rul-deck-col-left">
@@ -59,6 +74,7 @@ export default function RulPrognosticsView({ payload }: RulPrognosticsViewProps)
               currentCycle={payload.cycle || 31}
               currentActualRul={payload.prognostics?.actual_rul || 112}
               currentPredictedRul={payload.prognostics?.predicted_rul || 117.4}
+              modelMae={payload.prognostics?.model_mae || 10.08}
             />
           </div>
 

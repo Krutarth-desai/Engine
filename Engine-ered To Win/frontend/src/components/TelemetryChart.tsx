@@ -1,60 +1,48 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Chart, registerables } from "chart.js";
+import annotationPlugin from "chartjs-plugin-annotation";
 import { TelemetryData } from "@/types/telemetry";
+import { useTelemetry } from "@/context/TelemetryContext";
+import { fmtTimestamp } from "@/lib/format";
 
-Chart.register(...registerables);
+Chart.register(...registerables, annotationPlugin);
 
 interface TelemetryChartProps {
-  telemetry: TelemetryData | null;
+  telemetry?: TelemetryData | null;
 }
 
-export default function TelemetryChart({ telemetry }: TelemetryChartProps) {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const chartInstanceRef = useRef<Chart | null>(null);
-  const chartLabelsRef = useRef<string[]>([]);
-  const dataCHTRef = useRef<number[]>([]);
-  const dataEGTRef = useRef<number[]>([]);
-  const dataOilTRef = useRef<number[]>([]);
+export default function TelemetryChart({ telemetry: propTelemetry }: TelemetryChartProps) {
+  const { historyBuffer, payload, linkState, lastUpdateAt, timeDisplay } = useTelemetry();
+  const [windowSeconds, setWindowSeconds] = useState<30 | 60 | 120>(30);
 
+  const canvasEgtRef = useRef<HTMLCanvasElement | null>(null);
+  const canvasChtRef = useRef<HTMLCanvasElement | null>(null);
+
+  const chartEgtInstance = useRef<Chart | null>(null);
+  const chartChtInstance = useRef<Chart | null>(null);
+
+  // 1. Initialize EGT Chart
   useEffect(() => {
-    if (!canvasRef.current) return;
-
-    const ctx = canvasRef.current.getContext("2d");
+    if (!canvasEgtRef.current) return;
+    const ctx = canvasEgtRef.current.getContext("2d");
     if (!ctx) return;
 
     const chart = new Chart(ctx, {
       type: "line",
       data: {
-        labels: chartLabelsRef.current,
+        labels: [],
         datasets: [
           {
-            label: "CHT (°C)",
-            data: dataCHTRef.current,
-            borderColor: "#38bdf8",
-            backgroundColor: "rgba(56, 189, 248, 0.1)",
-            tension: 0.3,
+            label: "EGT — Exhaust Gas Temp (°C)",
+            data: [],
+            borderColor: "#f43f5e",
+            backgroundColor: "rgba(244, 63, 94, 0.08)",
             borderWidth: 2,
+            tension: 0.25,
             pointRadius: 0,
-          },
-          {
-            label: "EGT (°C)",
-            data: dataEGTRef.current,
-            borderColor: "#ef4444",
-            backgroundColor: "transparent",
-            tension: 0.3,
-            borderWidth: 2,
-            pointRadius: 0,
-          },
-          {
-            label: "Oil Temp (°C)",
-            data: dataOilTRef.current,
-            borderColor: "#f59e0b",
-            backgroundColor: "transparent",
-            tension: 0.3,
-            borderWidth: 2,
-            pointRadius: 0,
+            fill: true,
           },
         ],
       },
@@ -64,73 +52,302 @@ export default function TelemetryChart({ telemetry }: TelemetryChartProps) {
         animation: false,
         plugins: {
           legend: {
+            display: true,
             labels: {
               color: "#94a3b8",
-              font: { family: "Inter", size: 11 },
+              font: { family: "'JetBrains Mono', monospace", size: 10 },
+              boxWidth: 12,
             },
+          },
+          annotation: {
+            annotations: {
+              triggerLine: {
+                type: "line",
+                yMin: 680,
+                yMax: 680,
+                borderColor: "rgba(245, 158, 11, 0.7)",
+                borderWidth: 1.5,
+                borderDash: [4, 3],
+                label: {
+                  display: true,
+                  content: "TRIGGER 680 °C",
+                  position: "end",
+                  color: "#f59e0b",
+                  backgroundColor: "rgba(10, 16, 30, 0.8)",
+                  font: { family: "'JetBrains Mono', monospace", size: 8 },
+                },
+              },
+            },
+          },
+          tooltip: {
+            mode: "index",
+            intersect: false,
+            backgroundColor: "rgba(7, 11, 20, 0.9)",
+            borderColor: "rgba(56, 189, 248, 0.3)",
+            borderWidth: 1,
+            titleFont: { family: "'JetBrains Mono', monospace", size: 11 },
+            bodyFont: { family: "'JetBrains Mono', monospace", size: 10 },
           },
         },
         scales: {
           x: {
-            grid: { color: "rgba(255, 255, 255, 0.05)" },
+            grid: { color: "rgba(255, 255, 255, 0.04)" },
             ticks: {
               color: "#64748b",
-              font: { family: "JetBrains Mono", size: 10 },
+              font: { family: "'JetBrains Mono', monospace", size: 9 },
+              maxRotation: 0,
+              autoSkip: true,
+              maxTicksLimit: 6,
             },
           },
           y: {
+            min: 500,
+            max: 850,
             grid: { color: "rgba(255, 255, 255, 0.05)" },
             ticks: {
               color: "#64748b",
-              font: { family: "JetBrains Mono", size: 10 },
+              font: { family: "'JetBrains Mono', monospace", size: 9 },
+              stepSize: 50,
             },
           },
         },
       },
     });
 
-    chartInstanceRef.current = chart;
-
+    chartEgtInstance.current = chart;
     return () => {
       chart.destroy();
-      chartInstanceRef.current = null;
+      chartEgtInstance.current = null;
     };
   }, []);
 
+  // 2. Initialize CHT & Oil Temp Stacked Chart
   useEffect(() => {
-    if (!telemetry || !chartInstanceRef.current) return;
+    if (!canvasChtRef.current) return;
+    const ctx = canvasChtRef.current.getContext("2d");
+    if (!ctx) return;
 
-    const maxDataPoints = 30;
-    const timeLabel = new Date(telemetry.timestamp).toLocaleTimeString([], {
-      hour12: false,
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
+    const chart = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: [],
+        datasets: [
+          {
+            label: "CHT — Cylinder Head (°C)",
+            data: [],
+            borderColor: "#38bdf8",
+            backgroundColor: "rgba(56, 189, 248, 0.08)",
+            borderWidth: 2,
+            tension: 0.25,
+            pointRadius: 0,
+            fill: true,
+          },
+          {
+            label: "Oil Temp (°C)",
+            data: [],
+            borderColor: "#f59e0b",
+            backgroundColor: "transparent",
+            borderWidth: 1.5,
+            tension: 0.25,
+            pointRadius: 0,
+            borderDash: [3, 3],
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: false,
+        plugins: {
+          legend: {
+            display: true,
+            labels: {
+              color: "#94a3b8",
+              font: { family: "'JetBrains Mono', monospace", size: 10 },
+              boxWidth: 12,
+            },
+          },
+          annotation: {
+            annotations: {
+              triggerLine: {
+                type: "line",
+                yMin: 165,
+                yMax: 165,
+                borderColor: "rgba(245, 158, 11, 0.7)",
+                borderWidth: 1.5,
+                borderDash: [4, 3],
+                label: {
+                  display: true,
+                  content: "TRIGGER CHT 165 °C",
+                  position: "end",
+                  color: "#f59e0b",
+                  backgroundColor: "rgba(10, 16, 30, 0.8)",
+                  font: { family: "'JetBrains Mono', monospace", size: 8 },
+                },
+              },
+            },
+          },
+          tooltip: {
+            mode: "index",
+            intersect: false,
+            backgroundColor: "rgba(7, 11, 20, 0.9)",
+            borderColor: "rgba(56, 189, 248, 0.3)",
+            borderWidth: 1,
+            titleFont: { family: "'JetBrains Mono', monospace", size: 11 },
+            bodyFont: { family: "'JetBrains Mono', monospace", size: 10 },
+          },
+        },
+        scales: {
+          x: {
+            grid: { color: "rgba(255, 255, 255, 0.04)" },
+            ticks: {
+              color: "#64748b",
+              font: { family: "'JetBrains Mono', monospace", size: 9 },
+              maxRotation: 0,
+              autoSkip: true,
+              maxTicksLimit: 6,
+            },
+          },
+          y: {
+            min: 50,
+            max: 220,
+            grid: { color: "rgba(255, 255, 255, 0.05)" },
+            ticks: {
+              color: "#64748b",
+              font: { family: "'JetBrains Mono', monospace", size: 9 },
+              stepSize: 30,
+            },
+          },
+        },
+      },
     });
 
-    if (chartLabelsRef.current.length >= maxDataPoints) {
-      chartLabelsRef.current.shift();
-      dataCHTRef.current.shift();
-      dataEGTRef.current.shift();
-      dataOilTRef.current.shift();
+    chartChtInstance.current = chart;
+    return () => {
+      chart.destroy();
+      chartChtInstance.current = null;
+    };
+  }, []);
+
+  // 3. Update data on both charts when buffer or window changes
+  useEffect(() => {
+    const rawBuffer = historyBuffer.length > 0 ? historyBuffer : [payload];
+    const sliced = rawBuffer.slice(-windowSeconds);
+
+    const labels = sliced.map((p) => {
+      const ts = p.timestamp ? new Date(p.timestamp) : new Date();
+      return ts.toLocaleTimeString([], { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+    });
+
+    const egtData = sliced.map((p) => {
+      const val = p.sensors?.egt?.value ?? (p as unknown as Record<string, unknown>).egt_c ?? (propTelemetry?.egt_c ?? 615);
+      return typeof val === "number" ? val : Number(val);
+    });
+
+    const chtData = sliced.map((p) => {
+      const val = p.sensors?.cht?.value ?? (p as unknown as Record<string, unknown>).cht_c ?? (propTelemetry?.cht_c ?? 142);
+      return typeof val === "number" ? val : Number(val);
+    });
+
+    const oilTData = sliced.map((p) => {
+      const val = p.sensors?.oil_temperature?.value ?? (p as unknown as Record<string, unknown>).oil_temperature_c ?? (propTelemetry?.oil_temperature_c ?? 92);
+      return typeof val === "number" ? val : Number(val);
+    });
+
+    if (chartEgtInstance.current) {
+      chartEgtInstance.current.data.labels = labels;
+      chartEgtInstance.current.data.datasets[0].data = egtData;
+      chartEgtInstance.current.update("none");
     }
 
-    chartLabelsRef.current.push(timeLabel);
-    dataCHTRef.current.push(telemetry.cht_c);
-    dataEGTRef.current.push(telemetry.egt_c);
-    dataOilTRef.current.push(telemetry.oil_temperature_c);
+    if (chartChtInstance.current) {
+      chartChtInstance.current.data.labels = labels;
+      chartChtInstance.current.data.datasets[0].data = chtData;
+      chartChtInstance.current.data.datasets[1].data = oilTData;
+      chartChtInstance.current.update("none");
+    }
+  }, [historyBuffer, payload, propTelemetry, windowSeconds]);
 
-    chartInstanceRef.current.update();
-  }, [telemetry]);
+  const lastUpdateFormatted = lastUpdateAt ? fmtTimestamp(lastUpdateAt, timeDisplay === "zulu") : "--:--:--";
 
   return (
-    <div className="panel">
-      <div className="panel-header">
-        <span className="panel-title">Real-Time Thermal & Combustion Dynamics</span>
-        <span className="metric-tag">Live 30-Second Buffer</span>
+    <div className="panel" style={{ display: "flex", flexDirection: "column", gap: "0.65rem", height: "100%", position: "relative" }}>
+      {/* Stale Overlay */}
+      {linkState !== "live" && (
+        <div className="chart-stale-overlay">
+          <div className="chart-stale-badge">
+            NO NEW DATA SINCE {lastUpdateFormatted}
+          </div>
+        </div>
+      )}
+
+      {/* Header with Time-Window Selector */}
+      <div className="panel-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+          <span className="panel-title">
+            <strong>STACKED THERMAL &amp; COMBUSTION DYNAMICS</strong>
+          </span>
+          <span style={{ fontSize: "0.62rem", color: "var(--accent-cyan)", fontFamily: "'JetBrains Mono', monospace" }}>
+            [SYNCHRONIZED TIME AXIS]
+          </span>
+        </div>
+
+        {/* Time-Window Pills: 30s, 60s, 120s */}
+        <div style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
+          <span style={{ fontSize: "0.64rem", color: "#64748b", fontFamily: "'JetBrains Mono', monospace" }}>WINDOW:</span>
+          {([30, 60, 120] as const).map((sec) => (
+            <button
+              key={sec}
+              onClick={() => setWindowSeconds(sec)}
+              style={{
+                background: windowSeconds === sec ? "rgba(56, 189, 248, 0.2)" : "rgba(255, 255, 255, 0.04)",
+                border: `1px solid ${windowSeconds === sec ? "var(--accent-cyan)" : "rgba(255, 255, 255, 0.1)"}`,
+                color: windowSeconds === sec ? "var(--accent-cyan)" : "#94a3b8",
+                borderRadius: "4px",
+                padding: "0.15rem 0.45rem",
+                fontSize: "0.65rem",
+                fontWeight: 700,
+                fontFamily: "'JetBrains Mono', monospace",
+                cursor: "pointer",
+              }}
+            >
+              {sec}s
+            </button>
+          ))}
+        </div>
       </div>
-      <div className="chart-container">
-        <canvas id="telemetryChart" ref={canvasRef}></canvas>
+
+      {/* Stacked Chart Top: EGT Combustion */}
+      <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 0.25rem" }}>
+          <span style={{ fontSize: "0.68rem", fontWeight: 700, color: "#f43f5e", fontFamily: "'JetBrains Mono', monospace" }}>
+            EXHAUST GAS TEMPERATURE (EGT)
+          </span>
+          <span style={{ fontSize: "0.62rem", color: "var(--accent-amber)", fontFamily: "'JetBrains Mono', monospace" }}>
+            TRIGGER: 680 °C
+          </span>
+        </div>
+        <div style={{ height: "140px", position: "relative" }}>
+          <canvas ref={canvasEgtRef} />
+        </div>
+      </div>
+
+      {/* Divider */}
+      <div style={{ height: "1px", background: "rgba(255, 255, 255, 0.06)", margin: "0.2rem 0" }} />
+
+      {/* Stacked Chart Bottom: CHT & Oil Temp */}
+      <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 0.25rem" }}>
+          <span style={{ fontSize: "0.68rem", fontWeight: 700, color: "#38bdf8", fontFamily: "'JetBrains Mono', monospace" }}>
+            CYLINDER HEAD TEMP (CHT) &amp; OIL TEMP
+          </span>
+          <span style={{ fontSize: "0.62rem", color: "var(--accent-amber)", fontFamily: "'JetBrains Mono', monospace" }}>
+            TRIGGER: CHT 165 °C
+          </span>
+        </div>
+        <div style={{ height: "140px", position: "relative" }}>
+          <canvas ref={canvasChtRef} />
+        </div>
       </div>
     </div>
   );

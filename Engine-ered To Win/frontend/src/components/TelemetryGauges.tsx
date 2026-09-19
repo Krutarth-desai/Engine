@@ -2,199 +2,108 @@
 
 import React from "react";
 import { TelemetryData } from "@/types/telemetry";
+import { useTelemetry } from "@/context/TelemetryContext";
+import SensorCard from "./common/SensorCard";
+import { SENSOR_LIMITS, SensorKey } from "@/lib/limits";
+import { fmtTimestamp } from "@/lib/format";
 
 interface TelemetryGaugesProps {
   telemetry: TelemetryData | null;
 }
 
 export default function TelemetryGauges({ telemetry }: TelemetryGaugesProps) {
-  const rpm = telemetry?.rpm ?? 6100;
-  const cht = telemetry?.cht_c ?? 150.0;
-  const egt = telemetry?.egt_c ?? 700.0;
-  const oilP = telemetry?.oil_pressure_bar ?? 4.3;
-  const oilT = telemetry?.oil_temperature_c ?? 95.0;
-  const fuel = telemetry?.fuel_flow_lh ?? 18.5;
-  const vib = telemetry?.vibration_g ?? 0.2;
-  const battery = telemetry?.battery_voltage_v ?? 28.0;
-  const timing = telemetry?.injection_timing_deg ?? 22.0;
-  const timestamp = telemetry
-    ? new Date(telemetry.timestamp).toLocaleTimeString()
+  const { historyBuffer, focusedComponent, setFocusedComponent, timeDisplay } = useTelemetry();
+
+  const timestampStr = telemetry?.timestamp
+    ? fmtTimestamp(telemetry.timestamp, timeDisplay === "zulu")
     : "--:--:--";
 
+  const sensorKeys: SensorKey[] = [
+    "rpm",
+    "cht",
+    "egt",
+    "oil_pressure",
+    "oil_temperature",
+    "fuel_flow",
+    "vibration",
+    "bus_voltage",
+    "injection_timing",
+  ];
+
   return (
-    <div className="panel">
-      <div className="panel-header">
-        <span className="panel-title">Live Sensor Telemetry Gauges</span>
+    <div className="panel telemetry-gauges-panel" style={{ height: "100%", display: "flex", flexDirection: "column" }}>
+      <div className="panel-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <span className="panel-title">
+          <strong>9-CHANNEL SENSOR GAUGES (UNIFIED HUD SCALES)</strong>
+        </span>
         <span
-          className="metric-tag"
-          style={{ fontSize: "0.75rem", fontFamily: "'JetBrains Mono', monospace" }}
+          className="metric-tag font-mono"
+          style={{ fontSize: "0.68rem" }}
           id="val-timestamp"
         >
-          {timestamp}
+          SYNC: {timestampStr}
         </span>
       </div>
-      <div className="telemetry-grid">
-        {/* RPM */}
-        <div className="telemetry-card">
-          <div className="card-top">
-            <span className="card-name">Rotational Speed</span>
-            <span className="card-unit">RPM</span>
-          </div>
-          <div className="card-val" id="val-rpm">
-            {rpm.toFixed(0)}
-          </div>
-          <div className="card-progress-bar">
-            <div
-              id="prog-rpm"
-              className="card-progress-fill"
-              style={{ width: `${Math.min((rpm / 7000) * 100, 100)}%` }}
-            />
-          </div>
-        </div>
 
-        {/* CHT */}
-        <div className="telemetry-card">
-          <div className="card-top">
-            <span className="card-name">Cylinder Head (CHT)</span>
-            <span className="card-unit">°C</span>
-          </div>
-          <div className="card-val" id="val-cht">
-            {cht.toFixed(1)}
-          </div>
-          <div className="card-progress-bar">
-            <div
-              id="prog-cht"
-              className="card-progress-fill"
-              style={{ width: `${Math.min((cht / 250) * 100, 100)}%` }}
-            />
-          </div>
-        </div>
+      <div
+        className="telemetry-gauge-grid"
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(3, 1fr)",
+          gap: "0.6rem",
+          flex: 1,
+          overflowY: "auto",
+        }}
+      >
+        {sensorKeys.map((key) => {
+          const def = SENSOR_LIMITS[key];
+          const isFocused = focusedComponent === key;
 
-        {/* EGT */}
-        <div className="telemetry-card">
-          <div className="card-top">
-            <span className="card-name">Exhaust Gas (EGT)</span>
-            <span className="card-unit">°C</span>
-          </div>
-          <div className="card-val" id="val-egt">
-            {egt.toFixed(1)}
-          </div>
-          <div className="card-progress-bar">
-            <div
-              id="prog-egt"
-              className="card-progress-fill"
-              style={{ width: `${Math.min((egt / 900) * 100, 100)}%` }}
-            />
-          </div>
-        </div>
+          // Extract value from telemetry
+          let val: number | undefined;
+          if (key === "rpm") val = telemetry?.rpm;
+          else if (key === "cht") val = telemetry?.cht_c;
+          else if (key === "egt") val = telemetry?.egt_c;
+          else if (key === "oil_pressure") val = telemetry?.oil_pressure_bar ? telemetry.oil_pressure_bar * 14.5038 : undefined;
+          else if (key === "oil_temperature") val = telemetry?.oil_temperature_c;
+          else if (key === "fuel_flow") val = telemetry?.fuel_flow_lh;
+          else if (key === "vibration") val = telemetry?.vibration_g;
+          else if (key === "bus_voltage") val = telemetry?.battery_voltage_v;
+          else if (key === "injection_timing") val = telemetry?.injection_timing_deg;
 
-        {/* Oil Pressure */}
-        <div className="telemetry-card">
-          <div className="card-top">
-            <span className="card-name">Oil Pressure</span>
-            <span className="card-unit">BAR</span>
-          </div>
-          <div className="card-val" id="val-oil-p">
-            {oilP.toFixed(2)}
-          </div>
-          <div className="card-progress-bar">
-            <div
-              id="prog-oil-p"
-              className="card-progress-fill"
-              style={{ width: `${Math.min((oilP / 6) * 100, 100)}%` }}
-            />
-          </div>
-        </div>
+          // Extract rolling history for sparkline
+          const history = historyBuffer
+            .map((h) => {
+              const v = h.sensors?.[key]?.value;
+              return typeof v === "number" ? v : null;
+            })
+            .filter((v): v is number => v !== null);
 
-        {/* Oil Temp */}
-        <div className="telemetry-card">
-          <div className="card-top">
-            <span className="card-name">Oil Temperature</span>
-            <span className="card-unit">°C</span>
-          </div>
-          <div className="card-val" id="val-oil-t">
-            {oilT.toFixed(1)}
-          </div>
-          <div className="card-progress-bar">
-            <div
-              id="prog-oil-t"
-              className="card-progress-fill"
-              style={{ width: `${Math.min((oilT / 150) * 100, 100)}%` }}
-            />
-          </div>
-        </div>
+          // Calculate 10s delta
+          let delta10s: number | undefined;
+          if (history.length >= 10) {
+            const current = history[history.length - 1];
+            const past = history[history.length - 10];
+            delta10s = Math.round((current - past) * 10) / 10;
+          }
 
-        {/* Fuel Flow */}
-        <div className="telemetry-card">
-          <div className="card-top">
-            <span className="card-name">Fuel Flow</span>
-            <span className="card-unit">L/H</span>
-          </div>
-          <div className="card-val" id="val-fuel">
-            {fuel.toFixed(1)}
-          </div>
-          <div className="card-progress-bar">
-            <div
-              id="prog-fuel"
-              className="card-progress-fill"
-              style={{ width: `${Math.min((fuel / 30) * 100, 100)}%` }}
+          return (
+            <SensorCard
+              key={key}
+              sensorKey={key}
+              value={val ?? def?.nominal}
+              name={def?.name}
+              unit={def?.unit}
+              history={history}
+              delta10s={delta10s}
+              compact={false}
+              isFocused={isFocused}
+              onFocus={(k) => {
+                setFocusedComponent(focusedComponent === k ? null : k);
+              }}
             />
-          </div>
-        </div>
-
-        {/* Vibration */}
-        <div className="telemetry-card">
-          <div className="card-top">
-            <span className="card-name">Vibration RMS</span>
-            <span className="card-unit">g</span>
-          </div>
-          <div className="card-val" id="val-vib">
-            {vib.toFixed(3)}
-          </div>
-          <div className="card-progress-bar">
-            <div
-              id="prog-vib"
-              className="card-progress-fill"
-              style={{ width: `${Math.min((vib / 1.5) * 100, 100)}%` }}
-            />
-          </div>
-        </div>
-
-        {/* Battery */}
-        <div className="telemetry-card">
-          <div className="card-top">
-            <span className="card-name">Bus Voltage</span>
-            <span className="card-unit">V</span>
-          </div>
-          <div className="card-val" id="val-battery">
-            {battery.toFixed(1)}
-          </div>
-          <div className="card-progress-bar">
-            <div
-              id="prog-battery"
-              className="card-progress-fill"
-              style={{ width: `${Math.min((battery / 32) * 100, 100)}%` }}
-            />
-          </div>
-        </div>
-
-        {/* Timing */}
-        <div className="telemetry-card">
-          <div className="card-top">
-            <span className="card-name">Injection Timing</span>
-            <span className="card-unit">° BTDC</span>
-          </div>
-          <div className="card-val" id="val-timing">
-            {timing.toFixed(1)}
-          </div>
-          <div className="card-progress-bar">
-            <div
-              id="prog-timing"
-              className="card-progress-fill"
-              style={{ width: `${Math.min((timing / 35) * 100, 100)}%` }}
-            />
-          </div>
-        </div>
+          );
+        })}
       </div>
     </div>
   );

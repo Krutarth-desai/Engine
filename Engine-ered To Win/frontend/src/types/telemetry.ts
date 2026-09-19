@@ -113,11 +113,14 @@ export interface TrajectoryPoint {
 
 export interface PhmAlertItem {
   id: string;
-  level: "NORMAL" | "INFO" | "CAUTION" | "ALERT";
+  level: "NORMAL" | "INFO" | "CAUTION" | "ALERT" | "CRITICAL" | "WARNING" | "ADVISORY";
   title: string;
   message: string;
   time_ago: string;
   timestamp: string;
+  component?: string;
+  evidence?: string;
+  recommended_action?: string;
 }
 
 export interface UnifiedTelemetryPayload {

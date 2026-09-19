@@ -2,6 +2,11 @@
 
 import React from "react";
 import { UnifiedTelemetryPayload } from "../types/telemetry";
+import { MAINTENANCE_PROTOCOLS } from "@/lib/limits";
+import RunUpRunner from "./maintenance/RunUpRunner";
+import OilSpectrometryLog from "./maintenance/OilSpectrometryLog";
+import MaintenanceChecklist from "./maintenance/MaintenanceChecklist";
+import MaintenanceHistoryTable from "./maintenance/MaintenanceHistoryTable";
 
 interface MaintenanceViewProps {
   payload: UnifiedTelemetryPayload;
@@ -12,6 +17,7 @@ export default function MaintenanceView({ payload }: MaintenanceViewProps) {
   const action = payload.risk?.action || "All engine systems and sensors are performing nominally. Continue planned cruise profile.";
   const guidance = payload.risk?.guidance;
   const health = Math.round(payload.health_index || 96);
+  const rulCycles = Math.round(payload.prognostics?.predicted_rul || 117);
 
   const getPriorityStyle = (level: string) => {
     switch (level) {
@@ -29,97 +35,159 @@ export default function MaintenanceView({ payload }: MaintenanceViewProps) {
 
   const prio = getPriorityStyle(riskLevel);
 
-  const checklist = [
-    { item: "Cylinder Head & Barrel Temperature Harness", status: payload.sensors?.cht?.status || "NORMAL", action: "Verify CHT thermocouple seating & continuity" },
-    { item: "High-Pressure Fuel Injection Rail & Filter", status: payload.sensors?.fuel_flow?.status || "NORMAL", action: "Check fuel line pressure & ultrasonic injector spray" },
-    { item: "Lubrication Sump & Oil Scavenge Circuit", status: payload.sensors?.oil_pressure?.status || "NORMAL", action: "Inspect magnetic drain plug & oil filter element" },
-    { item: "Dynafocal Engine Mounts & Crankcase Balance", status: payload.sensors?.vibration?.status || "NORMAL", action: "Torque engine bed bolts & inspect rubber isolators" },
-    { item: "Avionics Power Bus & Voltage Regulators", status: payload.sensors?.bus_voltage?.status || "NORMAL", action: "Check 28V alternator belt tension & ground straps" },
-  ];
-
   return (
-    <div className="view-container maintenance-view">
-      <div className="view-header-strip">
+    <div className="view-container maintenance-view" style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+      {/* Header Strip */}
+      <div className="view-header-strip" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.5rem" }}>
         <div>
-          <h2 className="view-title"><strong>PREDICTIVE MAINTENANCE &amp; ACTION PROTOCOL</strong></h2>
-          <p className="view-subtitle">Condition-based maintenance (CBM), component wear life thresholds, and field action procedures</p>
+          <h2 className="view-title" style={{ margin: 0, fontSize: "1.2rem", letterSpacing: "0.04em" }}>
+            <strong>PREDICTIVE MAINTENANCE &amp; ACTION PROTOCOL</strong>
+          </h2>
+          <p className="view-subtitle" style={{ margin: "0.2rem 0 0", fontSize: "0.72rem", color: "#64748b" }}>
+            Condition-based maintenance (CBM), component wear life thresholds, and field action procedures
+          </p>
         </div>
         <div
           className="priority-badge"
-          style={{ color: prio.color, backgroundColor: prio.bg, borderColor: prio.border }}
+          style={{
+            color: prio.color,
+            backgroundColor: prio.bg,
+            border: `1px solid ${prio.border}`,
+            padding: "0.25rem 0.65rem",
+            borderRadius: "4px",
+            fontSize: "0.72rem",
+            fontFamily: "'JetBrains Mono', monospace",
+          }}
         >
           <strong>PRIORITY: {riskLevel}</strong>
         </div>
       </div>
 
-      <div className="maintenance-grid">
-        {/* Left Column: Immediate Operational Action Card */}
-        <div className="maint-col-left">
-          <div className="panel maint-action-hero">
-            <div className="panel-header">
-              <div className="panel-title">
+      {/* Main 2-Column Responsive Layout */}
+      <div className="maintenance-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(420px, 1fr))", gap: "1rem" }}>
+        {/* Left Column: Directives, Protocols & Test Runners */}
+        <div className="maint-col-left" style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+          {/* Directive Hero */}
+          <div className="panel maint-action-hero" style={{ background: "rgba(15, 23, 42, 0.65)", border: "1px solid rgba(255, 255, 255, 0.08)", borderRadius: "8px", padding: "1rem" }}>
+            <div className="panel-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.6rem" }}>
+              <div className="panel-title" style={{ fontSize: "0.75rem", letterSpacing: "0.05em", color: "#94a3b8" }}>
                 <strong>CURRENT PILOT / OPERATOR DIRECTIVE</strong>
               </div>
-              <span className="status-pill"><strong>{riskLevel} RISK</strong></span>
+              <span
+                className="status-pill font-mono"
+                style={{
+                  fontSize: "0.65rem",
+                  padding: "0.15rem 0.45rem",
+                  borderRadius: "3px",
+                  backgroundColor: prio.bg,
+                  color: prio.color,
+                  border: `1px solid ${prio.border}`,
+                }}
+              >
+                <strong>{riskLevel} RISK</strong>
+              </span>
             </div>
 
             <div className="maint-action-body">
-              <div className="action-large-readout">
+              <div className="action-large-readout" style={{ fontSize: "0.95rem", lineHeight: 1.4, color: "#f8fafc", marginBottom: "0.5rem" }}>
                 <span className="action-hero-text"><strong>{action}</strong></span>
               </div>
-              <p className="action-context">
-                {guidance || `Automated recommendation generated based on cross-correlated physical telemetry, remaining useful life estimates (${Math.round(payload.prognostics?.predicted_rul || 117)} cycles), and current health index (${health}/100).`}
+              <p className="action-context" style={{ fontSize: "0.7rem", color: "#94a3b8", lineHeight: 1.5, margin: 0 }}>
+                {guidance || `Automated recommendation generated based on cross-correlated physical telemetry, remaining useful life estimates (${rulCycles} cycles), and current health index (${health}/100).`}
               </p>
             </div>
           </div>
 
-          <div className="panel maint-protocols-card">
-            <div className="panel-header">
-              <div className="panel-title">
-                <strong>PREVENTATIVE MAINTENANCE PROTOCOLS</strong>
+          {/* Dynamic Preventative Protocols with Live Margins */}
+          <div className="panel maint-protocols-card" style={{ background: "rgba(15, 23, 42, 0.65)", border: "1px solid rgba(255, 255, 255, 0.08)", borderRadius: "8px", padding: "1rem" }}>
+            <div className="panel-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
+              <div className="panel-title" style={{ fontSize: "0.75rem", letterSpacing: "0.05em", color: "#94a3b8" }}>
+                <strong>DYNAMIC PREVENTATIVE PROTOCOLS (LIVE MARGINS)</strong>
               </div>
+              <span style={{ fontSize: "0.62rem", color: "var(--accent-cyan)", fontFamily: "'JetBrains Mono', monospace" }}>
+                TELEMETRY ENVELOPE
+              </span>
             </div>
-            <div className="protocols-list">
-              <div className="protocol-item">
-                <span className="protocol-tag tag-thermal">THERMAL MITIGATION</span>
-                <p className="protocol-desc">If CHT exceeds 165°C or EGT exceeds 680°C, enrich mixture to rich-of-peak and reduce continuous throttle below 70% to prevent detonation.</p>
-              </div>
-              <div className="protocol-item">
-                <span className="protocol-tag tag-hydraulic">LUBRICATION PROTECT</span>
-                <p className="protocol-desc">If oil pressure drops below 50 psi during high-G maneuvers, execute immediate level flight recovery and throttle back to cruise idle.</p>
-              </div>
-              <div className="protocol-item">
-                <span className="protocol-tag tag-mechanical">VIBRATION DAMPENING</span>
-                <p className="protocol-desc">Sustained vibration above 2.0 g indicates prop imbalance or bearing brinelling; schedule ground dynamic balance balancing within 5 flight hours.</p>
-              </div>
+            <div className="protocols-list" style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+              {MAINTENANCE_PROTOCOLS.map((protocol) => {
+                const triggered = protocol.isTriggered(payload);
+                const marginText = protocol.getMargin(payload);
+                const tagColor = triggered ? "#ef4444" : "#10b981";
+
+                return (
+                  <div
+                    key={protocol.id}
+                    className="protocol-item"
+                    style={{
+                      borderLeft: `3px solid ${tagColor}`,
+                      background: triggered ? "rgba(239, 68, 68, 0.08)" : "rgba(255, 255, 255, 0.02)",
+                      padding: "0.5rem 0.65rem",
+                      borderRadius: "0 6px 6px 0",
+                    }}
+                  >
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.25rem" }}>
+                      <span
+                        className="protocol-tag"
+                        style={{
+                          background: `${tagColor}18`,
+                          color: tagColor,
+                          border: `1px solid ${tagColor}40`,
+                          fontSize: "0.62rem",
+                          padding: "0.1rem 0.35rem",
+                          borderRadius: "3px",
+                          fontFamily: "'JetBrains Mono', monospace",
+                          fontWeight: 700,
+                        }}
+                      >
+                        {protocol.tag}
+                      </span>
+                      <span
+                        style={{
+                          fontSize: "0.65rem",
+                          fontFamily: "'JetBrains Mono', monospace",
+                          fontWeight: 700,
+                          color: triggered ? "#ef4444" : "var(--accent-cyan)",
+                        }}
+                      >
+                        {triggered ? "TRIGGER EXCEEDED!" : "MARGIN OK"}
+                      </span>
+                    </div>
+                    <p className="protocol-desc" style={{ fontSize: "0.72rem", color: "#cbd5e1", margin: "0.2rem 0" }}>
+                      {protocol.actionDesc}
+                    </p>
+                    <div
+                      style={{
+                        fontSize: "0.65rem",
+                        fontFamily: "'JetBrains Mono', monospace",
+                        color: triggered ? "#ef4444" : "#94a3b8",
+                        marginTop: "0.35rem",
+                        padding: "0.25rem 0.5rem",
+                        background: "rgba(0, 0, 0, 0.25)",
+                        borderRadius: "4px",
+                      }}
+                    >
+                      {marginText}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
+
+          {/* Engine Run-Up Test Sequence */}
+          <RunUpRunner />
+
+          {/* Wear Metals Spectrometry */}
+          <OilSpectrometryLog />
         </div>
 
-        {/* Right Column: Subsystem Maintenance Inspection Checklist */}
-        <div className="maint-col-right">
-          <div className="panel maint-checklist-card">
-            <div className="panel-header">
-              <div className="panel-title">
-                <strong>SUBSYSTEM INSPECTION CHECKLIST</strong>
-              </div>
-              <span className="model-chip"><strong>5 CRITICAL NODES</strong></span>
-            </div>
+        {/* Right Column: Checklists & Maintenance History */}
+        <div className="maint-col-right" style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+          {/* Field Maintenance Checklist with WO Generation */}
+          <MaintenanceChecklist />
 
-            <div className="checklist-items-wrap">
-              {checklist.map((chk, i) => (
-                <div key={i} className={`checklist-item status-${chk.status.toLowerCase()}`}>
-                  <div className="chk-top-line">
-                    <span className="chk-name"><strong>{chk.item}</strong></span>
-                    <span className={`chk-badge status-${chk.status.toLowerCase()}`}>
-                      {chk.status}
-                    </span>
-                  </div>
-                  <div className="chk-action-line">{chk.action}</div>
-                </div>
-              ))}
-            </div>
-          </div>
+          {/* Maintenance History Log Table with CSV & Print */}
+          <MaintenanceHistoryTable />
         </div>
       </div>
     </div>
