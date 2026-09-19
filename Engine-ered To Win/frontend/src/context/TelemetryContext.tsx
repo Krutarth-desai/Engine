@@ -211,17 +211,42 @@ const INITIAL_HISTORY: UnifiedTelemetryPayload[] = Array.from({ length: 30 }, (_
   const cycle = i + 1;
   const timeOffset = (30 - i) * 60000;
   const ts = new Date(Date.now() - timeOffset).toISOString();
+
+  // Realistic operational flight envelope variance for regression & prognostic analysis
+  const seed = i / 29;
+  const rpm = Math.round(2360 + seed * 220 + Math.sin(i * 1.5) * 15);
+  const cht_c = Math.round((138.0 + seed * 7.5 + Math.cos(i * 1.3) * 1.0) * 10) / 10;
+  const fuel_flow_lh = Math.round((16.5 + seed * 2.2 + Math.sin(i * 1.4) * 0.2) * 10) / 10;
+  const egt_c = Math.round((598.0 + seed * 32.0 + Math.cos(i * 1.2) * 3.5) * 10) / 10;
+  const oil_temperature_c = Math.round((88.0 + seed * 9.5 + Math.sin(i * 1.1) * 0.8) * 10) / 10;
+  const oil_pressure_psi = Math.round((71.5 - seed * 6.5 + Math.cos(i * 1.4) * 0.9) * 10) / 10;
+  const oil_pressure_bar = Math.round((oil_pressure_psi / 14.5038) * 100) / 100;
+  const vibration_g = Math.round((1.32 + seed * 0.24 + Math.cos(i * 2.0) * 0.03) * 100) / 100;
+
+  const cycleSensors = {
+    ...DEFAULT_PAYLOAD.sensors,
+    rpm: { ...DEFAULT_PAYLOAD.sensors.rpm, value: rpm },
+    cht: { ...DEFAULT_PAYLOAD.sensors.cht, value: cht_c },
+    egt: { ...DEFAULT_PAYLOAD.sensors.egt, value: egt_c },
+    oil_pressure: { ...DEFAULT_PAYLOAD.sensors.oil_pressure, value: oil_pressure_psi },
+    oil_temperature: { ...DEFAULT_PAYLOAD.sensors.oil_temperature, value: oil_temperature_c },
+    fuel_flow: { ...DEFAULT_PAYLOAD.sensors.fuel_flow, value: fuel_flow_lh },
+    vibration: { ...DEFAULT_PAYLOAD.sensors.vibration, value: vibration_g },
+  };
+
   return {
     ...DEFAULT_PAYLOAD,
     cycle,
     timestamp: ts,
-    rpm: 2450 + (i % 5) * 5 - 10,
-    cht_c: 140.0 + (i % 4) * 0.8,
-    egt_c: 610.0 + (i % 6) * 1.5,
-    oil_pressure_bar: 4.69 + (i % 3) * 0.02,
-    oil_temperature_c: 91.0 + (i % 3) * 0.5,
-    fuel_flow_lh: 17.5 + (i % 4) * 0.1,
-    vibration_g: 1.40 + (i % 5) * 0.01,
+    rpm,
+    cht_c,
+    egt_c,
+    oil_pressure_bar,
+    oil_temperature_c,
+    fuel_flow_lh,
+    vibration_g,
+    sensors: cycleSensors,
+    sensor_list: Object.values(cycleSensors),
   };
 });
 
@@ -421,19 +446,38 @@ export function TelemetryProvider({ children }: { children: React.ReactNode }) {
           remStr = `${h}:${m}:${s}`;
         }
 
+        const nextRpm = Math.round((prev.rpm ?? 2450) + (Math.random() - 0.5) * 4);
+        const nextCht = Math.round(((prev.cht_c ?? 142) + jitter * 0.2) * 10) / 10;
+        const nextEgt = Math.round(((prev.egt_c ?? 615) + jitter * 0.5) * 10) / 10;
+        const nextOilBar = Math.round(((prev.oil_pressure_bar ?? 4.69) + jitter * 0.01) * 100) / 100;
+        const nextOilT = Math.round(((prev.oil_temperature_c ?? 92) + jitter * 0.08) * 10) / 10;
+        const nextFuel = Math.round(((prev.fuel_flow_lh ?? 17.6) + jitter * 0.05) * 10) / 10;
+        const nextVib = Math.round(((prev.vibration_g ?? 1.42) + jitter * 0.02) * 100) / 100;
+
         const updated: UnifiedTelemetryPayload = {
           ...prev,
+          cycle: (prev.cycle ?? 31) + 1,
           timestamp: nextTime.toISOString(),
-          rpm: Math.round((prev.rpm ?? 2450) + (Math.random() - 0.5) * 3),
-          cht_c: Math.round(((prev.cht_c ?? 142) + jitter * 0.2) * 10) / 10,
-          egt_c: Math.round(((prev.egt_c ?? 615) + jitter * 0.5) * 10) / 10,
-          oil_pressure_bar: Math.round(((prev.oil_pressure_bar ?? 4.69) + jitter * 0.01) * 100) / 100,
+          rpm: nextRpm,
+          cht_c: nextCht,
+          egt_c: nextEgt,
+          oil_pressure_bar: nextOilBar,
+          oil_temperature_c: nextOilT,
+          fuel_flow_lh: nextFuel,
+          vibration_g: nextVib,
           prognostics: {
             ...prev.prognostics,
             remaining_time_str: remStr,
           },
         };
-        return reconcilePayload(updated);
+        const reconciled = reconcilePayload(updated);
+
+        setHistoryBuffer((prevHist) => {
+          const nextHist = [...prevHist, reconciled];
+          return nextHist.length > 120 ? nextHist.slice(nextHist.length - 120) : nextHist;
+        });
+
+        return reconciled;
       });
       setLastUpdateAt(new Date());
     }, 1000);
