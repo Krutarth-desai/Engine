@@ -177,46 +177,69 @@ export default function AeroTwinApp({ initialView = "dashboard" }: AeroTwinAppPr
               activeAlertCount={activeAlertsCount}
             />
 
-            {/* Active Operational View */}
-            <main id="app-main" className="gcs-view-area">
-              {currentView === "dashboard" && (
-                <MainDashboardView
-                  payload={payload}
-                  activeScenario={activeScenario}
-                  onInjectScenario={injectScenario}
-                  onNavigate={handleNavigate}
-                />
-              )}
+            {/* Main Operational Workspace Column */}
+            <div
+              className="gcs-main-column"
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                flex: 1,
+                minWidth: 0,
+                height: "calc(100vh - 56px)",
+                overflow: "hidden",
+              }}
+            >
+              {/* Active Operational View */}
+              <main
+                id="app-main"
+                className="gcs-view-area"
+                style={{
+                  flex: 1,
+                  overflowY: "auto",
+                  minHeight: 0,
+                }}
+              >
+                {currentView === "dashboard" && (
+                  <MainDashboardView
+                    payload={payload}
+                    activeScenario={activeScenario}
+                    onInjectScenario={injectScenario}
+                    onNavigate={handleNavigate}
+                  />
+                )}
 
-              {currentView === "telemetry" && (
-                <LiveTelemetryView payload={payload} />
-              )}
+                {currentView === "telemetry" && (
+                  <LiveTelemetryView payload={payload} />
+                )}
 
-              {currentView === "diagnostics" && (
-                <DiagnosticsView payload={payload} />
-              )}
+                {currentView === "diagnostics" && (
+                  <DiagnosticsView payload={payload} />
+                )}
 
-              {currentView === "rul" && (
-                <RulPrognosticsView payload={payload} />
-              )}
+                {currentView === "rul" && (
+                  <RulPrognosticsView payload={payload} />
+                )}
 
-              {currentView === "regression" && (
-                <RegressionTrendsView payload={payload} />
-              )}
+                {currentView === "regression" && (
+                  <RegressionTrendsView payload={payload} />
+                )}
 
-              {currentView === "maintenance" && (
-                <MaintenanceView payload={payload} />
-              )}
+                {currentView === "maintenance" && (
+                  <MaintenanceView payload={payload} />
+                )}
 
-              {currentView === "alerts" && (
-                <AlertsView
-                  alerts={payload.alerts || []}
-                  activeScenario={activeScenario}
-                  onInjectScenario={injectScenario}
-                />
-              )}
-            </main>
-            <TimeScrubBar />
+                {currentView === "alerts" && (
+                  <AlertsView
+                    alerts={payload.alerts || []}
+                    activeScenario={activeScenario}
+                    onInjectScenario={injectScenario}
+                  />
+                )}
+              </main>
+
+              {/* Bottom Docked Historical Timeline Scrub Bar */}
+              <TimeScrubBar />
+            </div>
           </div>
         </div>
       )}
