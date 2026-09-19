@@ -162,4 +162,8 @@ export interface UnifiedTelemetryPayload {
   vibration_g?: number;
   battery_voltage_v?: number;
   injection_timing_deg?: number;
+  manifold_pressure_bar?: number;
+  fuel_remaining_liters?: number;
+  anomaly_score?: number;
+  evidence?: string;
 }

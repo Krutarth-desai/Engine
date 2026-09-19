@@ -29,27 +29,49 @@ export default function DigitalTwinCenterpiece({
       onSelectComponent(compKey);
     }
   };
-  // Unified geometric token for all 5 controls/badges
-  const unifiedControlStyle: React.CSSProperties = {
-    height: "28px",
-    minHeight: "28px",
-    maxHeight: "28px",
-    boxSizing: "border-box",
+
+  // Component strip metrics
+  const cht = payload.sensors?.cht?.value ?? payload.cht_c ?? 142.0;
+  const egt = payload.sensors?.egt?.value ?? payload.egt_c ?? 615.0;
+  const oilPBar = payload.oil_pressure_bar ?? (payload.sensors?.oil_pressure?.value ? payload.sensors.oil_pressure.value / 14.5038 : 4.69);
+  const oilT = payload.sensors?.oil_temperature?.value ?? payload.oil_temperature_c ?? 92.0;
+  const fuel = payload.sensors?.fuel_flow?.value ?? payload.fuel_flow_lh ?? 17.6;
+  const mapBar = payload.manifold_pressure_bar ?? 1.24;
+  const vib = payload.sensors?.vibration?.value ?? payload.vibration_g ?? 1.42;
+
+  const tabBtnStyle = (isActive: boolean): React.CSSProperties => ({
+    height: "26px",
+    padding: "0 0.55rem",
+    fontSize: "11.5px",
+    fontFamily: "var(--font-sans), system-ui, sans-serif",
+    fontWeight: isActive ? 600 : 500,
+    borderRadius: "4px",
+    background: isActive ? "var(--surface-2)" : "transparent",
+    border: `1px solid ${isActive ? "var(--accent)" : "var(--border)"}`,
+    color: isActive ? "var(--text)" : "var(--text-muted)",
+    cursor: "pointer",
+    transition: "all 0.15s ease",
     display: "inline-flex",
     alignItems: "center",
-    justifyContent: "center",
-    padding: "0 0.65rem",
-    fontSize: "0.68rem",
-    fontFamily: "var(--font-mono), monospace",
-    fontWeight: 700,
-    letterSpacing: "0.03em",
-    borderRadius: "4px",
-    lineHeight: 1,
-    whiteSpace: "nowrap",
-  };
+    gap: "0.25rem",
+  });
 
   return (
-    <div className="panel digital-twin-centerpiece-panel" style={{ height: "100%", display: "flex", flexDirection: "column" }}>
+    <div
+      className="panel digital-twin-centerpiece-panel"
+      style={{
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        background: "var(--surface-1)",
+        border: "1px solid var(--border)",
+        borderRadius: "10px",
+        padding: "0.65rem 0.85rem",
+        boxSizing: "border-box",
+        minHeight: 0,
+        overflow: "hidden",
+      }}
+    >
       {/* Schematic Header Strip */}
       <div
         className="panel-header"
@@ -57,132 +79,107 @@ export default function DigitalTwinCenterpiece({
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          flexWrap: "wrap",
-          gap: "0.5rem",
-          paddingBottom: "0.45rem",
+          paddingBottom: "0.4rem",
+          flexShrink: 0,
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.45rem" }}>
-            <Cpu size={16} style={{ color: "var(--accent)" }} />
-            <span className="panel-title" style={{ fontSize: "0.82rem", fontWeight: 800, letterSpacing: "0.5px" }}>
-              MALE UAV PROPULSION DIGITAL TWIN
-            </span>
-          </div>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+          <Cpu size={15} style={{ color: "var(--accent)" }} />
+          <span
+            style={{
+              fontSize: "12px",
+              fontWeight: 600,
+              letterSpacing: "0.05em",
+              color: "var(--text-faint)",
+              textTransform: "uppercase",
+            }}
+          >
+            MALE UAV Digital Twin Schematic
+          </span>
+          <span
+            style={{
+              fontSize: "11px",
+              fontFamily: "var(--font-mono), monospace",
+              color: "var(--text-muted)",
+              background: "var(--surface-2)",
+              border: "1px solid var(--border)",
+              borderRadius: "4px",
+              padding: "0.1rem 0.4rem",
+            }}
+          >
+            ROTAX 914 F
+          </span>
           {activeScenario && activeScenario !== "Normal" && (
             <span
               style={{
-                ...unifiedControlStyle,
-                color: "var(--status-warning)",
-                background: "var(--surface-1)",
-                border: "1px solid color-mix(in srgb, var(--status-warning) 14%, var(--surface-1))",
+                fontSize: "11px",
+                fontFamily: "var(--font-mono), monospace",
+                color: "var(--status-caution)",
+                background: "color-mix(in srgb, var(--status-caution) 14%, var(--surface-1))",
+                border: "1px solid color-mix(in srgb, var(--status-caution) 30%, transparent)",
+                borderRadius: "4px",
+                padding: "0.1rem 0.4rem",
+                fontWeight: 600,
               }}
             >
-              SIM: {activeScenario}
+              FAULT: {activeScenario}
             </span>
           )}
         </div>
 
-        {/* View Mode Controls & Legend Toggle - EXACT SAME 28PX SIZE FOR ALL 5 BADGES/BUTTONS */}
-        <div style={{ display: "flex", alignItems: "center", gap: "0.35rem", flexWrap: "wrap" }}>
-          {/* 1. AERO PISTON 4-CYL Badge */}
-          <span
-            style={{
-              ...unifiedControlStyle,
-              color: "var(--accent)",
-              background: "var(--border)",
-              border: "1px solid var(--border)",
-              boxShadow: "none",
-            }}
-          >
-            AERO PISTON 4-CYL
-          </span>
-
-          {/* 2. LEGEND Toggle Button */}
-          <button
-            onClick={() => setShowLegend(!showLegend)}
-            title="Toggle component & status legend"
-            style={{
-              ...unifiedControlStyle,
-              background: showLegend ? "var(--border)" : "var(--border)",
-              border: `1px solid ${showLegend ? "var(--accent)" : "var(--border-strong)"}`,
-              color: showLegend ? "var(--accent)" : "var(--text-muted)",
-              cursor: "pointer",
-              gap: "0.3rem",
-              transition: "all 0.15s ease",
-            }}
-          >
-            <Info size={12} />
-            LEGEND
-          </button>
-
-          {/* 3. AIRFRAME Mode Button */}
+        {/* View Mode Tabs per Sketch: Full drone / Engine bay / Thermal */}
+        <div style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}>
           <button
             onClick={() => setViewMode("full")}
-            title="Airframe full overview mode"
-            style={{
-              ...unifiedControlStyle,
-              background: viewMode === "full" ? "var(--border)" : "var(--border)",
-              border: `1px solid ${viewMode === "full" ? "var(--accent)" : "var(--border-strong)"}`,
-              color: viewMode === "full" ? "var(--accent)" : "var(--text-muted)",
-              cursor: "pointer",
-              transition: "all 0.15s ease",
-            }}
+            style={tabBtnStyle(viewMode === "full")}
+            title="View entire MALE UAV airframe"
           >
-            AIRFRAME
+            Full drone
           </button>
-
-          {/* 4. ENGINE BAY Mode Button */}
           <button
             onClick={() => setViewMode("engine")}
-            title="Magnify Rotax 914 F propulsion bay"
-            style={{
-              ...unifiedControlStyle,
-              background: viewMode === "engine" ? "var(--border)" : "var(--border)",
-              border: `1px solid ${viewMode === "engine" ? "var(--accent)" : "var(--border-strong)"}`,
-              color: viewMode === "engine" ? "var(--accent)" : "var(--text-muted)",
-              cursor: "pointer",
-              transition: "all 0.15s ease",
-            }}
+            style={tabBtnStyle(viewMode === "engine")}
+            title="Zoom into Rotax 914 F engine bay"
           >
-            ENGINE BAY
+            Engine bay
           </button>
-
-          {/* 5. THERMAL HUD Mode Button */}
           <button
             onClick={() => setViewMode("thermal")}
-            title="FLIR Infrared thermal gradient mode"
-            style={{
-              ...unifiedControlStyle,
-              background: viewMode === "thermal" ? "var(--border)" : "var(--border)",
-              border: `1px solid ${viewMode === "thermal" ? "var(--accent)" : "var(--border-strong)"}`,
-              color: viewMode === "thermal" ? "var(--accent)" : "var(--text-muted)",
-              cursor: "pointer",
-              transition: "all 0.15s ease",
-            }}
+            style={tabBtnStyle(viewMode === "thermal")}
+            title="Inspect propulsion thermal gradient"
           >
-            THERMAL HUD
+            Thermal
+          </button>
+          <button
+            onClick={() => setShowLegend(!showLegend)}
+            style={{
+              ...tabBtnStyle(showLegend),
+              color: showLegend ? "var(--accent)" : "var(--text-faint)",
+            }}
+            title="Toggle component legend overlay"
+          >
+            <Info size={11} />
+            Legend
           </button>
         </div>
       </div>
 
-      {/* Centerpiece Body with Schematic and Background Radar Grid */}
+      {/* SVG Canvas Area */}
       <div
         className="uav-hud-container"
         style={{
           position: "relative",
           flex: 1,
-          minHeight: "260px",
+          minHeight: 0,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "var(--surface-1)",
+          background: "var(--surface-2)",
           borderRadius: "8px",
           overflow: "hidden",
           border: "1px solid var(--border)",
         }}
       >
-        {/* Vector SVG Schematic of MALE UAV Airframe & Propulsion Hotspots */}
         <AirframeSchematic
           payload={payload}
           viewMode={viewMode}
@@ -190,7 +187,7 @@ export default function DigitalTwinCenterpiece({
           onSelectComponent={handleSelectHotspot}
         />
 
-        {/* Integrated Schematic Status & Subsystem Legend */}
+        {/* Clean Corner Legend */}
         {showLegend && (
           <div
             className="schematic-legend"
@@ -199,71 +196,139 @@ export default function DigitalTwinCenterpiece({
               bottom: "8px",
               left: "10px",
               background: "var(--surface-1)",
-              backdropFilter: "blur(8px)",
               border: "1px solid var(--border)",
-              borderRadius: "5px",
-              padding: "0.35rem 0.65rem",
+              borderRadius: "6px",
+              padding: "0.25rem 0.5rem",
               display: "flex",
               alignItems: "center",
-              gap: "0.65rem",
-              fontSize: "0.62rem",
+              gap: "0.6rem",
+              fontSize: "11px",
               fontFamily: "var(--font-mono), monospace",
               zIndex: 10,
-              boxShadow: "0 4px 16px var(--bg)",
-              flexWrap: "wrap",
             }}
           >
-            {/* Status Pills */}
             <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
-              <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "var(--status-nominal)", boxShadow: "none" }} />
-              <span style={{ color: "var(--text)" }}>NOMINAL</span>
+              <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "var(--status-nominal)" }} />
+              <span style={{ color: "var(--text-muted)" }}>Nominal</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
-              <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "var(--status-caution)", boxShadow: "none" }} />
-              <span style={{ color: "var(--text)" }}>CAUTION</span>
+              <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "var(--status-caution)" }} />
+              <span style={{ color: "var(--text-muted)" }}>Caution</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
-              <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "var(--status-warning)", boxShadow: "none" }} />
-              <span style={{ color: "var(--text)" }}>WARNING</span>
+              <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "var(--status-warning)" }} />
+              <span style={{ color: "var(--text-muted)" }}>Warning</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
-              <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "var(--accent)", boxShadow: "none" }} />
-              <span style={{ color: "var(--accent)" }}>FOCUSED</span>
-            </div>
-
-            <span style={{ color: "var(--border)" }}>|</span>
-
-            {/* Subsystem Color Palette Identifiers */}
-            <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
-              <span style={{ width: "6px", height: "6px", borderRadius: "2px", background: "var(--accent)" }} />
-              <span style={{ color: "var(--text-muted)" }}>AIRFRAME</span>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
-              <span style={{ width: "6px", height: "6px", borderRadius: "2px", background: "var(--status-nominal)" }} />
-              <span style={{ color: "var(--text-muted)" }}>FUEL</span>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
-              <span style={{ width: "6px", height: "6px", borderRadius: "2px", background: "var(--text-muted)" }} />
-              <span style={{ color: "var(--text-muted)" }}>CYLINDERS</span>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
-              <span style={{ width: "6px", height: "6px", borderRadius: "2px", background: "var(--surface-3)" }} />
-              <span style={{ color: "var(--text-muted)" }}>EXHAUST</span>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
-              <span style={{ width: "6px", height: "6px", borderRadius: "2px", background: "var(--status-warning)" }} />
-              <span style={{ color: "var(--text-muted)" }}>TURBO</span>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
-              <span style={{ width: "6px", height: "6px", borderRadius: "2px", background: "var(--accent)" }} />
-              <span style={{ color: "var(--text-muted)" }}>OIL</span>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
-              <span style={{ width: "6px", height: "6px", borderRadius: "2px", background: "var(--status-caution)" }} />
-              <span style={{ color: "var(--text-muted)" }}>PROP</span>
+              <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "var(--accent)" }} />
+              <span style={{ color: "var(--text-muted)" }}>Active/Selected</span>
             </div>
           </div>
         )}
+      </div>
+
+      {/* Slim Component Readout Strip Along Bottom (Cylinder 1-4, Oil system, Fuel rail, Turbosupercharger, Cooling) */}
+      <div
+        className="digital-twin-bottom-strip"
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(5, 1fr)",
+          gap: "0.4rem",
+          marginTop: "0.45rem",
+          paddingTop: "0.45rem",
+          borderTop: "1px solid var(--border)",
+          flexShrink: 0,
+        }}
+      >
+        {/* 1. Cylinders 1-4 */}
+        <div
+          onClick={() => handleSelectHotspot("cylinders")}
+          style={{
+            background: "var(--surface-2)",
+            border: `1px solid ${focusedComponent === "cylinders" ? "var(--accent)" : "var(--border)"}`,
+            borderRadius: "5px",
+            padding: "0.25rem 0.45rem",
+            cursor: "pointer",
+            fontSize: "11px",
+          }}
+        >
+          <div style={{ color: "var(--text-faint)", textTransform: "uppercase", fontWeight: 600 }}>Cylinders 1-4</div>
+          <div className="font-mono tabular-nums" style={{ color: "var(--text)", fontWeight: 500, marginTop: "0.1rem" }}>
+            {cht.toFixed(0)}°C / {egt.toFixed(0)}°C
+          </div>
+        </div>
+
+        {/* 2. Oil System */}
+        <div
+          onClick={() => handleSelectHotspot("oil_system")}
+          style={{
+            background: "var(--surface-2)",
+            border: `1px solid ${focusedComponent === "oil_system" ? "var(--accent)" : "var(--border)"}`,
+            borderRadius: "5px",
+            padding: "0.25rem 0.45rem",
+            cursor: "pointer",
+            fontSize: "11px",
+          }}
+        >
+          <div style={{ color: "var(--text-faint)", textTransform: "uppercase", fontWeight: 600 }}>Oil System</div>
+          <div className="font-mono tabular-nums" style={{ color: "var(--text)", fontWeight: 500, marginTop: "0.1rem" }}>
+            {oilPBar.toFixed(2)} bar | {oilT.toFixed(0)}°C
+          </div>
+        </div>
+
+        {/* 3. Fuel Rail */}
+        <div
+          onClick={() => handleSelectHotspot("fuel_system")}
+          style={{
+            background: "var(--surface-2)",
+            border: `1px solid ${focusedComponent === "fuel_system" ? "var(--accent)" : "var(--border)"}`,
+            borderRadius: "5px",
+            padding: "0.25rem 0.45rem",
+            cursor: "pointer",
+            fontSize: "11px",
+          }}
+        >
+          <div style={{ color: "var(--text-faint)", textTransform: "uppercase", fontWeight: 600 }}>Fuel Rail</div>
+          <div className="font-mono tabular-nums" style={{ color: "var(--text)", fontWeight: 500, marginTop: "0.1rem" }}>
+            {fuel.toFixed(1)} L/h nominal
+          </div>
+        </div>
+
+        {/* 4. Turbosupercharger */}
+        <div
+          onClick={() => handleSelectHotspot("turbocharger")}
+          style={{
+            background: "var(--surface-2)",
+            border: `1px solid ${focusedComponent === "turbocharger" ? "var(--accent)" : "var(--border)"}`,
+            borderRadius: "5px",
+            padding: "0.25rem 0.45rem",
+            cursor: "pointer",
+            fontSize: "11px",
+          }}
+        >
+          <div style={{ color: "var(--text-faint)", textTransform: "uppercase", fontWeight: 600 }}>Turbocharger</div>
+          <div className="font-mono tabular-nums" style={{ color: "var(--text)", fontWeight: 500, marginTop: "0.1rem" }}>
+            {mapBar.toFixed(2)} bar | {vib.toFixed(2)}g
+          </div>
+        </div>
+
+        {/* 5. Cooling */}
+        <div
+          onClick={() => handleSelectHotspot("cooling_radiator")}
+          style={{
+            background: "var(--surface-2)",
+            border: `1px solid ${focusedComponent === "cooling_radiator" ? "var(--accent)" : "var(--border)"}`,
+            borderRadius: "5px",
+            padding: "0.25rem 0.45rem",
+            cursor: "pointer",
+            fontSize: "11px",
+          }}
+        >
+          <div style={{ color: "var(--text-faint)", textTransform: "uppercase", fontWeight: 600 }}>Cooling Loop</div>
+          <div className="font-mono tabular-nums" style={{ color: "var(--text)", fontWeight: 500, marginTop: "0.1rem" }}>
+            Radiator Nominal
+          </div>
+        </div>
       </div>
     </div>
   );
