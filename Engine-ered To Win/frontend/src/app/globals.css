@@ -1541,6 +1541,12 @@ input, select, textarea {
             margin-top: 0.65rem;
         }
 
+        @media (max-width: 960px) {
+            .sensor-diag-horizontal-grid {
+                grid-template-columns: 1fr !important;
+            }
+        }
+
         .diag-conf-item {
             flex: 1;
             background: var(--surface-1);

@@ -59,32 +59,27 @@ export default function DiagnosticsView({ payload }: DiagnosticsViewProps) {
         </span>
       }
     >
-      {/* Balanced 2-Column Responsive Layout */}
+      {/* 1. TOP HORIZONTAL FULL-WIDTH SECTION: SENSOR VS ENGINE DIAGNOSIS */}
+      <SensorDiagnosisPanel telemetry={flatTelemetry} />
+
+      {/* 2. BOTTOM 2-COLUMN BALANCED SPLIT: Physics Health & SHAP Explainability */}
       <div
         className="diagnostics-two-col-grid"
         style={{
           display: "grid",
-          gridTemplateColumns: "1.1fr 1fr",
+          gridTemplateColumns: "1.05fr 1fr",
           gap: "0.85rem",
           flex: 1,
           minHeight: 0,
           alignItems: "start",
         }}
       >
-        {/* Left Column: Diagnostics Panels */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
-          <DiagnosisPanel telemetry={flatTelemetry} />
-          <SensorDiagnosisPanel telemetry={flatTelemetry} />
-        </div>
-
-        {/* Right Column: SHAP Feature Attribution & Gradients */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
-          <FeatureContributionPanel
-            features={payload.contributing_features || []}
-            telemetry={flatTelemetry}
-            activeScenario={payload.scenario}
-          />
-        </div>
+        <DiagnosisPanel telemetry={flatTelemetry} />
+        <FeatureContributionPanel
+          features={payload.contributing_features || []}
+          telemetry={flatTelemetry}
+          activeScenario={payload.scenario}
+        />
       </div>
     </PageLayout>
   );
