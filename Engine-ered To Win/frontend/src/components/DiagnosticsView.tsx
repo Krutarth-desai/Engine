@@ -65,7 +65,11 @@ export default function DiagnosticsView({ payload }: DiagnosticsViewProps) {
 
         {/* Row 2: Top Contributing Features (SHAP / Gradient Feature Attribution) */}
         <div className="diag-bottom-row">
-          <FeatureContributionPanel features={payload.contributing_features || []} />
+          <FeatureContributionPanel
+            features={payload.contributing_features || []}
+            telemetry={flatTelemetry}
+            activeScenario={payload.scenario}
+          />
         </div>
       </div>
     </div>
