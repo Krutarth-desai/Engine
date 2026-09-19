@@ -50,8 +50,8 @@ export default function DigitalTwinResidualChart() {
     cht: {
       title: "CYLINDER HEAD TEMPERATURE (CHT) RESIDUAL",
       unit: "°C",
-      measColor: "#38bdf8",
-      twinColor: "#a855f7",
+      measColor: "var(--accent)",
+      twinColor: "var(--surface-3)",
       tolerance: twinBaselines.tolerance.cht,
       baseline: twinBaselines.cht,
       measVal: currentMeas.cht,
@@ -60,8 +60,8 @@ export default function DigitalTwinResidualChart() {
     egt: {
       title: "EXHAUST GAS TEMPERATURE (EGT) RESIDUAL",
       unit: "°C",
-      measColor: "#f43f5e",
-      twinColor: "#a855f7",
+      measColor: "var(--status-warning)",
+      twinColor: "var(--surface-3)",
       tolerance: twinBaselines.tolerance.egt,
       baseline: twinBaselines.egt,
       measVal: currentMeas.egt,
@@ -70,8 +70,8 @@ export default function DigitalTwinResidualChart() {
     oil_pressure: {
       title: `OIL PRESSURE RESIDUAL (${unitPreference.toUpperCase()})`,
       unit: unitPreference,
-      measColor: "#10b981",
-      twinColor: "#a855f7",
+      measColor: "var(--status-nominal)",
+      twinColor: "var(--surface-3)",
       tolerance: twinBaselines.tolerance.oil_pressure,
       baseline: twinBaselines.oil_pressure,
       measVal: currentMeas.oil_pressure,
@@ -128,14 +128,14 @@ export default function DigitalTwinResidualChart() {
         type: "line",
         xMin: labels[Math.max(0, labels.length - 8)],
         xMax: labels[Math.max(0, labels.length - 8)],
-        borderColor: "#ef4444",
+        borderColor: "var(--status-warning)",
         borderWidth: 2,
         borderDash: [5, 4],
         label: {
           display: true,
           content: `FAULT INJECTED: ${activeScenario.toUpperCase()}`,
           position: "start",
-          color: "#ef4444",
+          color: "var(--status-warning)",
           backgroundColor: theme.tooltipBg,
           font: { family: "'JetBrains Mono', monospace", size: 8, weight: "bold" },
         },
@@ -149,14 +149,14 @@ export default function DigitalTwinResidualChart() {
         type: "line",
         xMin: labels[Math.max(0, labels.length - 4)],
         xMax: labels[Math.max(0, labels.length - 4)],
-        borderColor: "#f59e0b",
+        borderColor: "var(--status-caution)",
         borderWidth: 1.5,
         borderDash: [3, 3],
         label: {
           display: true,
           content: `ALERT RAISED: ${raisedAlert.title}`,
           position: "center",
-          color: "#f59e0b",
+          color: "var(--status-caution)",
           backgroundColor: theme.tooltipBg,
           font: { family: "'JetBrains Mono', monospace", size: 8 },
         },
@@ -199,17 +199,17 @@ export default function DigitalTwinResidualChart() {
           {
             label: `Residual Tolerance (+${channelConfig.tolerance}${channelConfig.unit})`,
             data: upperTol,
-            borderColor: "rgba(168, 85, 247, 0.25)",
+            borderColor: "var(--surface-3)",
             borderDash: [2, 2],
             borderWidth: 1,
-            backgroundColor: "rgba(168, 85, 247, 0.08)",
+            backgroundColor: "var(--surface-3)",
             fill: "+1",
             pointRadius: 0,
           },
           {
             label: `Residual Tolerance (-${channelConfig.tolerance}${channelConfig.unit})`,
             data: lowerTol,
-            borderColor: "rgba(168, 85, 247, 0.25)",
+            borderColor: "var(--surface-3)",
             borderDash: [2, 2],
             borderWidth: 1,
             fill: false,
@@ -280,17 +280,17 @@ export default function DigitalTwinResidualChart() {
       {/* Top Header Strip */}
       <div className="panel-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.5rem" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          <Cpu size={15} style={{ color: "var(--accent-purple)" }} />
+          <Cpu size={15} style={{ color: "var(--surface-3)" }} />
           <span className="panel-title">
             <strong>DIGITAL TWIN VS MEASURED RESIDUAL OVERLAY</strong>
           </span>
           <span
             style={{
               fontSize: "0.62rem",
-              fontFamily: "'JetBrains Mono', monospace",
-              background: "rgba(168, 85, 247, 0.12)",
-              color: "var(--accent-purple)",
-              border: "1px solid rgba(168, 85, 247, 0.3)",
+              fontFamily: "var(--font-mono), monospace",
+              background: "var(--surface-3)",
+              color: "var(--surface-3)",
+              border: "1px solid var(--surface-3)",
               padding: "0.15rem 0.45rem",
               borderRadius: "4px",
             }}
@@ -312,11 +312,11 @@ export default function DigitalTwinResidualChart() {
                 fontSize: "0.66rem",
                 padding: "0.2rem 0.55rem",
                 fontWeight: 700,
-                background: selectedChannel === ch ? "rgba(168, 85, 247, 0.2)" : "rgba(255, 255, 255, 0.04)",
-                color: selectedChannel === ch ? "#c084fc" : "#94a3b8",
-                border: `1px solid ${selectedChannel === ch ? "#a855f7" : "rgba(255, 255, 255, 0.08)"}`,
+                background: selectedChannel === ch ? "var(--surface-3)" : "var(--border)",
+                color: selectedChannel === ch ? "var(--text)" : "var(--text-muted)",
+                border: `1px solid ${selectedChannel === ch ? "var(--surface-3)" : "var(--border)"}`,
                 borderRadius: "4px",
-                fontFamily: "'JetBrains Mono', monospace",
+                fontFamily: "var(--font-mono), monospace",
                 cursor: "pointer",
               }}
             >
@@ -332,33 +332,33 @@ export default function DigitalTwinResidualChart() {
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
           gap: "0.5rem",
-          background: "rgba(0, 0, 0, 0.25)",
+          background: "var(--bg)",
           padding: "0.6rem 0.85rem",
           borderRadius: "6px",
-          border: "1px solid rgba(255, 255, 255, 0.05)",
+          border: "1px solid var(--border)",
         }}
       >
         <div>
-          <div style={{ fontSize: "0.6rem", color: "#64748b", fontFamily: "'JetBrains Mono', monospace" }}>MEASURED y_meas</div>
+          <div style={{ fontSize: "0.6rem", color: "var(--text-muted)", fontFamily: "var(--font-mono), monospace" }}>MEASURED y_meas</div>
           <div style={{ fontSize: "1.05rem", fontWeight: 800, color: channelConfig.measColor }} className="font-mono">
             {fmt(channelConfig.measVal, 1)} {channelConfig.unit}
           </div>
         </div>
 
         <div>
-          <div style={{ fontSize: "0.6rem", color: "#64748b", fontFamily: "'JetBrains Mono', monospace" }}>TWIN MODEL y_twin</div>
+          <div style={{ fontSize: "0.6rem", color: "var(--text-muted)", fontFamily: "var(--font-mono), monospace" }}>TWIN MODEL y_twin</div>
           <div style={{ fontSize: "1.05rem", fontWeight: 800, color: channelConfig.twinColor }} className="font-mono">
             {fmt(channelConfig.baseline, 1)} {channelConfig.unit}
           </div>
         </div>
 
         <div>
-          <div style={{ fontSize: "0.6rem", color: "#64748b", fontFamily: "'JetBrains Mono', monospace" }}>RESIDUAL r(t) = Δy</div>
+          <div style={{ fontSize: "0.6rem", color: "var(--text-muted)", fontFamily: "var(--font-mono), monospace" }}>RESIDUAL r(t) = Δy</div>
           <div
             style={{
               fontSize: "1.05rem",
               fontWeight: 800,
-              color: isExceeded ? "#ef4444" : "#10b981",
+              color: isExceeded ? "var(--status-warning)" : "var(--status-nominal)",
             }}
             className="font-mono"
           >
@@ -367,7 +367,7 @@ export default function DigitalTwinResidualChart() {
         </div>
 
         <div>
-          <div style={{ fontSize: "0.6rem", color: "#64748b", fontFamily: "'JetBrains Mono', monospace" }}>CORRIDOR STATUS</div>
+          <div style={{ fontSize: "0.6rem", color: "var(--text-muted)", fontFamily: "var(--font-mono), monospace" }}>CORRIDOR STATUS</div>
           <div style={{ marginTop: "0.15rem" }}>
             {isExceeded ? (
               <span
@@ -376,9 +376,9 @@ export default function DigitalTwinResidualChart() {
                   alignItems: "center",
                   gap: "0.25rem",
                   fontSize: "0.68rem",
-                  color: "#ef4444",
+                  color: "var(--status-warning)",
                   fontWeight: 800,
-                  fontFamily: "'JetBrains Mono', monospace",
+                  fontFamily: "var(--font-mono), monospace",
                 }}
               >
                 <AlertTriangle size={12} /> DIVERGENT (&gt; ±{channelConfig.tolerance})
@@ -390,9 +390,9 @@ export default function DigitalTwinResidualChart() {
                   alignItems: "center",
                   gap: "0.25rem",
                   fontSize: "0.68rem",
-                  color: "#10b981",
+                  color: "var(--status-nominal)",
                   fontWeight: 800,
-                  fontFamily: "'JetBrains Mono', monospace",
+                  fontFamily: "var(--font-mono), monospace",
                 }}
               >
                 <CheckCircle2 size={12} /> WITHIN ±{channelConfig.tolerance} BAND

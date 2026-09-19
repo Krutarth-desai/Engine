@@ -36,14 +36,14 @@ export default function EngineSensorsPanel({ sensors }: EngineSensorsPanelProps)
             <button
               onClick={() => setFocusedComponent(null)}
               style={{
-                background: "rgba(56, 189, 248, 0.15)",
-                border: "1px solid rgba(56, 189, 248, 0.4)",
-                color: "var(--accent-cyan)",
+                background: "var(--border)",
+                border: "1px solid var(--border)",
+                color: "var(--accent)",
                 borderRadius: "4px",
                 padding: "0.15rem 0.45rem",
                 fontSize: "0.62rem",
                 cursor: "pointer",
-                fontFamily: "'JetBrains Mono', monospace",
+                fontFamily: "var(--font-mono), monospace",
               }}
             >
               CLEAR FOCUS

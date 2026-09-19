@@ -40,7 +40,7 @@ export default function DigitalTwinCenterpiece({
     justifyContent: "center",
     padding: "0 0.65rem",
     fontSize: "0.68rem",
-    fontFamily: "'JetBrains Mono', monospace",
+    fontFamily: "var(--font-mono), monospace",
     fontWeight: 700,
     letterSpacing: "0.03em",
     borderRadius: "4px",
@@ -64,7 +64,7 @@ export default function DigitalTwinCenterpiece({
       >
         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.45rem" }}>
-            <Cpu size={16} style={{ color: "var(--accent-cyan)" }} />
+            <Cpu size={16} style={{ color: "var(--accent)" }} />
             <span className="panel-title" style={{ fontSize: "0.82rem", fontWeight: 800, letterSpacing: "0.5px" }}>
               MALE UAV PROPULSION DIGITAL TWIN
             </span>
@@ -73,9 +73,9 @@ export default function DigitalTwinCenterpiece({
             <span
               style={{
                 ...unifiedControlStyle,
-                color: "#ef4444",
-                background: "rgba(239, 68, 68, 0.15)",
-                border: "1px solid rgba(239, 68, 68, 0.35)",
+                color: "var(--status-warning)",
+                background: "var(--surface-1)",
+                border: "1px solid color-mix(in srgb, var(--status-warning) 14%, var(--surface-1))",
               }}
             >
               SIM: {activeScenario}
@@ -89,10 +89,10 @@ export default function DigitalTwinCenterpiece({
           <span
             style={{
               ...unifiedControlStyle,
-              color: "var(--accent-cyan)",
-              background: "rgba(56, 189, 248, 0.12)",
-              border: "1px solid rgba(56, 189, 248, 0.35)",
-              boxShadow: "0 0 8px rgba(56, 189, 248, 0.1)",
+              color: "var(--accent)",
+              background: "var(--border)",
+              border: "1px solid var(--border)",
+              boxShadow: "none",
             }}
           >
             AERO PISTON 4-CYL
@@ -104,9 +104,9 @@ export default function DigitalTwinCenterpiece({
             title="Toggle component & status legend"
             style={{
               ...unifiedControlStyle,
-              background: showLegend ? "rgba(56, 189, 248, 0.18)" : "rgba(255, 255, 255, 0.04)",
-              border: `1px solid ${showLegend ? "var(--accent-cyan)" : "rgba(255, 255, 255, 0.12)"}`,
-              color: showLegend ? "var(--accent-cyan)" : "#94a3b8",
+              background: showLegend ? "var(--border)" : "var(--border)",
+              border: `1px solid ${showLegend ? "var(--accent)" : "var(--border-strong)"}`,
+              color: showLegend ? "var(--accent)" : "var(--text-muted)",
               cursor: "pointer",
               gap: "0.3rem",
               transition: "all 0.15s ease",
@@ -122,9 +122,9 @@ export default function DigitalTwinCenterpiece({
             title="Airframe full overview mode"
             style={{
               ...unifiedControlStyle,
-              background: viewMode === "full" ? "rgba(56, 189, 248, 0.22)" : "rgba(255, 255, 255, 0.04)",
-              border: `1px solid ${viewMode === "full" ? "var(--accent-cyan)" : "rgba(255, 255, 255, 0.12)"}`,
-              color: viewMode === "full" ? "var(--accent-cyan)" : "#94a3b8",
+              background: viewMode === "full" ? "var(--border)" : "var(--border)",
+              border: `1px solid ${viewMode === "full" ? "var(--accent)" : "var(--border-strong)"}`,
+              color: viewMode === "full" ? "var(--accent)" : "var(--text-muted)",
               cursor: "pointer",
               transition: "all 0.15s ease",
             }}
@@ -138,9 +138,9 @@ export default function DigitalTwinCenterpiece({
             title="Magnify Rotax 914 F propulsion bay"
             style={{
               ...unifiedControlStyle,
-              background: viewMode === "engine" ? "rgba(56, 189, 248, 0.22)" : "rgba(255, 255, 255, 0.04)",
-              border: `1px solid ${viewMode === "engine" ? "var(--accent-cyan)" : "rgba(255, 255, 255, 0.12)"}`,
-              color: viewMode === "engine" ? "var(--accent-cyan)" : "#94a3b8",
+              background: viewMode === "engine" ? "var(--border)" : "var(--border)",
+              border: `1px solid ${viewMode === "engine" ? "var(--accent)" : "var(--border-strong)"}`,
+              color: viewMode === "engine" ? "var(--accent)" : "var(--text-muted)",
               cursor: "pointer",
               transition: "all 0.15s ease",
             }}
@@ -154,9 +154,9 @@ export default function DigitalTwinCenterpiece({
             title="FLIR Infrared thermal gradient mode"
             style={{
               ...unifiedControlStyle,
-              background: viewMode === "thermal" ? "rgba(56, 189, 248, 0.22)" : "rgba(255, 255, 255, 0.04)",
-              border: `1px solid ${viewMode === "thermal" ? "var(--accent-cyan)" : "rgba(255, 255, 255, 0.12)"}`,
-              color: viewMode === "thermal" ? "var(--accent-cyan)" : "#94a3b8",
+              background: viewMode === "thermal" ? "var(--border)" : "var(--border)",
+              border: `1px solid ${viewMode === "thermal" ? "var(--accent)" : "var(--border-strong)"}`,
+              color: viewMode === "thermal" ? "var(--accent)" : "var(--text-muted)",
               cursor: "pointer",
               transition: "all 0.15s ease",
             }}
@@ -176,24 +176,12 @@ export default function DigitalTwinCenterpiece({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "radial-gradient(circle at 50% 50%, rgba(14, 28, 54, 0.4) 0%, rgba(7, 11, 20, 0.9) 100%)",
+          background: "var(--surface-1)",
           borderRadius: "8px",
           overflow: "hidden",
-          border: "1px solid rgba(255, 255, 255, 0.04)",
+          border: "1px solid var(--border)",
         }}
       >
-        {/* Aerospace HUD Grid Texture */}
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            backgroundImage:
-              "linear-gradient(rgba(56, 189, 248, 0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(56, 189, 248, 0.04) 1px, transparent 1px)",
-            backgroundSize: "24px 24px",
-            pointerEvents: "none",
-          }}
-        />
-
         {/* Vector SVG Schematic of MALE UAV Airframe & Propulsion Hotspots */}
         <AirframeSchematic
           payload={payload}
@@ -210,69 +198,69 @@ export default function DigitalTwinCenterpiece({
               position: "absolute",
               bottom: "8px",
               left: "10px",
-              background: "rgba(10, 16, 30, 0.92)",
+              background: "var(--surface-1)",
               backdropFilter: "blur(8px)",
-              border: "1px solid rgba(255, 255, 255, 0.1)",
+              border: "1px solid var(--border)",
               borderRadius: "5px",
               padding: "0.35rem 0.65rem",
               display: "flex",
               alignItems: "center",
               gap: "0.65rem",
               fontSize: "0.62rem",
-              fontFamily: "'JetBrains Mono', monospace",
+              fontFamily: "var(--font-mono), monospace",
               zIndex: 10,
-              boxShadow: "0 4px 16px rgba(0, 0, 0, 0.5)",
+              boxShadow: "0 4px 16px var(--bg)",
               flexWrap: "wrap",
             }}
           >
             {/* Status Pills */}
             <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
-              <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#10b981", boxShadow: "0 0 5px #10b981" }} />
-              <span style={{ color: "#cbd5e1" }}>NOMINAL</span>
+              <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "var(--status-nominal)", boxShadow: "none" }} />
+              <span style={{ color: "var(--text)" }}>NOMINAL</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
-              <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#f59e0b", boxShadow: "0 0 5px #f59e0b" }} />
-              <span style={{ color: "#cbd5e1" }}>CAUTION</span>
+              <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "var(--status-caution)", boxShadow: "none" }} />
+              <span style={{ color: "var(--text)" }}>CAUTION</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
-              <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#ef4444", boxShadow: "0 0 5px #ef4444" }} />
-              <span style={{ color: "#cbd5e1" }}>WARNING</span>
+              <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "var(--status-warning)", boxShadow: "none" }} />
+              <span style={{ color: "var(--text)" }}>WARNING</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
-              <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "var(--accent-cyan)", boxShadow: "0 0 5px var(--accent-cyan)" }} />
-              <span style={{ color: "var(--accent-cyan)" }}>FOCUSED</span>
+              <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "var(--accent)", boxShadow: "none" }} />
+              <span style={{ color: "var(--accent)" }}>FOCUSED</span>
             </div>
 
-            <span style={{ color: "rgba(255, 255, 255, 0.2)" }}>|</span>
+            <span style={{ color: "var(--border)" }}>|</span>
 
             {/* Subsystem Color Palette Identifiers */}
             <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
-              <span style={{ width: "6px", height: "6px", borderRadius: "2px", background: "#38bdf8" }} />
-              <span style={{ color: "#94a3b8" }}>AIRFRAME</span>
+              <span style={{ width: "6px", height: "6px", borderRadius: "2px", background: "var(--accent)" }} />
+              <span style={{ color: "var(--text-muted)" }}>AIRFRAME</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
-              <span style={{ width: "6px", height: "6px", borderRadius: "2px", background: "#10b981" }} />
-              <span style={{ color: "#94a3b8" }}>FUEL</span>
+              <span style={{ width: "6px", height: "6px", borderRadius: "2px", background: "var(--status-nominal)" }} />
+              <span style={{ color: "var(--text-muted)" }}>FUEL</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
-              <span style={{ width: "6px", height: "6px", borderRadius: "2px", background: "#64748b" }} />
-              <span style={{ color: "#94a3b8" }}>CYLINDERS</span>
+              <span style={{ width: "6px", height: "6px", borderRadius: "2px", background: "var(--text-muted)" }} />
+              <span style={{ color: "var(--text-muted)" }}>CYLINDERS</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
-              <span style={{ width: "6px", height: "6px", borderRadius: "2px", background: "#a855f7" }} />
-              <span style={{ color: "#94a3b8" }}>EXHAUST</span>
+              <span style={{ width: "6px", height: "6px", borderRadius: "2px", background: "var(--surface-3)" }} />
+              <span style={{ color: "var(--text-muted)" }}>EXHAUST</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
-              <span style={{ width: "6px", height: "6px", borderRadius: "2px", background: "#ea580c" }} />
-              <span style={{ color: "#94a3b8" }}>TURBO</span>
+              <span style={{ width: "6px", height: "6px", borderRadius: "2px", background: "var(--status-warning)" }} />
+              <span style={{ color: "var(--text-muted)" }}>TURBO</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
-              <span style={{ width: "6px", height: "6px", borderRadius: "2px", background: "#0284c7" }} />
-              <span style={{ color: "#94a3b8" }}>OIL</span>
+              <span style={{ width: "6px", height: "6px", borderRadius: "2px", background: "var(--accent)" }} />
+              <span style={{ color: "var(--text-muted)" }}>OIL</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
-              <span style={{ width: "6px", height: "6px", borderRadius: "2px", background: "#facc15" }} />
-              <span style={{ color: "#94a3b8" }}>PROP</span>
+              <span style={{ width: "6px", height: "6px", borderRadius: "2px", background: "var(--status-caution)" }} />
+              <span style={{ color: "var(--text-muted)" }}>PROP</span>
             </div>
           </div>
         )}

@@ -13,16 +13,16 @@ export default function Loading() {
         minHeight: "400px",
         height: "100%",
         gap: "1rem",
-        color: "#94a3b8",
-        fontFamily: "'JetBrains Mono', monospace",
+        color: "var(--text-muted)",
+        fontFamily: "var(--font-mono), monospace",
       }}
     >
       <div
         style={{
           width: "36px",
           height: "36px",
-          border: "3px solid rgba(56, 189, 248, 0.2)",
-          borderTopColor: "var(--accent-cyan)",
+          border: "3px solid var(--border)",
+          borderTopColor: "var(--accent)",
           borderRadius: "50%",
           animation: "spin 0.8s linear infinite",
         }}

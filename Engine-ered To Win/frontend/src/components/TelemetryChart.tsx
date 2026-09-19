@@ -40,8 +40,8 @@ export default function TelemetryChart({ telemetry: propTelemetry }: TelemetryCh
           {
             label: "EGT — Exhaust Gas Temp (°C)",
             data: [],
-            borderColor: "#f43f5e",
-            backgroundColor: "rgba(244, 63, 94, 0.08)",
+            borderColor: "var(--status-warning)",
+            backgroundColor: "color-mix(in srgb, var(--status-warning) 14%, var(--surface-1))",
             borderWidth: 2,
             tension: 0.25,
             pointRadius: 0,
@@ -68,14 +68,14 @@ export default function TelemetryChart({ telemetry: propTelemetry }: TelemetryCh
                 type: "line",
                 yMin: 680,
                 yMax: 680,
-                borderColor: "rgba(245, 158, 11, 0.7)",
+                borderColor: "color-mix(in srgb, var(--status-caution) 14%, var(--surface-1))",
                 borderWidth: 1.5,
                 borderDash: [4, 3],
                 label: {
                   display: true,
                   content: "TRIGGER 680 °C",
                   position: "end",
-                  color: "#f59e0b",
+                  color: "var(--status-caution)",
                   backgroundColor: theme.tooltipBg,
                   font: { family: "'JetBrains Mono', monospace", size: 8 },
                 },
@@ -140,8 +140,8 @@ export default function TelemetryChart({ telemetry: propTelemetry }: TelemetryCh
           {
             label: "CHT — Cylinder Head (°C)",
             data: [],
-            borderColor: "#38bdf8",
-            backgroundColor: "rgba(56, 189, 248, 0.08)",
+            borderColor: "var(--accent)",
+            backgroundColor: "var(--border)",
             borderWidth: 2,
             tension: 0.25,
             pointRadius: 0,
@@ -150,7 +150,7 @@ export default function TelemetryChart({ telemetry: propTelemetry }: TelemetryCh
           {
             label: "Oil Temp (°C)",
             data: [],
-            borderColor: "#f59e0b",
+            borderColor: "var(--status-caution)",
             backgroundColor: "transparent",
             borderWidth: 1.5,
             tension: 0.25,
@@ -178,14 +178,14 @@ export default function TelemetryChart({ telemetry: propTelemetry }: TelemetryCh
                 type: "line",
                 yMin: 165,
                 yMax: 165,
-                borderColor: "rgba(245, 158, 11, 0.7)",
+                borderColor: "color-mix(in srgb, var(--status-caution) 14%, var(--surface-1))",
                 borderWidth: 1.5,
                 borderDash: [4, 3],
                 label: {
                   display: true,
                   content: "TRIGGER CHT 165 °C",
                   position: "end",
-                  color: "#f59e0b",
+                  color: "var(--status-caution)",
                   backgroundColor: theme.tooltipBg,
                   font: { family: "'JetBrains Mono', monospace", size: 8 },
                 },
@@ -291,27 +291,27 @@ export default function TelemetryChart({ telemetry: propTelemetry }: TelemetryCh
           <span className="panel-title">
             <strong>STACKED THERMAL &amp; COMBUSTION DYNAMICS</strong>
           </span>
-          <span style={{ fontSize: "0.62rem", color: "var(--accent-cyan)", fontFamily: "'JetBrains Mono', monospace" }}>
+          <span style={{ fontSize: "0.62rem", color: "var(--accent)", fontFamily: "var(--font-mono), monospace" }}>
             [SYNCHRONIZED TIME AXIS]
           </span>
         </div>
 
         {/* Time-Window Pills: 30s, 60s, 120s */}
         <div style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
-          <span style={{ fontSize: "0.64rem", color: "#64748b", fontFamily: "'JetBrains Mono', monospace" }}>WINDOW:</span>
+          <span style={{ fontSize: "0.64rem", color: "var(--text-muted)", fontFamily: "var(--font-mono), monospace" }}>WINDOW:</span>
           {([30, 60, 120] as const).map((sec) => (
             <button
               key={sec}
               onClick={() => setWindowSeconds(sec)}
               style={{
-                background: windowSeconds === sec ? "rgba(56, 189, 248, 0.2)" : "rgba(255, 255, 255, 0.04)",
-                border: `1px solid ${windowSeconds === sec ? "var(--accent-cyan)" : "rgba(255, 255, 255, 0.1)"}`,
-                color: windowSeconds === sec ? "var(--accent-cyan)" : "#94a3b8",
+                background: windowSeconds === sec ? "var(--border)" : "var(--border)",
+                border: `1px solid ${windowSeconds === sec ? "var(--accent)" : "var(--border)"}`,
+                color: windowSeconds === sec ? "var(--accent)" : "var(--text-muted)",
                 borderRadius: "4px",
                 padding: "0.15rem 0.45rem",
                 fontSize: "0.65rem",
                 fontWeight: 700,
-                fontFamily: "'JetBrains Mono', monospace",
+                fontFamily: "var(--font-mono), monospace",
                 cursor: "pointer",
               }}
             >
@@ -324,10 +324,10 @@ export default function TelemetryChart({ telemetry: propTelemetry }: TelemetryCh
       {/* Stacked Chart Top: EGT Combustion */}
       <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 0.25rem" }}>
-          <span style={{ fontSize: "0.68rem", fontWeight: 700, color: "#f43f5e", fontFamily: "'JetBrains Mono', monospace" }}>
+          <span style={{ fontSize: "0.68rem", fontWeight: 700, color: "var(--status-warning)", fontFamily: "var(--font-mono), monospace" }}>
             EXHAUST GAS TEMPERATURE (EGT)
           </span>
-          <span style={{ fontSize: "0.62rem", color: "var(--accent-amber)", fontFamily: "'JetBrains Mono', monospace" }}>
+          <span style={{ fontSize: "0.62rem", color: "var(--status-caution)", fontFamily: "var(--font-mono), monospace" }}>
             TRIGGER: 680 °C
           </span>
         </div>
@@ -337,15 +337,15 @@ export default function TelemetryChart({ telemetry: propTelemetry }: TelemetryCh
       </div>
 
       {/* Divider */}
-      <div style={{ height: "1px", background: "rgba(255, 255, 255, 0.06)", margin: "0.2rem 0" }} />
+      <div style={{ height: "1px", background: "var(--border)", margin: "0.2rem 0" }} />
 
       {/* Stacked Chart Bottom: CHT & Oil Temp */}
       <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 0.25rem" }}>
-          <span style={{ fontSize: "0.68rem", fontWeight: 700, color: "#38bdf8", fontFamily: "'JetBrains Mono', monospace" }}>
+          <span style={{ fontSize: "0.68rem", fontWeight: 700, color: "var(--accent)", fontFamily: "var(--font-mono), monospace" }}>
             CYLINDER HEAD TEMP (CHT) &amp; OIL TEMP
           </span>
-          <span style={{ fontSize: "0.62rem", color: "var(--accent-amber)", fontFamily: "'JetBrains Mono', monospace" }}>
+          <span style={{ fontSize: "0.62rem", color: "var(--status-caution)", fontFamily: "var(--font-mono), monospace" }}>
             TRIGGER: CHT 165 °C
           </span>
         </div>

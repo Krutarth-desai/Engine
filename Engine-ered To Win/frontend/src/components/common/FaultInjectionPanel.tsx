@@ -36,22 +36,22 @@ export default function FaultInjectionPanel({
   const getCategoryIcon = (category: string) => {
     switch (category) {
       case "THERMAL":
-        return <Flame size={14} style={{ color: "#f59e0b" }} />;
+        return <Flame size={14} style={{ color: "var(--status-caution)" }} />;
       case "LUBRICATION":
-        return <Droplets size={14} style={{ color: "#38bdf8" }} />;
+        return <Droplets size={14} style={{ color: "var(--accent)" }} />;
       case "COMBUSTION":
-        return <Flame size={14} style={{ color: "#f97316" }} />;
+        return <Flame size={14} style={{ color: "var(--status-caution)" }} />;
       case "MECHANICAL":
-        return <Activity size={14} style={{ color: "#a855f7" }} />;
+        return <Activity size={14} style={{ color: "var(--surface-3)" }} />;
       case "AVIONICS":
-        return <Radio size={14} style={{ color: "#38bdf8" }} />;
+        return <Radio size={14} style={{ color: "var(--accent)" }} />;
       case "IGNITION":
-        return <Zap size={14} style={{ color: "#eab308" }} />;
+        return <Zap size={14} style={{ color: "var(--status-caution)" }} />;
       case "PROPULSION":
-        return <AlertTriangle size={14} style={{ color: "#f43f5e" }} />;
+        return <AlertTriangle size={14} style={{ color: "var(--status-warning)" }} />;
       case "NORMAL":
       default:
-        return <CheckCircle2 size={14} style={{ color: "#10b981" }} />;
+        return <CheckCircle2 size={14} style={{ color: "var(--status-nominal)" }} />;
     }
   };
 
@@ -95,16 +95,16 @@ export default function FaultInjectionPanel({
           style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", userSelect: "none" }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <FlaskConical size={16} style={{ color: "var(--accent-cyan)" }} />
+            <FlaskConical size={16} style={{ color: "var(--accent)" }} />
             <span style={{ fontWeight: 700, fontSize: "0.85rem" }}>Fault Injection Simulation Matrix</span>
-            <span className="sim-badge-count font-mono" style={{ fontSize: "0.68rem", color: "#64748b" }}>
+            <span className="sim-badge-count font-mono" style={{ fontSize: "0.68rem", color: "var(--text-muted)" }}>
               ({SCENARIO_REGISTRY.length} SCENARIOS)
             </span>
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <span className="sim-active-indicator font-mono" style={{ fontSize: "0.72rem", color: "#94a3b8" }}>
-              ACTIVE: <strong style={{ color: "var(--accent-cyan)" }}>{currentScenario.label}</strong>
+            <span className="sim-active-indicator font-mono" style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>
+              ACTIVE: <strong style={{ color: "var(--accent)" }}>{currentScenario.label}</strong>
             </span>
             <button
               className="sim-toggle-btn"
@@ -114,10 +114,10 @@ export default function FaultInjectionPanel({
                 setIsExpanded(!isExpanded);
               }}
               style={{
-                background: "rgba(255, 255, 255, 0.05)",
-                border: "1px solid rgba(255, 255, 255, 0.15)",
+                background: "var(--border)",
+                border: "1px solid var(--border)",
                 borderRadius: "4px",
-                color: "#94a3b8",
+                color: "var(--text-muted)",
                 padding: "0.2rem 0.45rem",
                 display: "inline-flex",
                 alignItems: "center",
@@ -127,9 +127,9 @@ export default function FaultInjectionPanel({
               }}
             >
               {isExpanded ? (
-                <ChevronUp size={14} style={{ color: "#94a3b8" }} />
+                <ChevronUp size={14} style={{ color: "var(--text-muted)" }} />
               ) : (
-                <ChevronDown size={14} style={{ color: "#94a3b8" }} />
+                <ChevronDown size={14} style={{ color: "var(--text-muted)" }} />
               )}
             </button>
           </div>

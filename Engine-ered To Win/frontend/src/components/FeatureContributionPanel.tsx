@@ -283,8 +283,8 @@ export default function FeatureContributionPanel({
         flexDirection: "column",
         gap: "0.75rem",
         padding: "1rem 1.25rem",
-        background: "rgba(9, 14, 28, 0.75)",
-        border: "1px solid rgba(56, 189, 248, 0.15)",
+        background: "var(--surface-1)",
+        border: "1px solid var(--border)",
         borderRadius: "8px",
       }}
     >
@@ -298,25 +298,25 @@ export default function FeatureContributionPanel({
           flexWrap: "wrap",
           gap: "0.75rem",
           paddingBottom: "0.6rem",
-          borderBottom: "1px solid rgba(255, 255, 255, 0.06)",
+          borderBottom: "1px solid var(--border)",
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
-          <Sparkles size={16} style={{ color: "var(--accent-cyan)" }} />
+          <Sparkles size={16} style={{ color: "var(--accent)" }} />
           <div>
-            <span style={{ fontSize: "0.86rem", fontWeight: 800, color: "#f8fafc", letterSpacing: "0.5px" }}>
+            <span style={{ fontSize: "0.86rem", fontWeight: 800, color: "var(--text)", letterSpacing: "0.5px" }}>
               FEATURE ATTRIBUTION &amp; SHAP GRADIENTS (EXPLAINABLE PHM)
             </span>
             <span
               style={{
                 marginLeft: "0.6rem",
                 fontSize: "0.62rem",
-                fontFamily: "'JetBrains Mono', monospace",
-                color: "#64748b",
-                background: "rgba(255, 255, 255, 0.04)",
+                fontFamily: "var(--font-mono), monospace",
+                color: "var(--text-muted)",
+                background: "var(--border)",
                 padding: "0.15rem 0.4rem",
                 borderRadius: "3px",
-                border: "1px solid rgba(255, 255, 255, 0.08)",
+                border: "1px solid var(--border)",
               }}
             >
               COOPERATIVE GAME THEORY • EFFICIENCY: ∑φᵢ = f(x) - E[f(x)]
@@ -326,12 +326,12 @@ export default function FeatureContributionPanel({
                 style={{
                   marginLeft: "0.4rem",
                   fontSize: "0.62rem",
-                  fontFamily: "'JetBrains Mono', monospace",
-                  color: "#38bdf8",
-                  background: "rgba(56, 189, 248, 0.1)",
+                  fontFamily: "var(--font-mono), monospace",
+                  color: "var(--accent)",
+                  background: "var(--border)",
                   padding: "0.15rem 0.4rem",
                   borderRadius: "3px",
-                  border: "1px solid rgba(56, 189, 248, 0.25)",
+                  border: "1px solid var(--border)",
                 }}
               >
                 EXTERNAL SHAP VECTOR
@@ -346,8 +346,8 @@ export default function FeatureContributionPanel({
           <div
             style={{
               display: "flex",
-              background: "rgba(15, 23, 42, 0.8)",
-              border: "1px solid rgba(255, 255, 255, 0.08)",
+              background: "var(--surface-1)",
+              border: "1px solid var(--border)",
               borderRadius: "5px",
               padding: "2px",
             }}
@@ -363,14 +363,14 @@ export default function FeatureContributionPanel({
                 key={m.id}
                 onClick={() => setModelType(m.id)}
                 style={{
-                  background: modelType === m.id ? "rgba(56, 189, 248, 0.2)" : "transparent",
-                  color: modelType === m.id ? "var(--accent-cyan)" : "#94a3b8",
+                  background: modelType === m.id ? "var(--border)" : "transparent",
+                  color: modelType === m.id ? "var(--accent)" : "var(--text-muted)",
                   border: "none",
                   borderRadius: "3px",
                   padding: "0.25rem 0.55rem",
                   fontSize: "0.64rem",
                   fontWeight: 700,
-                  fontFamily: "'JetBrains Mono', monospace",
+                  fontFamily: "var(--font-mono), monospace",
                   cursor: "pointer",
                   transition: "all 0.15s ease",
                 }}
@@ -382,16 +382,16 @@ export default function FeatureContributionPanel({
 
           {/* Sort Selector */}
           <div style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}>
-            <Filter size={12} style={{ color: "#64748b" }} />
+            <Filter size={12} style={{ color: "var(--text-muted)" }} />
             <select
               value={sortOption}
               onChange={(e) => setSortOption(e.target.value as SortOption)}
               style={{
-                background: "rgba(15, 23, 42, 0.8)",
-                border: "1px solid rgba(255, 255, 255, 0.1)",
-                color: "#cbd5e1",
+                background: "var(--surface-1)",
+                border: "1px solid var(--border)",
+                color: "var(--text)",
                 fontSize: "0.64rem",
-                fontFamily: "'JetBrains Mono', monospace",
+                fontFamily: "var(--font-mono), monospace",
                 fontWeight: 700,
                 borderRadius: "4px",
                 padding: "0.25rem 0.5rem",
@@ -413,35 +413,35 @@ export default function FeatureContributionPanel({
           justifyContent: "space-between",
           alignItems: "center",
           padding: "0.45rem 0.85rem",
-          background: "rgba(15, 23, 42, 0.6)",
-          border: "1px solid rgba(255, 255, 255, 0.05)",
+          background: "var(--surface-1)",
+          border: "1px solid var(--border)",
           borderRadius: "6px",
           fontSize: "0.68rem",
-          fontFamily: "'JetBrains Mono', monospace",
+          fontFamily: "var(--font-mono), monospace",
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "1.25rem" }}>
           <div>
-            <span style={{ color: "#64748b" }}>BASELINE E[f(x)]: </span>
-            <span style={{ color: "#94a3b8", fontWeight: 700 }}>{(baseValue * 100).toFixed(1)}% RISK</span>
+            <span style={{ color: "var(--text-muted)" }}>BASELINE E[f(x)]: </span>
+            <span style={{ color: "var(--text-muted)", fontWeight: 700 }}>{(baseValue * 100).toFixed(1)}% RISK</span>
           </div>
           <div>
-            <span style={{ color: "#64748b" }}>NET ATTRIBUTION (∑φᵢ): </span>
+            <span style={{ color: "var(--text-muted)" }}>NET ATTRIBUTION (∑φᵢ): </span>
             <span
               style={{
                 fontWeight: 800,
-                color: netShapSum > 0.05 ? "#f43f5e" : netShapSum < -0.05 ? "#10b981" : "var(--accent-cyan)",
+                color: netShapSum > 0.05 ? "var(--status-warning)" : netShapSum < -0.05 ? "var(--status-nominal)" : "var(--accent)",
               }}
             >
               {netShapSum > 0 ? `+${(netShapSum * 100).toFixed(1)}%` : `${(netShapSum * 100).toFixed(1)}%`}
             </span>
           </div>
           <div>
-            <span style={{ color: "#64748b" }}>PREDICTED ANOMALY RISK f(x): </span>
+            <span style={{ color: "var(--text-muted)" }}>PREDICTED ANOMALY RISK f(x): </span>
             <span
               style={{
                 fontWeight: 800,
-                color: currentModelRisk > 0.4 ? "#ef4444" : currentModelRisk > 0.2 ? "#f59e0b" : "#10b981",
+                color: currentModelRisk > 0.4 ? "var(--status-warning)" : currentModelRisk > 0.2 ? "var(--status-caution)" : "var(--status-nominal)",
               }}
             >
               {(currentModelRisk * 100).toFixed(1)}%
@@ -457,9 +457,9 @@ export default function FeatureContributionPanel({
                 display: "inline-flex",
                 alignItems: "center",
                 gap: "0.3rem",
-                background: "rgba(244, 63, 94, 0.15)",
-                border: "1px solid rgba(244, 63, 94, 0.4)",
-                color: "#f43f5e",
+                background: "color-mix(in srgb, var(--status-warning) 14%, var(--surface-1))",
+                border: "1px solid color-mix(in srgb, var(--status-warning) 14%, var(--surface-1))",
+                color: "var(--status-warning)",
                 borderRadius: "4px",
                 padding: "0.15rem 0.5rem",
                 fontWeight: 800,
@@ -475,9 +475,9 @@ export default function FeatureContributionPanel({
                 display: "inline-flex",
                 alignItems: "center",
                 gap: "0.3rem",
-                background: "rgba(16, 185, 129, 0.12)",
-                border: "1px solid rgba(16, 185, 129, 0.35)",
-                color: "#10b981",
+                background: "var(--border)",
+                border: "1px solid var(--border)",
+                color: "var(--status-nominal)",
                 borderRadius: "4px",
                 padding: "0.15rem 0.5rem",
                 fontWeight: 800,
@@ -511,16 +511,16 @@ export default function FeatureContributionPanel({
               alignItems: "center",
               gap: "0.6rem",
               fontSize: "0.62rem",
-              fontFamily: "'JetBrains Mono', monospace",
-              color: "#64748b",
+              fontFamily: "var(--font-mono), monospace",
+              color: "var(--text-muted)",
               padding: "0 0.2rem",
             }}
           >
             <span>ENGINE SENSOR / DELTA</span>
             <div style={{ display: "flex", justifyContent: "space-between", position: "relative" }}>
-              <span style={{ color: "#38bdf8" }}>← STABILIZING (HEALTH PROTECTION)</span>
-              <span style={{ color: "var(--accent-cyan)", fontWeight: 800 }}>BASELINE (0.00)</span>
-              <span style={{ color: "#f43f5e" }}>DEGRADING (RISK RAMP) →</span>
+              <span style={{ color: "var(--accent)" }}>← STABILIZING (HEALTH PROTECTION)</span>
+              <span style={{ color: "var(--accent)", fontWeight: 800 }}>BASELINE (0.00)</span>
+              <span style={{ color: "var(--status-warning)" }}>DEGRADING (RISK RAMP) →</span>
             </div>
             <span style={{ textAlign: "left" }}>PHYSICAL ROOT MECHANISM</span>
           </div>
@@ -535,11 +535,11 @@ export default function FeatureContributionPanel({
             // True SHAP colors: Positive (degrading) = Rose/Amber; Negative (protective) = Cyan/Emerald
             const barColor = isPositive
               ? feat.score > 0.35
-                ? "#ef4444"
-                : "#f59e0b"
+                ? "var(--status-warning)"
+                : "var(--status-caution)"
               : isNegative
-              ? "#0ea5e9"
-              : "#64748b";
+              ? "var(--accent)"
+              : "var(--text-muted)";
 
             const isFocused = focusedComponent === feat.key;
 
@@ -555,11 +555,11 @@ export default function FeatureContributionPanel({
                   gap: "0.6rem",
                   padding: "0.35rem 0.5rem",
                   background: isFocused
-                    ? "rgba(56, 189, 248, 0.12)"
-                    : "rgba(255, 255, 255, 0.02)",
+                    ? "var(--border)"
+                    : "var(--border)",
                   border: isFocused
-                    ? "1px solid rgba(56, 189, 248, 0.5)"
-                    : "1px solid rgba(255, 255, 255, 0.04)",
+                    ? "1px solid var(--border)"
+                    : "1px solid var(--border)",
                   borderRadius: "5px",
                   cursor: "pointer",
                   transition: "all 0.15s ease",
@@ -574,7 +574,7 @@ export default function FeatureContributionPanel({
                         style={{
                           fontSize: "0.72rem",
                           fontWeight: 800,
-                          color: isFocused ? "var(--accent-cyan)" : "#f8fafc",
+                          color: isFocused ? "var(--accent)" : "var(--text)",
                         }}
                       >
                         {feat.name}
@@ -589,7 +589,7 @@ export default function FeatureContributionPanel({
                             background: getStatusColor(feat.status) + "22",
                             color: getStatusColor(feat.status),
                             border: `1px solid ${getStatusColor(feat.status)}44`,
-                            fontFamily: "'JetBrains Mono', monospace",
+                            fontFamily: "var(--font-mono), monospace",
                           }}
                         >
                           {feat.status}
@@ -599,12 +599,12 @@ export default function FeatureContributionPanel({
                     <div
                       style={{
                         fontSize: "0.6rem",
-                        color: "#94a3b8",
-                        fontFamily: "'JetBrains Mono', monospace",
+                        color: "var(--text-muted)",
+                        fontFamily: "var(--font-mono), monospace",
                       }}
                     >
                       {feat.valStr}{" "}
-                      <span style={{ color: feat.deltaStr.startsWith("+") ? "#f59e0b" : "#38bdf8" }}>
+                      <span style={{ color: feat.deltaStr.startsWith("+") ? "var(--status-caution)" : "var(--accent)" }}>
                         ({feat.deltaStr})
                       </span>
                     </div>
@@ -633,11 +633,11 @@ export default function FeatureContributionPanel({
                 <div
                   style={{
                     height: "14px",
-                    background: "rgba(255, 255, 255, 0.04)",
+                    background: "var(--border)",
                     borderRadius: "4px",
                     position: "relative",
                     overflow: "hidden",
-                    border: "1px solid rgba(255, 255, 255, 0.06)",
+                    border: "1px solid var(--border)",
                   }}
                 >
                   {/* Precise Center Baseline (0.00) */}
@@ -648,9 +648,9 @@ export default function FeatureContributionPanel({
                       top: 0,
                       bottom: 0,
                       width: "2px",
-                      background: "rgba(255, 255, 255, 0.4)",
+                      background: "var(--border)",
                       zIndex: 3,
-                      boxShadow: "0 0 4px rgba(255,255,255,0.5)",
+                      boxShadow: "none",
                     }}
                   />
 
@@ -663,9 +663,9 @@ export default function FeatureContributionPanel({
                         width: `${(barWidthPct / 2).toFixed(1)}%`,
                         top: 0,
                         bottom: 0,
-                        background: `linear-gradient(90deg, #0284c7, #38bdf8)`,
+                        background: "var(--status-nominal)",
                         borderRadius: "3px 0 0 3px",
-                        boxShadow: `0 0 8px rgba(56, 189, 248, 0.4)`,
+                        boxShadow: "none",
                         transition: "width 0.3s ease",
                       }}
                     />
@@ -680,9 +680,9 @@ export default function FeatureContributionPanel({
                         width: `${(barWidthPct / 2).toFixed(1)}%`,
                         top: 0,
                         bottom: 0,
-                        background: `linear-gradient(90deg, #f59e0b, #f43f5e)`,
+                        background: "var(--status-warning)",
                         borderRadius: "0 3px 3px 0",
-                        boxShadow: `0 0 8px rgba(244, 63, 94, 0.5)`,
+                        boxShadow: "none",
                         transition: "width 0.3s ease",
                       }}
                     />
@@ -693,7 +693,7 @@ export default function FeatureContributionPanel({
                 <div
                   style={{
                     fontSize: "0.62rem",
-                    color: "#94a3b8",
+                    color: "var(--text-muted)",
                     lineHeight: 1.25,
                     overflow: "hidden",
                     textOverflow: "ellipsis",
@@ -716,15 +716,15 @@ export default function FeatureContributionPanel({
               style={{
                 padding: "0.75rem",
                 borderRadius: "6px",
-                background: "rgba(244, 63, 94, 0.1)",
-                border: "1px solid rgba(244, 63, 94, 0.35)",
+                background: "color-mix(in srgb, var(--status-warning) 14%, var(--surface-1))",
+                border: "1px solid color-mix(in srgb, var(--status-warning) 14%, var(--surface-1))",
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", color: "#f43f5e", fontWeight: 800, fontSize: "0.74rem" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", color: "var(--status-warning)", fontWeight: 800, fontSize: "0.74rem" }}>
                 <AlertTriangle size={14} />
                 <span>ACTIVE FAULT ATTRIBUTION: {currentScenario.replace(/_/g, " ")}</span>
               </div>
-              <p style={{ fontSize: "0.66rem", color: "#cbd5e1", marginTop: "0.35rem", lineHeight: 1.35 }}>
+              <p style={{ fontSize: "0.66rem", color: "var(--text)", marginTop: "0.35rem", lineHeight: 1.35 }}>
                 {currentScenario.includes("OIL")
                   ? "The model has identified Oil Pressure as the primary failure precursor (+0.485 SHAP). Micro-crack cavitation or seal failure is driving hydrodynamic oil wedge starvation."
                   : currentScenario.includes("TURBO")
@@ -739,8 +739,8 @@ export default function FeatureContributionPanel({
           {/* Physics Domain Root-Cause Guide */}
           <div
             style={{
-              background: "rgba(15, 23, 42, 0.6)",
-              border: "1px solid rgba(255, 255, 255, 0.06)",
+              background: "var(--surface-1)",
+              border: "1px solid var(--border)",
               borderRadius: "6px",
               padding: "0.75rem 0.85rem",
               display: "flex",
@@ -748,44 +748,44 @@ export default function FeatureContributionPanel({
               gap: "0.5rem",
             }}
           >
-            <div style={{ fontSize: "0.74rem", fontWeight: 800, color: "#f8fafc", display: "flex", alignItems: "center", gap: "0.4rem" }}>
-              <Activity size={14} style={{ color: "var(--accent-cyan)" }} />
+            <div style={{ fontSize: "0.74rem", fontWeight: 800, color: "var(--text)", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+              <Activity size={14} style={{ color: "var(--accent)" }} />
               <span>PHYSICS DOMAIN ATTRIBUTION GUIDE</span>
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem", fontSize: "0.66rem" }}>
               <div>
-                <span style={{ color: "#f43f5e", fontWeight: 700, fontFamily: "'JetBrains Mono', monospace" }}>
+                <span style={{ color: "var(--status-warning)", fontWeight: 700, fontFamily: "var(--font-mono), monospace" }}>
                   ↑ EGT / CHT (Thermal):
                 </span>
-                <span style={{ color: "#94a3b8", marginLeft: "0.3rem" }}>
+                <span style={{ color: "var(--text-muted)", marginLeft: "0.3rem" }}>
                   Excessive combustion flame temps and cylinder head saturation induce valve guide micro-cracking and thermal fatigue.
                 </span>
               </div>
 
               <div>
-                <span style={{ color: "#0ea5e9", fontWeight: 700, fontFamily: "'JetBrains Mono', monospace" }}>
+                <span style={{ color: "var(--accent)", fontWeight: 700, fontFamily: "var(--font-mono), monospace" }}>
                   ↓ Oil Pressure (Lubrication):
                 </span>
-                <span style={{ color: "#94a3b8", marginLeft: "0.3rem" }}>
+                <span style={{ color: "var(--text-muted)", marginLeft: "0.3rem" }}>
                   Loss of hydrodynamic wedge thickness in crankshaft journal bearings; primary indicator of pump failure or line rupture.
                 </span>
               </div>
 
               <div>
-                <span style={{ color: "#f59e0b", fontWeight: 700, fontFamily: "'JetBrains Mono', monospace" }}>
+                <span style={{ color: "var(--status-caution)", fontWeight: 700, fontFamily: "var(--font-mono), monospace" }}>
                   ↑ Vibration RMS (Mechanical):
                 </span>
-                <span style={{ color: "#94a3b8", marginLeft: "0.3rem" }}>
+                <span style={{ color: "var(--text-muted)", marginLeft: "0.3rem" }}>
                   Detects high-frequency mechanical shock, shaft unbalance, dynamic propeller governor hunting, and bearing spalling.
                 </span>
               </div>
 
               <div>
-                <span style={{ color: "#10b981", fontWeight: 700, fontFamily: "'JetBrains Mono', monospace" }}>
+                <span style={{ color: "var(--status-nominal)", fontWeight: 700, fontFamily: "var(--font-mono), monospace" }}>
                   Stoichiometry (Fuel &amp; Timing):
                 </span>
-                <span style={{ color: "#94a3b8", marginLeft: "0.3rem" }}>
+                <span style={{ color: "var(--text-muted)", marginLeft: "0.3rem" }}>
                   Monitors injector mass flow and ECU ignition advance timing curves to ensure detonation-free peak efficiency.
                 </span>
               </div>
@@ -795,16 +795,16 @@ export default function FeatureContributionPanel({
           {/* Mathematical XAI Axioms Card */}
           <div
             style={{
-              background: "rgba(15, 23, 42, 0.4)",
-              border: "1px solid rgba(56, 189, 248, 0.15)",
+              background: "var(--surface-1)",
+              border: "1px solid var(--border)",
               borderRadius: "6px",
               padding: "0.65rem 0.85rem",
               fontSize: "0.64rem",
-              fontFamily: "'JetBrains Mono', monospace",
-              color: "#94a3b8",
+              fontFamily: "var(--font-mono), monospace",
+              color: "var(--text-muted)",
             }}
           >
-            <div style={{ color: "var(--accent-cyan)", fontWeight: 800, marginBottom: "0.3rem" }}>
+            <div style={{ color: "var(--accent)", fontWeight: 800, marginBottom: "0.3rem" }}>
               SHAPLEY AXIOM INTEGRITY
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.3rem" }}>

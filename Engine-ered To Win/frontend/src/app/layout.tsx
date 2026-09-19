@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Chakra_Petch, Inter, JetBrains_Mono } from "next/font/google";
 import { TelemetryProvider } from "@/context/TelemetryContext";
 import "./globals.css";
@@ -20,6 +20,10 @@ const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
   weight: ["400", "500", "700"],
 });
+
+export const viewport: Viewport = {
+  themeColor: "#0B0B0C",
+};
 
 export const metadata: Metadata = {
   title: "AeroTwin | MALE UAV Aero Piston Engine Digital Twin GCS",

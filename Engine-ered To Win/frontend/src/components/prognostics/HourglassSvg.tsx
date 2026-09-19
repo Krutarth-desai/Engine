@@ -12,8 +12,8 @@ export default function HourglassSvg() {
     >
       <defs>
         <linearGradient id="hgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#a855f7" />
-          <stop offset="100%" stopColor="#38bdf8" />
+          <stop offset="0%" stopColor="var(--surface-3)" />
+          <stop offset="100%" stopColor="var(--accent)" />
         </linearGradient>
       </defs>
       {/* Top plate */}
@@ -23,21 +23,21 @@ export default function HourglassSvg() {
       {/* Top glass */}
       <path
         d="M28 13 L28 35 L50 55 L72 35 L72 13 Z"
-        fill="rgba(168,85,247,0.08)"
+        fill="var(--surface-3)"
         stroke="url(#hgGrad)"
         strokeWidth="2"
       />
       {/* Bottom glass */}
       <path
         d="M28 87 L28 65 L50 45 L72 65 L72 87 Z"
-        fill="rgba(168,85,247,0.08)"
+        fill="var(--surface-3)"
         stroke="url(#hgGrad)"
         strokeWidth="2"
       />
       {/* Sand top */}
       <path
         d="M35 13 L35 30 L50 45 L65 30 L65 13 Z"
-        fill="rgba(168,85,247,0.15)"
+        fill="var(--surface-3)"
       >
         <animate
           attributeName="d"
@@ -49,7 +49,7 @@ export default function HourglassSvg() {
       {/* Sand bottom */}
       <path
         d="M38 87 L38 78 L50 65 L62 78 L62 87 Z"
-        fill="rgba(56,189,248,0.2)"
+        fill="var(--border)"
       >
         <animate
           attributeName="d"

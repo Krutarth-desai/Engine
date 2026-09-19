@@ -22,14 +22,14 @@ export default function MaintenanceView({ payload }: MaintenanceViewProps) {
   const getPriorityStyle = (level: string) => {
     switch (level) {
       case "CRITICAL":
-        return { color: "#ef4444", bg: "rgba(239, 68, 68, 0.15)", border: "#ef4444" };
+        return { color: "var(--status-warning)", bg: "var(--surface-1)", border: "var(--status-warning)" };
       case "HIGH":
-        return { color: "#f97316", bg: "rgba(249, 115, 22, 0.15)", border: "#f97316" };
+        return { color: "var(--status-caution)", bg: "color-mix(in srgb, var(--status-caution) 14%, var(--surface-1))", border: "var(--status-caution)" };
       case "MEDIUM":
-        return { color: "#f59e0b", bg: "rgba(245, 158, 11, 0.15)", border: "#f59e0b" };
+        return { color: "var(--status-caution)", bg: "var(--surface-1)", border: "var(--status-caution)" };
       case "LOW":
       default:
-        return { color: "#10b981", bg: "rgba(16, 185, 129, 0.15)", border: "#10b981" };
+        return { color: "var(--status-nominal)", bg: "var(--surface-1)", border: "var(--status-nominal)" };
     }
   };
 
@@ -43,7 +43,7 @@ export default function MaintenanceView({ payload }: MaintenanceViewProps) {
           <h2 className="view-title" style={{ margin: 0, fontSize: "1.2rem", letterSpacing: "0.04em" }}>
             <strong>PREDICTIVE MAINTENANCE &amp; ACTION PROTOCOL</strong>
           </h2>
-          <p className="view-subtitle" style={{ margin: "0.2rem 0 0", fontSize: "0.72rem", color: "#64748b" }}>
+          <p className="view-subtitle" style={{ margin: "0.2rem 0 0", fontSize: "0.72rem", color: "var(--text-muted)" }}>
             Condition-based maintenance (CBM), component wear life thresholds, and field action procedures
           </p>
         </div>
@@ -56,7 +56,7 @@ export default function MaintenanceView({ payload }: MaintenanceViewProps) {
             padding: "0.25rem 0.65rem",
             borderRadius: "4px",
             fontSize: "0.72rem",
-            fontFamily: "'JetBrains Mono', monospace",
+            fontFamily: "var(--font-mono), monospace",
           }}
         >
           <strong>PRIORITY: {riskLevel}</strong>
@@ -68,9 +68,9 @@ export default function MaintenanceView({ payload }: MaintenanceViewProps) {
         {/* Left Column: Directives, Protocols & Test Runners */}
         <div className="maint-col-left" style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
           {/* Directive Hero */}
-          <div className="panel maint-action-hero" style={{ background: "rgba(15, 23, 42, 0.65)", border: "1px solid rgba(255, 255, 255, 0.08)", borderRadius: "8px", padding: "1rem" }}>
+          <div className="panel maint-action-hero" style={{ background: "var(--surface-1)", border: "1px solid var(--border)", borderRadius: "8px", padding: "1rem" }}>
             <div className="panel-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.6rem" }}>
-              <div className="panel-title" style={{ fontSize: "0.75rem", letterSpacing: "0.05em", color: "#94a3b8" }}>
+              <div className="panel-title" style={{ fontSize: "0.75rem", letterSpacing: "0.05em", color: "var(--text-muted)" }}>
                 <strong>CURRENT PILOT / OPERATOR DIRECTIVE</strong>
               </div>
               <span
@@ -89,22 +89,22 @@ export default function MaintenanceView({ payload }: MaintenanceViewProps) {
             </div>
 
             <div className="maint-action-body">
-              <div className="action-large-readout" style={{ fontSize: "0.95rem", lineHeight: 1.4, color: "#f8fafc", marginBottom: "0.5rem" }}>
+              <div className="action-large-readout" style={{ fontSize: "0.95rem", lineHeight: 1.4, color: "var(--text)", marginBottom: "0.5rem" }}>
                 <span className="action-hero-text"><strong>{action}</strong></span>
               </div>
-              <p className="action-context" style={{ fontSize: "0.7rem", color: "#94a3b8", lineHeight: 1.5, margin: 0 }}>
+              <p className="action-context" style={{ fontSize: "0.7rem", color: "var(--text-muted)", lineHeight: 1.5, margin: 0 }}>
                 {guidance || `Automated recommendation generated based on cross-correlated physical telemetry, remaining useful life estimates (${rulCycles} cycles), and current health index (${health}/100).`}
               </p>
             </div>
           </div>
 
           {/* Dynamic Preventative Protocols with Live Margins */}
-          <div className="panel maint-protocols-card" style={{ background: "rgba(15, 23, 42, 0.65)", border: "1px solid rgba(255, 255, 255, 0.08)", borderRadius: "8px", padding: "1rem" }}>
+          <div className="panel maint-protocols-card" style={{ background: "var(--surface-1)", border: "1px solid var(--border)", borderRadius: "8px", padding: "1rem" }}>
             <div className="panel-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
-              <div className="panel-title" style={{ fontSize: "0.75rem", letterSpacing: "0.05em", color: "#94a3b8" }}>
+              <div className="panel-title" style={{ fontSize: "0.75rem", letterSpacing: "0.05em", color: "var(--text-muted)" }}>
                 <strong>DYNAMIC PREVENTATIVE PROTOCOLS (LIVE MARGINS)</strong>
               </div>
-              <span style={{ fontSize: "0.62rem", color: "var(--accent-cyan)", fontFamily: "'JetBrains Mono', monospace" }}>
+              <span style={{ fontSize: "0.62rem", color: "var(--accent)", fontFamily: "var(--font-mono), monospace" }}>
                 TELEMETRY ENVELOPE
               </span>
             </div>
@@ -112,7 +112,7 @@ export default function MaintenanceView({ payload }: MaintenanceViewProps) {
               {MAINTENANCE_PROTOCOLS.map((protocol) => {
                 const triggered = protocol.isTriggered(payload);
                 const marginText = protocol.getMargin(payload);
-                const tagColor = triggered ? "#ef4444" : "#10b981";
+                const tagColor = triggered ? "var(--status-warning)" : "var(--status-nominal)";
 
                 return (
                   <div
@@ -120,7 +120,7 @@ export default function MaintenanceView({ payload }: MaintenanceViewProps) {
                     className="protocol-item"
                     style={{
                       borderLeft: `3px solid ${tagColor}`,
-                      background: triggered ? "rgba(239, 68, 68, 0.08)" : "rgba(255, 255, 255, 0.02)",
+                      background: triggered ? "color-mix(in srgb, var(--status-warning) 14%, var(--surface-1))" : "var(--border)",
                       padding: "0.5rem 0.65rem",
                       borderRadius: "0 6px 6px 0",
                     }}
@@ -135,7 +135,7 @@ export default function MaintenanceView({ payload }: MaintenanceViewProps) {
                           fontSize: "0.62rem",
                           padding: "0.1rem 0.35rem",
                           borderRadius: "3px",
-                          fontFamily: "'JetBrains Mono', monospace",
+                          fontFamily: "var(--font-mono), monospace",
                           fontWeight: 700,
                         }}
                       >
@@ -144,25 +144,25 @@ export default function MaintenanceView({ payload }: MaintenanceViewProps) {
                       <span
                         style={{
                           fontSize: "0.65rem",
-                          fontFamily: "'JetBrains Mono', monospace",
+                          fontFamily: "var(--font-mono), monospace",
                           fontWeight: 700,
-                          color: triggered ? "#ef4444" : "var(--accent-cyan)",
+                          color: triggered ? "var(--status-warning)" : "var(--accent)",
                         }}
                       >
                         {triggered ? "TRIGGER EXCEEDED!" : "MARGIN OK"}
                       </span>
                     </div>
-                    <p className="protocol-desc" style={{ fontSize: "0.72rem", color: "#cbd5e1", margin: "0.2rem 0" }}>
+                    <p className="protocol-desc" style={{ fontSize: "0.72rem", color: "var(--text)", margin: "0.2rem 0" }}>
                       {protocol.actionDesc}
                     </p>
                     <div
                       style={{
                         fontSize: "0.65rem",
-                        fontFamily: "'JetBrains Mono', monospace",
-                        color: triggered ? "#ef4444" : "#94a3b8",
+                        fontFamily: "var(--font-mono), monospace",
+                        color: triggered ? "var(--status-warning)" : "var(--text-muted)",
                         marginTop: "0.35rem",
                         padding: "0.25rem 0.5rem",
-                        background: "rgba(0, 0, 0, 0.25)",
+                        background: "var(--bg)",
                         borderRadius: "4px",
                       }}
                     >

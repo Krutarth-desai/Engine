@@ -21,10 +21,10 @@ export default function RulPrognosticsGauge({ prognostics }: RulPrognosticsGauge
   const trendValue = prognostics.degradation_trend || "Stable";
   const trendColor =
     trendValue === "Accelerating"
-      ? "#ef4444"
+      ? "var(--status-warning)"
       : trendValue === "Decreasing"
-      ? "#f59e0b"
-      : "#10b981";
+      ? "var(--status-caution)"
+      : "var(--status-nominal)";
 
   return (
     <div className="panel rul-centerpiece-panel">
@@ -44,7 +44,7 @@ export default function RulPrognosticsGauge({ prognostics }: RulPrognosticsGauge
             className="status-dot"
             style={{
               background: zoneColor,
-              boxShadow: `0 0 8px ${zoneColor}`,
+              boxShadow: "none",
             }}
           />
           <strong>{zoneLabel}</strong>
@@ -71,7 +71,7 @@ export default function RulPrognosticsGauge({ prognostics }: RulPrognosticsGauge
               className="rul-progress-fill"
               style={{
                 width: `${rulPct}%`,
-                background: `linear-gradient(90deg, #ef4444 0%, #f97316 20%, #f59e0b 45%, #10b981 75%)`,
+                background: "var(--surface-3)",
                 backgroundSize: "400% 100%",
                 backgroundPosition: `${100 - rulPct}% 0`,
               }}

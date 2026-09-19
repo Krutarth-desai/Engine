@@ -96,15 +96,15 @@ export default function SensorCard({
         onClick={() => onFocus?.(sensorKey)}
         style={{
           background: isFocused
-            ? "linear-gradient(135deg, rgba(56, 189, 248, 0.16) 0%, rgba(14, 21, 38, 0.95) 100%)"
-            : "linear-gradient(135deg, rgba(16, 24, 44, 0.82) 0%, rgba(10, 16, 30, 0.92) 100%)",
-          border: `1px solid ${isFocused ? "var(--accent-cyan)" : "rgba(255, 255, 255, 0.08)"}`,
+            ? "var(--surface-2)"
+            : "var(--surface-1)",
+          border: `1px solid ${isFocused ? "var(--accent)" : "var(--border)"}`,
           borderRadius: "6px",
           padding: "0.42rem 0.55rem",
           cursor: onFocus ? "pointer" : "default",
           transition: "all 0.18s ease",
           position: "relative",
-          boxShadow: isFocused ? "0 0 14px rgba(56, 189, 248, 0.25)" : "0 2px 6px rgba(0, 0, 0, 0.3)",
+          boxShadow: isFocused ? "0 0 14px var(--border)" : "0 2px 6px var(--bg)",
           height: "100%",
           boxSizing: "border-box",
           display: "flex",
@@ -119,9 +119,9 @@ export default function SensorCard({
           <span
             style={{
               fontSize: "0.64rem",
-              fontFamily: "'JetBrains Mono', monospace",
+              fontFamily: "var(--font-mono), monospace",
               fontWeight: 800,
-              color: isFocused ? "var(--accent-cyan)" : "#cbd5e1",
+              color: isFocused ? "var(--accent)" : "var(--text)",
               letterSpacing: "0.5px",
               whiteSpace: "nowrap",
               overflow: "hidden",
@@ -140,7 +140,7 @@ export default function SensorCard({
                 background: `${statusColor}18`,
                 color: statusColor,
                 border: `1px solid ${statusColor}40`,
-                fontFamily: "'JetBrains Mono', monospace",
+                fontFamily: "var(--font-mono), monospace",
                 lineHeight: 1,
               }}
             >
@@ -152,7 +152,7 @@ export default function SensorCard({
                 height: "5px",
                 borderRadius: "50%",
                 backgroundColor: statusColor,
-                boxShadow: `0 0 5px ${statusColor}`,
+                boxShadow: "none",
               }}
             />
           </div>
@@ -176,8 +176,8 @@ export default function SensorCard({
             <span
               style={{
                 fontSize: "0.6rem",
-                color: "#94a3b8",
-                fontFamily: "'JetBrains Mono', monospace",
+                color: "var(--text-muted)",
+                fontFamily: "var(--font-mono), monospace",
                 fontWeight: 600,
               }}
             >
@@ -202,7 +202,7 @@ export default function SensorCard({
               strokeLinecap="round"
               strokeLinejoin="round"
             />
-            <circle cx={lastPt.x} cy={lastPt.y} r="2" fill={statusColor} filter="url(#hud-glow)" />
+            <circle cx={lastPt.x} cy={lastPt.y} r="2" fill={statusColor} />
           </svg>
         </div>
 
@@ -211,7 +211,7 @@ export default function SensorCard({
           <div
             style={{
               height: "3px",
-              background: "rgba(255, 255, 255, 0.08)",
+              background: "var(--border)",
               borderRadius: "2px",
               position: "relative",
               overflow: "hidden",
@@ -228,7 +228,7 @@ export default function SensorCard({
                 background: statusColor,
                 borderRadius: "2px",
                 transition: "width 0.4s ease",
-                boxShadow: `0 0 6px ${statusColor}80`,
+                boxShadow: "none",
               }}
             />
           </div>
@@ -239,15 +239,15 @@ export default function SensorCard({
               justifyContent: "space-between",
               alignItems: "center",
               fontSize: "0.55rem",
-              color: "#64748b",
-              fontFamily: "'JetBrains Mono', monospace",
+              color: "var(--text-muted)",
+              fontFamily: "var(--font-mono), monospace",
               lineHeight: 1,
             }}
           >
             {delta10s !== undefined && delta10s !== 0 ? (
               <span
                 style={{
-                  color: delta10s > 0 ? (status === "ALERT" ? "#ef4444" : "var(--accent-cyan)") : "#10b981",
+                  color: delta10s > 0 ? (status === "ALERT" ? "var(--status-warning)" : "var(--accent)") : "var(--status-nominal)",
                   display: "inline-flex",
                   alignItems: "center",
                   gap: "0.1rem",
@@ -258,7 +258,7 @@ export default function SensorCard({
                 {delta10s > 0 ? `+${delta10s.toFixed(1)}` : delta10s.toFixed(1)}/10s
               </span>
             ) : (
-              <span style={{ color: trend === "UP" ? "var(--accent-cyan)" : trend === "DOWN" ? "#f59e0b" : "#64748b" }}>
+              <span style={{ color: trend === "UP" ? "var(--accent)" : trend === "DOWN" ? "var(--status-caution)" : "var(--text-muted)" }}>
                 {trend}
               </span>
             )}
@@ -275,14 +275,14 @@ export default function SensorCard({
       className={`sensor-universal-card ${isFocused ? "focused" : ""}`}
       onClick={() => onFocus?.(sensorKey)}
       style={{
-        background: isFocused ? "rgba(56, 189, 248, 0.08)" : "rgba(14, 21, 38, 0.7)",
-        border: `1px solid ${isFocused ? "var(--accent-cyan)" : "rgba(255, 255, 255, 0.08)"}`,
+        background: isFocused ? "var(--border)" : "var(--surface-1)",
+        border: `1px solid ${isFocused ? "var(--accent)" : "var(--border)"}`,
         borderRadius: "8px",
         padding: "0.85rem 1rem",
         cursor: onFocus ? "pointer" : "default",
         transition: "all 0.2s ease",
         position: "relative",
-        boxShadow: isFocused ? "0 0 16px rgba(56, 189, 248, 0.2)" : "none",
+        boxShadow: isFocused ? "0 0 16px var(--border)" : "none",
       }}
       title={`Click to focus ${displayName}`}
     >
@@ -291,9 +291,9 @@ export default function SensorCard({
         <span
           style={{
             fontSize: "0.78rem",
-            fontFamily: "'JetBrains Mono', monospace",
+            fontFamily: "var(--font-mono), monospace",
             fontWeight: 700,
-            color: isFocused ? "var(--accent-cyan)" : "#e2e8f0",
+            color: isFocused ? "var(--accent)" : "var(--text)",
             textTransform: "uppercase",
             letterSpacing: "0.5px",
           }}
@@ -310,7 +310,7 @@ export default function SensorCard({
               background: `${statusColor}18`,
               color: statusColor,
               border: `1px solid ${statusColor}40`,
-              fontFamily: "'JetBrains Mono', monospace",
+              fontFamily: "var(--font-mono), monospace",
             }}
           >
             {status}
@@ -321,7 +321,7 @@ export default function SensorCard({
               height: "7px",
               borderRadius: "50%",
               backgroundColor: statusColor,
-              boxShadow: `0 0 6px ${statusColor}`,
+              boxShadow: "none",
             }}
           />
         </div>
@@ -344,8 +344,8 @@ export default function SensorCard({
           <span
             style={{
               fontSize: "0.72rem",
-              color: "#94a3b8",
-              fontFamily: "'JetBrains Mono', monospace",
+              color: "var(--text-muted)",
+              fontFamily: "var(--font-mono), monospace",
               fontWeight: 600,
             }}
           >
@@ -374,7 +374,7 @@ export default function SensorCard({
             />
             <circle cx={lastPt.x} cy={lastPt.y} r="2.5" fill={statusColor} />
           </svg>
-          <div style={{ display: "flex", gap: "0.4rem", fontSize: "0.58rem", color: "#64748b", fontFamily: "'JetBrains Mono', monospace" }}>
+          <div style={{ display: "flex", gap: "0.4rem", fontSize: "0.58rem", color: "var(--text-muted)", fontFamily: "var(--font-mono), monospace" }}>
             <span>L: {fmt(sparkMin, 0)}</span>
             <span>H: {fmt(sparkMax, 0)}</span>
           </div>
@@ -385,7 +385,7 @@ export default function SensorCard({
       <div
         style={{
           height: "8px",
-          background: "rgba(255, 255, 255, 0.06)",
+          background: "var(--border)",
           borderRadius: "4px",
           position: "relative",
           overflow: "hidden",
@@ -401,7 +401,7 @@ export default function SensorCard({
               width: `${Math.max(0, warningLowPct)}%`,
               top: 0,
               bottom: 0,
-              background: "rgba(239, 68, 68, 0.35)",
+              background: "color-mix(in srgb, var(--status-warning) 14%, var(--surface-1))",
             }}
           />
         )}
@@ -414,7 +414,7 @@ export default function SensorCard({
               width: `${Math.max(0, cautionLowPct - warningLowPct)}%`,
               top: 0,
               bottom: 0,
-              background: "rgba(245, 158, 11, 0.3)",
+              background: "color-mix(in srgb, var(--status-caution) 14%, var(--surface-1))",
             }}
           />
         )}
@@ -427,7 +427,7 @@ export default function SensorCard({
               width: warningHighPct !== null ? `${Math.max(0, warningHighPct - cautionHighPct)}%` : `${100 - cautionHighPct}%`,
               top: 0,
               bottom: 0,
-              background: "rgba(245, 158, 11, 0.3)",
+              background: "color-mix(in srgb, var(--status-caution) 14%, var(--surface-1))",
             }}
           />
         )}
@@ -440,7 +440,7 @@ export default function SensorCard({
               right: 0,
               top: 0,
               bottom: 0,
-              background: "rgba(239, 68, 68, 0.35)",
+              background: "color-mix(in srgb, var(--status-warning) 14%, var(--surface-1))",
             }}
           />
         )}
@@ -456,7 +456,7 @@ export default function SensorCard({
             background: statusColor,
             borderRadius: "4px",
             transition: "width 0.4s ease",
-            boxShadow: `0 0 8px ${statusColor}60`,
+            boxShadow: "none",
           }}
         />
       </div>
@@ -468,15 +468,15 @@ export default function SensorCard({
           justifyContent: "space-between",
           alignItems: "center",
           fontSize: "0.62rem",
-          color: "#64748b",
-          fontFamily: "'JetBrains Mono', monospace",
+          color: "var(--text-muted)",
+          fontFamily: "var(--font-mono), monospace",
         }}
       >
         <span>{def ? def.min : 0} {displayUnit}</span>
         {delta10s !== undefined && delta10s !== 0 ? (
           <span
             style={{
-              color: delta10s > 0 ? (status === "ALERT" ? "#ef4444" : "var(--accent-cyan)") : "#10b981",
+              color: delta10s > 0 ? (status === "ALERT" ? "var(--status-warning)" : "var(--accent)") : "var(--status-nominal)",
               display: "inline-flex",
               alignItems: "center",
               gap: "0.15rem",
@@ -487,7 +487,7 @@ export default function SensorCard({
             {delta10s > 0 ? `+${delta10s.toFixed(1)}` : delta10s.toFixed(1)} /10s
           </span>
         ) : (
-          <span style={{ color: trend === "UP" ? "var(--accent-cyan)" : trend === "DOWN" ? "#f59e0b" : "#64748b", fontSize: "0.6rem" }}>
+          <span style={{ color: trend === "UP" ? "var(--accent)" : trend === "DOWN" ? "var(--status-caution)" : "var(--text-muted)", fontSize: "0.6rem" }}>
             {trend}
           </span>
         )}

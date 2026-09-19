@@ -66,7 +66,7 @@ export default function RulTrajectoryChart({
           {
             label: "Ground Truth (Replay)",
             data: actualData,
-            borderColor: "#10b981", // Emerald Green
+            borderColor: "var(--status-nominal)", // Emerald Green
             backgroundColor: "transparent",
             borderWidth: 2.5,
             pointRadius: 0,
@@ -76,13 +76,13 @@ export default function RulTrajectoryChart({
           {
             label: `LSTM Predicted RUL (${currentPredictedRul.toFixed(1)} ± ${Math.round(modelMae)})`,
             data: predictedData,
-            borderColor: "#38bdf8", // Sky Blue
+            borderColor: "var(--accent)", // Sky Blue
             borderDash: [5, 4],
             backgroundColor: "transparent",
             borderWidth: 2,
             pointRadius: (context) => (context.dataIndex === actualData.length - 1 ? 6 : 0),
-            pointBackgroundColor: "#38bdf8",
-            pointBorderColor: "#ffffff",
+            pointBackgroundColor: "var(--accent)",
+            pointBorderColor: "var(--text)",
             pointBorderWidth: 2,
             tension: 0.2,
           },
@@ -90,7 +90,7 @@ export default function RulTrajectoryChart({
             label: `± MAE Envelope (${modelMae.toFixed(1)} cyc)`,
             data: upperMae,
             borderColor: "transparent",
-            backgroundColor: "rgba(56, 189, 248, 0.1)",
+            backgroundColor: "var(--border)",
             fill: "+1",
             pointRadius: 0,
             tension: 0.2,
@@ -131,7 +131,7 @@ export default function RulTrajectoryChart({
                 type: "box",
                 yMin: RUL_ZONES.HEALTHY.minCycles,
                 yMax: RUL_ZONES.HEALTHY.maxCycles,
-                backgroundColor: "rgba(16, 185, 129, 0.05)",
+                backgroundColor: "var(--surface-1)",
                 borderWidth: 0,
               },
               // Degrading Zone Band (50 - 125)
@@ -139,7 +139,7 @@ export default function RulTrajectoryChart({
                 type: "box",
                 yMin: RUL_ZONES.DEGRADING.minCycles,
                 yMax: RUL_ZONES.DEGRADING.maxCycles,
-                backgroundColor: "rgba(245, 158, 11, 0.05)",
+                backgroundColor: "color-mix(in srgb, var(--status-caution) 14%, var(--surface-1))",
                 borderWidth: 0,
               },
               // Critical Zone Band (15 - 50)
@@ -147,7 +147,7 @@ export default function RulTrajectoryChart({
                 type: "box",
                 yMin: RUL_ZONES.CRITICAL.minCycles,
                 yMax: RUL_ZONES.CRITICAL.maxCycles,
-                backgroundColor: "rgba(249, 115, 22, 0.06)",
+                backgroundColor: "color-mix(in srgb, var(--status-caution) 14%, var(--surface-1))",
                 borderWidth: 0,
               },
               // Failure Threshold Zone Band (0 - 15)
@@ -155,7 +155,7 @@ export default function RulTrajectoryChart({
                 type: "box",
                 yMin: RUL_ZONES.FAILURE.minCycles,
                 yMax: RUL_ZONES.FAILURE.maxCycles,
-                backgroundColor: "rgba(239, 68, 68, 0.09)",
+                backgroundColor: "color-mix(in srgb, var(--status-warning) 14%, var(--surface-1))",
                 borderWidth: 0,
               },
               // Failure Limit Line
@@ -163,14 +163,14 @@ export default function RulTrajectoryChart({
                 type: "line",
                 yMin: 15,
                 yMax: 15,
-                borderColor: "rgba(239, 68, 68, 0.6)",
+                borderColor: "color-mix(in srgb, var(--status-warning) 14%, var(--surface-1))",
                 borderWidth: 1,
                 borderDash: [3, 3],
                 label: {
                   display: true,
                   content: "FAILURE THRESHOLD (15 CYCLES)",
                   position: "start",
-                  color: "#ef4444",
+                  color: "var(--status-warning)",
                   backgroundColor: theme.tooltipBg,
                   font: { family: "'JetBrains Mono', monospace", size: 8 },
                 },
@@ -179,8 +179,8 @@ export default function RulTrajectoryChart({
           },
           tooltip: {
             backgroundColor: theme.tooltipBg,
-            titleColor: "#38bdf8",
-            bodyColor: "#f8fafc",
+            titleColor: "var(--accent)",
+            bodyColor: "var(--text)",
             borderColor: theme.borderGlow,
             borderWidth: 1,
             padding: 8,
@@ -239,9 +239,9 @@ export default function RulTrajectoryChart({
         </div>
         <div className="trajectory-current-badge font-mono" style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.68rem" }}>
           <span>CURRENT: CYCLE {currentCycle}</span>
-          <span style={{ color: "#64748b" }}>•</span>
+          <span style={{ color: "var(--text-muted)" }}>•</span>
           <span className="text-cyan font-bold">RUL: {currentPredictedRul.toFixed(1)} ± {Math.round(modelMae)}</span>
-          <span style={{ color: "#64748b" }}>•</span>
+          <span style={{ color: "var(--text-muted)" }}>•</span>
           <span className="text-green">REPLAY REF: {currentActualRul.toFixed(1)}</span>
         </div>
       </div>

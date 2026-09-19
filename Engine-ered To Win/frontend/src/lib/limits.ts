@@ -202,9 +202,9 @@ export const RUL_ZONES: Record<RulZoneId, RulZone> = {
     label: "HEALTHY",
     minCycles: 125,
     maxCycles: 250,
-    color: "#10b981", // Emerald Green
-    bgColor: "rgba(16, 185, 129, 0.12)",
-    borderColor: "rgba(16, 185, 129, 0.4)",
+    color: "var(--status-nominal)",
+    bgColor: "color-mix(in srgb, var(--status-nominal) 14%, var(--surface-1))",
+    borderColor: "var(--border)",
     description: "Nominal operational envelope; full mission capability.",
   },
   DEGRADING: {
@@ -212,9 +212,9 @@ export const RUL_ZONES: Record<RulZoneId, RulZone> = {
     label: "DEGRADING",
     minCycles: 50,
     maxCycles: 125,
-    color: "#f59e0b", // Amber
-    bgColor: "rgba(245, 158, 11, 0.12)",
-    borderColor: "rgba(245, 158, 11, 0.4)",
+    color: "var(--status-caution)",
+    bgColor: "color-mix(in srgb, var(--status-caution) 14%, var(--surface-1))",
+    borderColor: "var(--status-caution)",
     description: "Moderate wear detected; schedule turnaround inspection.",
   },
   CRITICAL: {
@@ -222,9 +222,9 @@ export const RUL_ZONES: Record<RulZoneId, RulZone> = {
     label: "CRITICAL",
     minCycles: 15,
     maxCycles: 50,
-    color: "#f97316", // Orange
-    bgColor: "rgba(249, 115, 22, 0.15)",
-    borderColor: "rgba(249, 115, 22, 0.5)",
+    color: "var(--status-warning)",
+    bgColor: "color-mix(in srgb, var(--status-warning) 14%, var(--surface-1))",
+    borderColor: "var(--status-warning)",
     description: "Accelerated degradation; prepare to divert or overhaul.",
   },
   FAILURE: {
@@ -232,9 +232,9 @@ export const RUL_ZONES: Record<RulZoneId, RulZone> = {
     label: "FAILURE",
     minCycles: 0,
     maxCycles: 15,
-    color: "#ef4444", // Rose / Red
-    bgColor: "rgba(239, 68, 68, 0.2)",
-    borderColor: "rgba(239, 68, 68, 0.6)",
+    color: "var(--status-warning)",
+    bgColor: "color-mix(in srgb, var(--status-warning) 24%, var(--surface-1))",
+    borderColor: "var(--status-warning)",
     description: "Imminent mechanical/thermal failure threshold.",
   },
 };
@@ -341,25 +341,26 @@ export function getRulZone(cycles: number | null | undefined): RulZone {
 }
 
 /**
- * Standard Status Colors. Red/amber/green are reserved strictly for operational status.
+ * Standard Status Colors. Red/amber are reserved strictly for deviations; nominal is neutral.
  */
 export const STATUS_COLORS = {
-  NORMAL: "#10b981", // Emerald green
-  CAUTION: "#f59e0b", // Amber
-  ALERT: "#ef4444", // Rose / Red
-  CRITICAL: "#ef4444",
-  HIGH: "#f97316", // Orange
-  MEDIUM: "#f59e0b",
-  LOW: "#10b981",
-  OPTIMAL: "#10b981",
-  DEGRADED: "#f59e0b",
-  STABLE: "#10b981", // RATE: STABLE must have one colour everywhere (emerald green)
-  NEUTRAL: "#94a3b8", // Slate / neutral for 0% confidence, tags, dividers
-  CYAN: "#38bdf8", // HUD Accent
+  NORMAL: "var(--status-nominal)",
+  CAUTION: "var(--status-caution)",
+  ALERT: "var(--status-warning)",
+  CRITICAL: "var(--status-warning)",
+  HIGH: "var(--status-warning)",
+  MEDIUM: "var(--status-caution)",
+  LOW: "var(--status-nominal)",
+  OPTIMAL: "var(--status-nominal)",
+  DEGRADED: "var(--status-caution)",
+  STABLE: "var(--status-nominal)",
+  NEUTRAL: "var(--text-muted)",
+  CYAN: "var(--accent)",
+  ADVISORY: "var(--status-advisory)",
 };
 
 /**
- * Derive hex color for any status string without hardcoding.
+ * Derive CSS token for any status string without hardcoding.
  */
 export function getStatusColor(status: string | null | undefined): string {
   const s = (status || "").toUpperCase();

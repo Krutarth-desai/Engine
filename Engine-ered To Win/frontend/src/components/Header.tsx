@@ -61,14 +61,14 @@ export default function Header({
   const getLinkColor = () => {
     switch (linkState) {
       case "live":
-        return "#10b981"; // Emerald
+        return "var(--status-nominal)"; // Emerald
       case "stale":
-        return "#f59e0b"; // Amber
+        return "var(--status-caution)"; // Amber
       case "reconnecting":
-        return "#f59e0b"; // Amber (not red; red reserved for real faults)
+        return "var(--status-caution)"; // Amber (not red; red reserved for real faults)
       case "offline":
       default:
-        return "#ef4444"; // Red
+        return "var(--status-warning)"; // Red
     }
   };
 
@@ -96,7 +96,7 @@ export default function Header({
       {/* Left: Brand Identity */}
       <div className="brand" style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexShrink: 0 }}>
         <div className="logo-badge" style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
-          <span style={{ color: "var(--accent-cyan)", fontSize: "1.05rem" }}>▲</span>
+          <span style={{ color: "var(--accent)", fontSize: "1.05rem" }}>▲</span>
           <span style={{ letterSpacing: "1px", fontWeight: 800 }}>AEROTWIN</span>
         </div>
         <div style={{ whiteSpace: "nowrap" }}>
@@ -133,7 +133,7 @@ export default function Header({
         </div>
         <div className="metric-chip" style={{ flexShrink: 0 }}>
           <span className="metric-label">MODE</span>
-          <span className="metric-value" style={{ color: "#10b981", fontSize: "0.72rem" }}>
+          <span className="metric-value" style={{ color: "var(--status-nominal)", fontSize: "0.72rem" }}>
             <strong>CRUISE</strong>
           </span>
         </div>
@@ -164,9 +164,9 @@ export default function Header({
           onClick={() => setTimeDisplay(isZulu ? "local" : "zulu")}
           title={`Click to switch to ${isZulu ? "Local" : "Zulu"} time`}
         >
-          <Clock size={12} style={{ color: "var(--accent-cyan)" }} />
+          <Clock size={12} style={{ color: "var(--accent)" }} />
           <span>{clockFormatted}</span>
-          <span style={{ fontSize: "0.6rem", color: isZulu ? "var(--accent-cyan)" : "#94a3b8", fontWeight: 700 }}>
+          <span style={{ fontSize: "0.6rem", color: isZulu ? "var(--accent)" : "var(--text-muted)", fontWeight: 700 }}>
             {isZulu ? "ZULU" : "LOC"}
           </span>
         </button>
@@ -178,13 +178,13 @@ export default function Header({
               display: "inline-flex",
               alignItems: "center",
               gap: "0.35rem",
-              background: "rgba(245, 158, 11, 0.15)",
-              border: "1px solid rgba(245, 158, 11, 0.5)",
-              color: "#f59e0b",
+              background: "var(--surface-1)",
+              border: "1px solid color-mix(in srgb, var(--status-caution) 14%, var(--surface-1))",
+              color: "var(--status-caution)",
               borderRadius: "5px",
               padding: "0.15rem 0.45rem",
               fontSize: "0.64rem",
-              fontFamily: "'JetBrains Mono', monospace",
+              fontFamily: "var(--font-mono), monospace",
               fontWeight: 700,
             }}
           >
@@ -194,9 +194,9 @@ export default function Header({
               onClick={resetScenario}
               title="Reset simulation to nominal baseline"
               style={{
-                background: "rgba(255, 255, 255, 0.15)",
+                background: "var(--border)",
                 border: "none",
-                color: "#ffffff",
+                color: "var(--text)",
                 borderRadius: "3px",
                 padding: "0.08rem 0.3rem",
                 cursor: "pointer",
@@ -217,12 +217,12 @@ export default function Header({
               alignItems: "center",
               gap: "0.25rem",
               fontSize: "0.64rem",
-              color: "#10b981",
-              background: "rgba(16, 185, 129, 0.08)",
-              border: "1px solid rgba(16, 185, 129, 0.25)",
+              color: "var(--status-nominal)",
+              background: "var(--border)",
+              border: "1px solid var(--border)",
               borderRadius: "4px",
               padding: "0.15rem 0.4rem",
-              fontFamily: "'JetBrains Mono', monospace",
+              fontFamily: "var(--font-mono), monospace",
             }}
           >
             <ShieldCheck size={11} />
@@ -260,7 +260,7 @@ export default function Header({
             gap: "0.35rem",
             padding: "0.2rem 0.5rem",
             borderRadius: "5px",
-            fontFamily: "'JetBrains Mono', monospace",
+            fontFamily: "var(--font-mono), monospace",
             fontSize: "0.68rem",
           }}
           title={`Telemetry Stream State: ${getLinkLabel()} (${relativeTime})`}
@@ -274,7 +274,7 @@ export default function Header({
               className="status-dot"
               style={{
                 backgroundColor: getLinkColor(),
-                boxShadow: `0 0 8px ${getLinkColor()}`,
+                boxShadow: "none",
                 width: "6px",
                 height: "6px",
               }}

@@ -215,14 +215,14 @@ export default function MaintenanceChecklist() {
       {workOrderNotice && (
         <div
           style={{
-            background: "rgba(16, 185, 129, 0.15)",
-            border: "1px solid rgba(16, 185, 129, 0.4)",
-            color: "#10b981",
+            background: "var(--surface-1)",
+            border: "1px solid var(--border)",
+            color: "var(--status-nominal)",
             borderRadius: "4px",
             padding: "0.35rem 0.65rem",
             fontSize: "0.68rem",
             marginBottom: "0.5rem",
-            fontFamily: "'JetBrains Mono', monospace",
+            fontFamily: "var(--font-mono), monospace",
             display: "flex",
             alignItems: "center",
             gap: "0.4rem",
@@ -262,12 +262,12 @@ export default function MaintenanceChecklist() {
       </div>
 
       {/* Progress Bar */}
-      <div style={{ height: "4px", background: "rgba(255, 255, 255, 0.08)", borderRadius: "2px", marginBottom: "0.75rem", overflow: "hidden" }}>
+      <div style={{ height: "4px", background: "var(--border)", borderRadius: "2px", marginBottom: "0.75rem", overflow: "hidden" }}>
         <div
           style={{
             height: "100%",
             width: `${progressPct}%`,
-            background: progressPct === 100 ? "#10b981" : "var(--accent-cyan)",
+            background: progressPct === 100 ? "var(--status-nominal)" : "var(--accent)",
             transition: "width 0.3s ease",
           }}
         />
@@ -289,14 +289,14 @@ export default function MaintenanceChecklist() {
         {currentItems.map((chk) => {
           const isDone = chk.status === "Done";
           const isDue = chk.status === "Due";
-          const statusBadgeColor = isDone ? "#10b981" : isDue ? "#ef4444" : "#94a3b8";
+          const statusBadgeColor = isDone ? "var(--status-nominal)" : isDue ? "var(--status-warning)" : "var(--text-muted)";
 
           return (
             <div
               key={chk.id}
               style={{
-                background: isDone ? "rgba(16, 185, 129, 0.05)" : isDue ? "rgba(239, 68, 68, 0.05)" : "rgba(14, 21, 38, 0.7)",
-                border: `1px solid ${isDone ? "rgba(16, 185, 129, 0.3)" : isDue ? "rgba(239, 68, 68, 0.35)" : "rgba(255, 255, 255, 0.07)"}`,
+                background: isDone ? "var(--surface-1)" : isDue ? "color-mix(in srgb, var(--status-warning) 14%, var(--surface-1))" : "var(--surface-1)",
+                border: `1px solid ${isDone ? "var(--border)" : isDue ? "color-mix(in srgb, var(--status-warning) 14%, var(--surface-1))" : "var(--border)"}`,
                 borderRadius: "6px",
                 padding: "0.55rem 0.75rem",
                 display: "flex",
@@ -325,7 +325,7 @@ export default function MaintenanceChecklist() {
                     style={{
                       fontSize: "0.74rem",
                       fontWeight: 700,
-                      color: isDone ? "#f8fafc" : "#cbd5e1",
+                      color: isDone ? "var(--text)" : "var(--text)",
                       textDecoration: isDone ? "line-through" : "none",
                     }}
                   >
@@ -345,7 +345,7 @@ export default function MaintenanceChecklist() {
                       padding: "0.1rem 0.35rem",
                       fontSize: "0.6rem",
                       fontWeight: 800,
-                      fontFamily: "'JetBrains Mono', monospace",
+                      fontFamily: "var(--font-mono), monospace",
                       cursor: "pointer",
                     }}
                   >
@@ -355,12 +355,12 @@ export default function MaintenanceChecklist() {
                   <span
                     style={{
                       fontSize: "0.58rem",
-                      fontFamily: "'JetBrains Mono', monospace",
+                      fontFamily: "var(--font-mono), monospace",
                       padding: "0.1rem 0.35rem",
                       borderRadius: "3px",
-                      background: "rgba(56, 189, 248, 0.1)",
-                      color: "var(--accent-cyan)",
-                      border: "1px solid rgba(56, 189, 248, 0.25)",
+                      background: "var(--border)",
+                      color: "var(--accent)",
+                      border: "1px solid var(--border)",
                     }}
                   >
                     {chk.subsystem}
@@ -368,11 +368,11 @@ export default function MaintenanceChecklist() {
                 </div>
               </div>
 
-              <div style={{ fontSize: "0.64rem", color: "#64748b" }}>{chk.spec}</div>
+              <div style={{ fontSize: "0.64rem", color: "var(--text-muted)" }}>{chk.spec}</div>
 
               {/* Technician, Timestamp, Notes, and Create Work Order Button */}
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "0.15rem", borderTop: "1px solid rgba(255,255,255,0.04)", paddingTop: "0.3rem" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", fontSize: "0.62rem", color: "#94a3b8", fontFamily: "'JetBrains Mono', monospace" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "0.15rem", borderTop: "1px solid var(--border)", paddingTop: "0.3rem" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", fontSize: "0.62rem", color: "var(--text-muted)", fontFamily: "var(--font-mono), monospace" }}>
                   {chk.technician && (
                     <span style={{ display: "inline-flex", alignItems: "center", gap: "0.2rem" }}>
                       <User size={10} /> {chk.technician}
@@ -389,10 +389,10 @@ export default function MaintenanceChecklist() {
                     value={chk.notes || ""}
                     onChange={(e) => handleUpdateNotes(chk.id, e.target.value)}
                     style={{
-                      background: "rgba(0, 0, 0, 0.25)",
-                      border: "1px solid rgba(255, 255, 255, 0.08)",
+                      background: "var(--bg)",
+                      border: "1px solid var(--border)",
                       borderRadius: "3px",
-                      color: "#f1f5f9",
+                      color: "var(--text)",
                       fontSize: "0.62rem",
                       padding: "0.1rem 0.35rem",
                       width: "160px",
@@ -403,9 +403,9 @@ export default function MaintenanceChecklist() {
                 <button
                   onClick={() => handleCreateWorkOrder(chk)}
                   style={{
-                    background: "rgba(56, 189, 248, 0.1)",
-                    border: "1px solid rgba(56, 189, 248, 0.3)",
-                    color: "var(--accent-cyan)",
+                    background: "var(--border)",
+                    border: "1px solid var(--border)",
+                    color: "var(--accent)",
                     borderRadius: "3px",
                     padding: "0.15rem 0.45rem",
                     fontSize: "0.6rem",
@@ -414,7 +414,7 @@ export default function MaintenanceChecklist() {
                     display: "inline-flex",
                     alignItems: "center",
                     gap: "0.25rem",
-                    fontFamily: "'JetBrains Mono', monospace",
+                    fontFamily: "var(--font-mono), monospace",
                   }}
                   title="Generate maintenance work order ticket"
                 >

@@ -48,15 +48,15 @@ export default function RunUpRunner() {
             alignItems: "center",
             justifyContent: "space-between",
             padding: "0.45rem 0.75rem",
-            background: "rgba(255, 255, 255, 0.03)",
+            background: "var(--border)",
             borderRadius: "6px",
           }}
         >
           <div>
-            <div style={{ fontSize: "0.74rem", fontWeight: 700, color: "#f8fafc" }}>
+            <div style={{ fontSize: "0.74rem", fontWeight: 700, color: "var(--text)" }}>
               1. Magneto Drop &amp; Ignition Advance
             </div>
-            <div style={{ fontSize: "0.62rem", color: "#64748b" }}>
+            <div style={{ fontSize: "0.62rem", color: "var(--text-muted)" }}>
               Drop &lt; 150 RPM at 1800 RPM; Differential &lt; 50 RPM
             </div>
           </div>
@@ -66,11 +66,11 @@ export default function RunUpRunner() {
                 EVALUATING...
               </span>
             ) : runUpResults.magDropPass ? (
-              <span style={{ color: "#10b981", fontSize: "0.68rem", display: "inline-flex", alignItems: "center", gap: "0.25rem" }}>
+              <span style={{ color: "var(--status-nominal)", fontSize: "0.68rem", display: "inline-flex", alignItems: "center", gap: "0.25rem" }}>
                 <CheckCircle2 size={13} /> PASS (-65 RPM)
               </span>
             ) : (
-              <span style={{ color: "#64748b", fontSize: "0.68rem" }}>STANDBY</span>
+              <span style={{ color: "var(--text-muted)", fontSize: "0.68rem" }}>STANDBY</span>
             )}
           </div>
         </div>
@@ -82,15 +82,15 @@ export default function RunUpRunner() {
             alignItems: "center",
             justifyContent: "space-between",
             padding: "0.45rem 0.75rem",
-            background: "rgba(255, 255, 255, 0.03)",
+            background: "var(--border)",
             borderRadius: "6px",
           }}
         >
           <div>
-            <div style={{ fontSize: "0.74rem", fontWeight: 700, color: "#f8fafc" }}>
+            <div style={{ fontSize: "0.74rem", fontWeight: 700, color: "var(--text)" }}>
               2. Idle Scavenge &amp; Minimum Oil Pressure
             </div>
-            <div style={{ fontSize: "0.62rem", color: "#64748b" }}>
+            <div style={{ fontSize: "0.62rem", color: "var(--text-muted)" }}>
               Idle 1100–1300 RPM; Sustained Oil Pressure &gt; 35 psi
             </div>
           </div>
@@ -100,11 +100,11 @@ export default function RunUpRunner() {
                 EVALUATING...
               </span>
             ) : runUpResults.idlePass ? (
-              <span style={{ color: "#10b981", fontSize: "0.68rem", display: "inline-flex", alignItems: "center", gap: "0.25rem" }}>
+              <span style={{ color: "var(--status-nominal)", fontSize: "0.68rem", display: "inline-flex", alignItems: "center", gap: "0.25rem" }}>
                 <CheckCircle2 size={13} /> PASS (1220 RPM)
               </span>
             ) : (
-              <span style={{ color: "#64748b", fontSize: "0.68rem" }}>STANDBY</span>
+              <span style={{ color: "var(--text-muted)", fontSize: "0.68rem" }}>STANDBY</span>
             )}
           </div>
         </div>
@@ -116,15 +116,15 @@ export default function RunUpRunner() {
             alignItems: "center",
             justifyContent: "space-between",
             padding: "0.45rem 0.75rem",
-            background: "rgba(255, 255, 255, 0.03)",
+            background: "var(--border)",
             borderRadius: "6px",
           }}
         >
           <div>
-            <div style={{ fontSize: "0.74rem", fontWeight: 700, color: "#f8fafc" }}>
+            <div style={{ fontSize: "0.74rem", fontWeight: 700, color: "var(--text)" }}>
               3. Full Static Power &amp; Thermal Balance
             </div>
-            <div style={{ fontSize: "0.62rem", color: "#64748b" }}>
+            <div style={{ fontSize: "0.62rem", color: "var(--text-muted)" }}>
               2650–2750 RPM; Fuel Flow 17–20 L/h; Vib &lt; 2.0g RMS
             </div>
           </div>
@@ -134,11 +134,11 @@ export default function RunUpRunner() {
                 EVALUATING...
               </span>
             ) : runUpResults.fullPowerPass ? (
-              <span style={{ color: "#10b981", fontSize: "0.68rem", display: "inline-flex", alignItems: "center", gap: "0.25rem" }}>
+              <span style={{ color: "var(--status-nominal)", fontSize: "0.68rem", display: "inline-flex", alignItems: "center", gap: "0.25rem" }}>
                 <CheckCircle2 size={13} /> PASS (2680 RPM)
               </span>
             ) : (
-              <span style={{ color: "#64748b", fontSize: "0.68rem" }}>STANDBY</span>
+              <span style={{ color: "var(--text-muted)", fontSize: "0.68rem" }}>STANDBY</span>
             )}
           </div>
         </div>
@@ -149,9 +149,9 @@ export default function RunUpRunner() {
           disabled={runUpStep > 0 && runUpStep < 4}
           style={{
             marginTop: "0.3rem",
-            background: runUpStep === 4 ? "rgba(16, 185, 129, 0.2)" : "rgba(56, 189, 248, 0.15)",
-            border: `1px solid ${runUpStep === 4 ? "rgba(16, 185, 129, 0.5)" : "rgba(56, 189, 248, 0.4)"}`,
-            color: runUpStep === 4 ? "#10b981" : "var(--accent-cyan)",
+            background: runUpStep === 4 ? "var(--border)" : "var(--border)",
+            border: `1px solid ${runUpStep === 4 ? "var(--border)" : "var(--accent)"}`,
+            color: runUpStep === 4 ? "var(--status-nominal)" : "var(--accent)",
             borderRadius: "6px",
             padding: "0.45rem 0.9rem",
             fontSize: "0.72rem",
@@ -161,7 +161,7 @@ export default function RunUpRunner() {
             justifyContent: "center",
             gap: "0.4rem",
             cursor: runUpStep > 0 && runUpStep < 4 ? "not-allowed" : "pointer",
-            fontFamily: "'JetBrains Mono', monospace",
+            fontFamily: "var(--font-mono), monospace",
           }}
         >
           {runUpStep > 0 && runUpStep < 4 ? (

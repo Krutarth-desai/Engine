@@ -94,7 +94,7 @@ export default function SensorDiagnosisPanel({ telemetry }: SensorDiagnosisPanel
         </div>
         <div className="diag-conf-item">
           <div className="diag-conf-label"><strong>PERSISTENCE</strong></div>
-          <div className="diag-conf-val" id="diag-persistence" style={{ color: "var(--accent-cyan)" }}>
+          <div className="diag-conf-val" id="diag-persistence" style={{ color: "var(--accent)" }}>
             {persistence}
           </div>
         </div>
@@ -104,15 +104,15 @@ export default function SensorDiagnosisPanel({ telemetry }: SensorDiagnosisPanel
       <div className="diag-section-header" style={{ marginTop: "0.85rem", padding: "0 0.2rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <span><strong>Sensor Anomaly Scores</strong></span>
         <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-          <span style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem", fontSize: "0.65rem", color: "var(--accent-rose)", fontFamily: "'JetBrains Mono', monospace" }}>
-            <span style={{ display: "inline-block", width: "8px", height: "2px", background: "var(--accent-rose)" }}></span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem", fontSize: "0.65rem", color: "var(--status-warning)", fontFamily: "var(--font-mono), monospace" }}>
+            <span style={{ display: "inline-block", width: "8px", height: "2px", background: "var(--status-warning)" }}></span>
             3σ THRESHOLD (3.0)
           </span>
           <span
             style={{
-              fontFamily: "'JetBrains Mono', monospace",
+              fontFamily: "var(--font-mono), monospace",
               fontSize: "0.65rem",
-              color: "var(--accent-cyan)",
+              color: "var(--accent)",
             }}
           >
             CROSS-PREDICTION Σ
@@ -146,8 +146,8 @@ export default function SensorDiagnosisPanel({ telemetry }: SensorDiagnosisPanel
                     top: 0,
                     bottom: 0,
                     width: "2px",
-                    background: "rgba(239, 68, 68, 0.8)",
-                    boxShadow: "0 0 4px rgba(239, 68, 68, 0.5)",
+                    background: "color-mix(in srgb, var(--status-warning) 14%, var(--surface-1))",
+                    boxShadow: "none",
                     zIndex: 2,
                     pointerEvents: "none",
                   }}

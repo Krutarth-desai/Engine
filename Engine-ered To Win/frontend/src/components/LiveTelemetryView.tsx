@@ -42,7 +42,7 @@ export default function LiveTelemetryView({ payload }: LiveTelemetryViewProps) {
           <h2 className="view-title" style={{ margin: 0, fontSize: "1.2rem", letterSpacing: "0.04em" }}>
             <strong>9-CHANNEL LIVE TELEMETRY &amp; DYNAMICS</strong>
           </h2>
-          <p className="view-subtitle" style={{ margin: "0.2rem 0 0", fontSize: "0.72rem", color: "#64748b" }}>
+          <p className="view-subtitle" style={{ margin: "0.2rem 0 0", fontSize: "0.72rem", color: "var(--text-muted)" }}>
             High-frequency 1 Hz avionics telemetry stream, min/max envelopes, and digital twin analytical residuals
           </p>
         </div>
@@ -62,11 +62,11 @@ export default function LiveTelemetryView({ payload }: LiveTelemetryViewProps) {
                 padding: "0.25rem 0.6rem",
                 fontSize: "0.68rem",
                 fontWeight: 700,
-                background: telemetryMode === "waveforms" ? "rgba(56, 189, 248, 0.15)" : "rgba(255, 255, 255, 0.04)",
-                color: telemetryMode === "waveforms" ? "var(--accent-cyan)" : "#94a3b8",
-                border: `1px solid ${telemetryMode === "waveforms" ? "rgba(56, 189, 248, 0.4)" : "rgba(255, 255, 255, 0.08)"}`,
+                background: telemetryMode === "waveforms" ? "var(--border)" : "var(--border)",
+                color: telemetryMode === "waveforms" ? "var(--accent)" : "var(--text-muted)",
+                border: `1px solid ${telemetryMode === "waveforms" ? "var(--accent)" : "var(--border)"}`,
                 borderRadius: "4px",
-                fontFamily: "'JetBrains Mono', monospace",
+                fontFamily: "var(--font-mono), monospace",
                 cursor: "pointer",
               }}
             >
@@ -86,11 +86,11 @@ export default function LiveTelemetryView({ payload }: LiveTelemetryViewProps) {
                 padding: "0.25rem 0.6rem",
                 fontSize: "0.68rem",
                 fontWeight: 700,
-                background: telemetryMode === "residual" ? "rgba(168, 85, 247, 0.15)" : "rgba(255, 255, 255, 0.04)",
-                color: telemetryMode === "residual" ? "var(--accent-purple)" : "#94a3b8",
-                border: `1px solid ${telemetryMode === "residual" ? "rgba(168, 85, 247, 0.4)" : "rgba(255, 255, 255, 0.08)"}`,
+                background: telemetryMode === "residual" ? "var(--surface-3)" : "var(--border)",
+                color: telemetryMode === "residual" ? "var(--surface-3)" : "var(--text-muted)",
+                border: `1px solid ${telemetryMode === "residual" ? "var(--surface-3)" : "var(--border)"}`,
                 borderRadius: "4px",
-                fontFamily: "'JetBrains Mono', monospace",
+                fontFamily: "var(--font-mono), monospace",
                 cursor: "pointer",
               }}
             >

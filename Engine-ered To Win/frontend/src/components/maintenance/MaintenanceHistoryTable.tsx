@@ -51,7 +51,7 @@ export default function MaintenanceHistoryTable() {
       {/* Header with Export and Print Controls */}
       <div className="panel-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div className="panel-title" style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
-          <History size={14} style={{ color: "var(--accent-cyan)" }} />
+          <History size={14} style={{ color: "var(--accent)" }} />
           <strong>INSPECTION OVERVIEW &amp; MAINTENANCE HISTORY LOG</strong>
         </div>
 
@@ -59,13 +59,13 @@ export default function MaintenanceHistoryTable() {
           <button
             onClick={handleExportCsv}
             style={{
-              background: "rgba(56, 189, 248, 0.1)",
-              border: "1px solid rgba(56, 189, 248, 0.3)",
-              color: "var(--accent-cyan)",
+              background: "var(--border)",
+              border: "1px solid var(--border)",
+              color: "var(--accent)",
               borderRadius: "4px",
               padding: "0.2rem 0.5rem",
               fontSize: "0.64rem",
-              fontFamily: "'JetBrains Mono', monospace",
+              fontFamily: "var(--font-mono), monospace",
               cursor: "pointer",
               display: "inline-flex",
               alignItems: "center",
@@ -79,13 +79,13 @@ export default function MaintenanceHistoryTable() {
           <button
             onClick={handlePrint}
             style={{
-              background: "rgba(255, 255, 255, 0.04)",
-              border: "1px solid rgba(255, 255, 255, 0.12)",
-              color: "#cbd5e1",
+              background: "var(--border)",
+              border: "1px solid var(--border)",
+              color: "var(--text)",
               borderRadius: "4px",
               padding: "0.2rem 0.5rem",
               fontSize: "0.64rem",
-              fontFamily: "'JetBrains Mono', monospace",
+              fontFamily: "var(--font-mono), monospace",
               cursor: "pointer",
               display: "inline-flex",
               alignItems: "center",
@@ -100,36 +100,36 @@ export default function MaintenanceHistoryTable() {
 
       {/* TBO & Hours Due Counters */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.6rem", marginBottom: "0.75rem" }}>
-        <div style={{ background: "rgba(255, 255, 255, 0.02)", border: "1px solid rgba(255, 255, 255, 0.07)", borderRadius: "6px", padding: "0.5rem 0.75rem" }}>
-          <div style={{ fontSize: "0.64rem", color: "#94a3b8" }}>CURRENT FLIGHT HOURS</div>
-          <div className="font-mono" style={{ fontSize: "1.2rem", fontWeight: 800, color: "#f8fafc", marginTop: "0.15rem" }}>
-            {currentHours} <span style={{ fontSize: "0.65rem", color: "#64748b" }}>HRS</span>
+        <div style={{ background: "var(--border)", border: "1px solid var(--border)", borderRadius: "6px", padding: "0.5rem 0.75rem" }}>
+          <div style={{ fontSize: "0.64rem", color: "var(--text-muted)" }}>CURRENT FLIGHT HOURS</div>
+          <div className="font-mono" style={{ fontSize: "1.2rem", fontWeight: 800, color: "var(--text)", marginTop: "0.15rem" }}>
+            {currentHours} <span style={{ fontSize: "0.65rem", color: "var(--text-muted)" }}>HRS</span>
           </div>
-          <div style={{ fontSize: "0.58rem", color: "#10b981" }}>Logged across 27 sorties</div>
+          <div style={{ fontSize: "0.58rem", color: "var(--status-nominal)" }}>Logged across 27 sorties</div>
         </div>
 
-        <div style={{ background: "rgba(255, 255, 255, 0.02)", border: "1px solid rgba(255, 255, 255, 0.07)", borderRadius: "6px", padding: "0.5rem 0.75rem" }}>
-          <div style={{ fontSize: "0.64rem", color: "#94a3b8" }}>50-HR INSPECTION DUE IN</div>
-          <div className="font-mono" style={{ fontSize: "1.2rem", fontWeight: 800, color: "var(--accent-cyan)", marginTop: "0.15rem" }}>
-            {hoursUntil50h} <span style={{ fontSize: "0.65rem", color: "#64748b" }}>HRS</span>
+        <div style={{ background: "var(--border)", border: "1px solid var(--border)", borderRadius: "6px", padding: "0.5rem 0.75rem" }}>
+          <div style={{ fontSize: "0.64rem", color: "var(--text-muted)" }}>50-HR INSPECTION DUE IN</div>
+          <div className="font-mono" style={{ fontSize: "1.2rem", fontWeight: 800, color: "var(--accent)", marginTop: "0.15rem" }}>
+            {hoursUntil50h} <span style={{ fontSize: "0.65rem", color: "var(--text-muted)" }}>HRS</span>
           </div>
-          <div style={{ fontSize: "0.58rem", color: "#64748b" }}>Due at 50.0 flight hours</div>
+          <div style={{ fontSize: "0.58rem", color: "var(--text-muted)" }}>Due at 50.0 flight hours</div>
         </div>
 
-        <div style={{ background: "rgba(255, 255, 255, 0.02)", border: "1px solid rgba(255, 255, 255, 0.07)", borderRadius: "6px", padding: "0.5rem 0.75rem" }}>
-          <div style={{ fontSize: "0.64rem", color: "#94a3b8" }}>TIME TO OVERHAUL (TBO)</div>
-          <div className="font-mono" style={{ fontSize: "1.2rem", fontWeight: 800, color: "#10b981", marginTop: "0.15rem" }}>
-            {tboHoursRemaining} <span style={{ fontSize: "0.65rem", color: "#64748b" }}>HRS</span>
+        <div style={{ background: "var(--border)", border: "1px solid var(--border)", borderRadius: "6px", padding: "0.5rem 0.75rem" }}>
+          <div style={{ fontSize: "0.64rem", color: "var(--text-muted)" }}>TIME TO OVERHAUL (TBO)</div>
+          <div className="font-mono" style={{ fontSize: "1.2rem", fontWeight: 800, color: "var(--status-nominal)", marginTop: "0.15rem" }}>
+            {tboHoursRemaining} <span style={{ fontSize: "0.65rem", color: "var(--text-muted)" }}>HRS</span>
           </div>
-          <div style={{ fontSize: "0.58rem", color: "#64748b" }}>2,000 hr manufacturer TBO</div>
+          <div style={{ fontSize: "0.58rem", color: "var(--text-muted)" }}>2,000 hr manufacturer TBO</div>
         </div>
       </div>
 
       {/* Historical Log Table */}
       <div style={{ overflowX: "auto" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.68rem", fontFamily: "'JetBrains Mono', monospace" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.68rem", fontFamily: "var(--font-mono), monospace" }}>
           <thead>
-            <tr style={{ borderBottom: "1px solid rgba(255, 255, 255, 0.08)", color: "#64748b", textAlign: "left" }}>
+            <tr style={{ borderBottom: "1px solid var(--border)", color: "var(--text-muted)", textAlign: "left" }}>
               <th style={{ padding: "0.35rem 0.5rem" }}>ID</th>
               <th style={{ padding: "0.35rem 0.5rem" }}>DATE</th>
               <th style={{ padding: "0.35rem 0.5rem" }}>HOURS</th>
@@ -141,15 +141,15 @@ export default function MaintenanceHistoryTable() {
           </thead>
           <tbody>
             {HISTORY_LOG.map((row) => (
-              <tr key={row.id} style={{ borderBottom: "1px solid rgba(255, 255, 255, 0.03)", color: "#cbd5e1" }}>
-                <td style={{ padding: "0.4rem 0.5rem", color: "var(--accent-cyan)" }}>{row.id}</td>
+              <tr key={row.id} style={{ borderBottom: "1px solid var(--border)", color: "var(--text)" }}>
+                <td style={{ padding: "0.4rem 0.5rem", color: "var(--accent)" }}>{row.id}</td>
                 <td style={{ padding: "0.4rem 0.5rem" }}>{row.date}</td>
                 <td style={{ padding: "0.4rem 0.5rem" }}>{row.flightHours}</td>
-                <td style={{ padding: "0.4rem 0.5rem", fontWeight: 700, color: "#f8fafc" }}>{row.type}</td>
-                <td style={{ padding: "0.4rem 0.5rem", color: "#94a3b8" }}>{row.description}</td>
+                <td style={{ padding: "0.4rem 0.5rem", fontWeight: 700, color: "var(--text)" }}>{row.type}</td>
+                <td style={{ padding: "0.4rem 0.5rem", color: "var(--text-muted)" }}>{row.description}</td>
                 <td style={{ padding: "0.4rem 0.5rem" }}>{row.technician}</td>
                 <td style={{ padding: "0.4rem 0.5rem" }}>
-                  <span style={{ color: "#10b981", background: "rgba(16, 185, 129, 0.1)", padding: "0.1rem 0.35rem", borderRadius: "3px", border: "1px solid rgba(16, 185, 129, 0.3)" }}>
+                  <span style={{ color: "var(--status-nominal)", background: "var(--border)", padding: "0.1rem 0.35rem", borderRadius: "3px", border: "1px solid var(--border)" }}>
                     {row.status}
                   </span>
                 </td>

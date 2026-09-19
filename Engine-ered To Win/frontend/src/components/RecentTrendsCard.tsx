@@ -85,7 +85,7 @@ export default function RecentTrendsCard({ points, deltas }: RecentTrendsCardPro
               <path
                 d={egtSpark.path}
                 fill="none"
-                stroke="#f59e0b"
+                stroke="var(--status-caution)"
                 strokeWidth="2"
                 strokeLinecap="round"
               />
@@ -117,7 +117,7 @@ export default function RecentTrendsCard({ points, deltas }: RecentTrendsCardPro
               <path
                 d={oilPSpark.path}
                 fill="none"
-                stroke="#38bdf8"
+                stroke="var(--accent)"
                 strokeWidth="2"
                 strokeLinecap="round"
               />
@@ -149,7 +149,7 @@ export default function RecentTrendsCard({ points, deltas }: RecentTrendsCardPro
               <path
                 d={vibSpark.path}
                 fill="none"
-                stroke="#ec4899"
+                stroke="var(--status-warning)"
                 strokeWidth="2"
                 strokeLinecap="round"
               />
@@ -181,7 +181,7 @@ export default function RecentTrendsCard({ points, deltas }: RecentTrendsCardPro
               <path
                 d={healthSpark.path}
                 fill="none"
-                stroke="#10b981"
+                stroke="var(--status-nominal)"
                 strokeWidth="2"
                 strokeLinecap="round"
               />

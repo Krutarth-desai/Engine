@@ -48,8 +48,8 @@ const CONFIGS: Record<string, PlotConfig> = {
     yLabel: "CHT (°C)",
     getX: (p) => p.sensors?.rpm?.value ?? p.rpm ?? 2450,
     getY: (p) => p.sensors?.cht?.value ?? p.cht_c ?? 142.0,
-    pointColor: "#38bdf8",
-    lineColor: "#38bdf8",
+    pointColor: "var(--accent)",
+    lineColor: "var(--accent)",
   },
   egt_fuel: {
     title: "EGT vs Fuel Flow (Combustion Stoichiometry)",
@@ -57,8 +57,8 @@ const CONFIGS: Record<string, PlotConfig> = {
     yLabel: "EGT (°C)",
     getX: (p) => p.sensors?.fuel_flow?.value ?? p.fuel_flow_lh ?? 17.6,
     getY: (p) => p.sensors?.egt?.value ?? p.egt_c ?? 615.0,
-    pointColor: "#f59e0b",
-    lineColor: "#f59e0b",
+    pointColor: "var(--status-caution)",
+    lineColor: "var(--status-caution)",
   },
   oil_p_oil_t: {
     title: "Oil Pressure vs Oil Temp (Lubrication Viscosity)",
@@ -68,8 +68,8 @@ const CONFIGS: Record<string, PlotConfig> = {
     getY: (p) =>
       p.sensors?.oil_pressure?.value ??
       (p.oil_pressure_bar ? p.oil_pressure_bar * 14.5038 : 68.0),
-    pointColor: "#10b981",
-    lineColor: "#10b981",
+    pointColor: "var(--status-nominal)",
+    lineColor: "var(--status-nominal)",
   },
   vib_rpm: {
     title: "Vibration vs RPM (Dynamic Rotor Harmonics)",
@@ -77,8 +77,8 @@ const CONFIGS: Record<string, PlotConfig> = {
     yLabel: "Vibration (g)",
     getX: (p) => p.sensors?.rpm?.value ?? p.rpm ?? 2450,
     getY: (p) => p.sensors?.vibration?.value ?? p.vibration_g ?? 1.42,
-    pointColor: "#a855f7",
-    lineColor: "#a855f7",
+    pointColor: "var(--surface-3)",
+    lineColor: "var(--surface-3)",
   },
 };
 
@@ -229,8 +229,8 @@ export default function RegressionScatterChart({
           },
           tooltip: {
             backgroundColor: theme.tooltipBg,
-            titleColor: "#38bdf8",
-            bodyColor: "#f8fafc",
+            titleColor: "var(--accent)",
+            bodyColor: "var(--text)",
             borderColor: theme.borderGlow,
             borderWidth: 1,
             callbacks: {

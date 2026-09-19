@@ -25,16 +25,16 @@ export default function Error({
         height: "100%",
         padding: "2rem",
         textAlign: "center",
-        color: "#f8fafc",
-        fontFamily: "'JetBrains Mono', monospace",
+        color: "var(--text)",
+        fontFamily: "var(--font-mono), monospace",
         gap: "1rem",
       }}
     >
-      <AlertOctagon size={44} style={{ color: "#ef4444" }} />
-      <h2 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#f8fafc" }}>
+      <AlertOctagon size={44} style={{ color: "var(--status-warning)" }} />
+      <h2 style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--text)" }}>
         SUBSYSTEM RENDER ANOMALY DETECTED
       </h2>
-      <p style={{ fontSize: "0.8rem", color: "#94a3b8", maxWidth: "460px" }}>
+      <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", maxWidth: "460px" }}>
         {error.message || "An unexpected avionics display fault occurred during pipeline rendering."}
       </p>
       <button
@@ -43,9 +43,9 @@ export default function Error({
           display: "inline-flex",
           alignItems: "center",
           gap: "0.4rem",
-          background: "rgba(56, 189, 248, 0.15)",
-          border: "1px solid rgba(56, 189, 248, 0.4)",
-          color: "var(--accent-cyan)",
+          background: "var(--border)",
+          border: "1px solid var(--border)",
+          color: "var(--accent)",
           borderRadius: "6px",
           padding: "0.5rem 1rem",
           fontSize: "0.78rem",

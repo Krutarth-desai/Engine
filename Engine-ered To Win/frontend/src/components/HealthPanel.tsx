@@ -19,26 +19,26 @@ export default function HealthPanel({ telemetry }: HealthPanelProps) {
   const circumference = 2 * Math.PI * 70; // ~439.82
   const offset = circumference - (health / 100) * circumference;
 
-  let strokeColor = "#10b981";
+  let strokeColor = "var(--status-nominal)";
   let badgeClass = "badge-optimal";
   let badgeText = "OPTIMAL";
-  let stateColor = "#10b981";
+  let stateColor = "var(--status-nominal)";
 
   if (health > 85) {
-    strokeColor = "#10b981";
+    strokeColor = "var(--status-nominal)";
     badgeClass = "badge-optimal";
     badgeText = "OPTIMAL";
-    stateColor = "#10b981";
+    stateColor = "var(--status-nominal)";
   } else if (health > 60) {
-    strokeColor = "#f59e0b";
+    strokeColor = "var(--status-caution)";
     badgeClass = "badge-warning";
     badgeText = "DEGRADED";
-    stateColor = "#f59e0b";
+    stateColor = "var(--status-caution)";
   } else {
-    strokeColor = "#ef4444";
+    strokeColor = "var(--status-warning)";
     badgeClass = "badge-critical";
     badgeText = "CRITICAL";
-    stateColor = "#ef4444";
+    stateColor = "var(--status-warning)";
   }
 
   return (

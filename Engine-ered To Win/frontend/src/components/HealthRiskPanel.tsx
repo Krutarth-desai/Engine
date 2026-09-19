@@ -16,27 +16,27 @@ export default function HealthRiskPanel({ healthIndex, risk }: HealthRiskPanelPr
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (safeHealth / 100) * circumference;
 
-  let healthColor = "#10b981"; // Green
+  let healthColor = "var(--status-nominal)"; // Green
   let degradationState = "NOMINAL";
   if (safeHealth < 40) {
-    healthColor = "#ef4444"; // Red
+    healthColor = "var(--status-warning)"; // Red
     degradationState = "SEVERE";
   } else if (safeHealth < 75) {
-    healthColor = "#f59e0b"; // Yellow/Amber
+    healthColor = "var(--status-caution)"; // Yellow/Amber
     degradationState = "MODERATE";
   }
 
   const getRiskBadgeColor = (level: string) => {
     switch (level) {
       case "CRITICAL":
-        return { color: "#ef4444", bg: "rgba(239, 68, 68, 0.15)", border: "rgba(239, 68, 68, 0.5)" };
+        return { color: "var(--status-warning)", bg: "var(--surface-1)", border: "var(--status-warning)" };
       case "HIGH":
-        return { color: "#f97316", bg: "rgba(249, 115, 22, 0.15)", border: "rgba(249, 115, 22, 0.5)" };
+        return { color: "var(--status-caution)", bg: "color-mix(in srgb, var(--status-caution) 14%, var(--surface-1))", border: "color-mix(in srgb, var(--status-caution) 14%, var(--surface-1))" };
       case "MEDIUM":
-        return { color: "#f59e0b", bg: "rgba(245, 158, 11, 0.15)", border: "rgba(245, 158, 11, 0.5)" };
+        return { color: "var(--status-caution)", bg: "var(--surface-1)", border: "var(--status-caution)" };
       case "LOW":
       default:
-        return { color: "#10b981", bg: "rgba(16, 185, 129, 0.15)", border: "rgba(16, 185, 129, 0.5)" };
+        return { color: "var(--status-nominal)", bg: "var(--surface-1)", border: "var(--border)" };
     }
   };
 
@@ -69,7 +69,7 @@ export default function HealthRiskPanel({ healthIndex, risk }: HealthRiskPanelPr
               cy="70"
               r={radius}
               fill="none"
-              stroke="rgba(255, 255, 255, 0.08)"
+              stroke="var(--border)"
               strokeWidth="10"
             />
             <circle

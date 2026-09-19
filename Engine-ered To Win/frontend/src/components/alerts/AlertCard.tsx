@@ -41,28 +41,28 @@ export function mapSeverity(level: string): {
 } {
   const l = (level || "").toUpperCase();
   if (l === "ALERT" || l === "CRITICAL" || l === "WARNING") {
-    return { display: "Warning", color: "#ef4444", cardClass: "alert-crit", bgRgba: "rgba(239, 68, 68, 0.08)" };
+    return { display: "Warning", color: "var(--status-warning)", cardClass: "alert-crit", bgRgba: "color-mix(in srgb, var(--status-warning) 14%, var(--surface-1))" };
   }
   if (l === "CAUTION") {
-    return { display: "Caution", color: "#f59e0b", cardClass: "alert-warn", bgRgba: "rgba(245, 158, 11, 0.08)" };
+    return { display: "Caution", color: "var(--status-caution)", cardClass: "alert-warn", bgRgba: "color-mix(in srgb, var(--status-caution) 14%, var(--surface-1))" };
   }
   if (l === "INFO" || l === "ADVISORY") {
-    return { display: "Advisory", color: "#38bdf8", cardClass: "alert-info", bgRgba: "rgba(56, 189, 248, 0.08)" };
+    return { display: "Advisory", color: "var(--accent)", cardClass: "alert-info", bgRgba: "var(--border)" };
   }
-  return { display: "Nominal", color: "#10b981", cardClass: "alert-nom", bgRgba: "rgba(16, 185, 129, 0.08)" };
+  return { display: "Nominal", color: "var(--status-nominal)", cardClass: "alert-nom", bgRgba: "var(--border)" };
 }
 
 function getAlertIcon(display: AlertSeverity) {
   switch (display) {
     case "Warning":
-      return <AlertOctagon size={18} style={{ color: "#ef4444" }} />;
+      return <AlertOctagon size={18} style={{ color: "var(--status-warning)" }} />;
     case "Caution":
-      return <AlertTriangle size={18} style={{ color: "#f59e0b" }} />;
+      return <AlertTriangle size={18} style={{ color: "var(--status-caution)" }} />;
     case "Advisory":
-      return <Info size={18} style={{ color: "#38bdf8" }} />;
+      return <Info size={18} style={{ color: "var(--accent)" }} />;
     case "Nominal":
     default:
-      return <CheckCircle2 size={18} style={{ color: "#10b981" }} />;
+      return <CheckCircle2 size={18} style={{ color: "var(--status-nominal)" }} />;
   }
 }
 
@@ -165,9 +165,9 @@ export default function AlertCard({
     <div
       className={`alert-log-card ${cardClass} ${isAcknowledged ? "acknowledged" : ""}`}
       style={{
-        background: isAcknowledged ? "rgba(15, 23, 42, 0.4)" : "rgba(15, 23, 42, 0.75)",
-        border: `1px solid ${isAcknowledged ? "rgba(255, 255, 255, 0.05)" : color + "40"}`,
-        borderLeft: `4px solid ${isAcknowledged ? "#64748b" : color}`,
+        background: isAcknowledged ? "var(--surface-1)" : "var(--surface-1)",
+        border: `1px solid ${isAcknowledged ? "var(--border)" : color + "40"}`,
+        borderLeft: `4px solid ${isAcknowledged ? "var(--text-muted)" : color}`,
         borderRadius: "8px",
         padding: "0.85rem 1rem",
         display: "flex",
@@ -190,17 +190,17 @@ export default function AlertCard({
               fontWeight: 800,
               padding: "0.15rem 0.45rem",
               borderRadius: "4px",
-              fontFamily: "'JetBrains Mono', monospace",
+              fontFamily: "var(--font-mono), monospace",
             }}
           >
             {display.toUpperCase()}
           </span>
-          <span style={{ fontSize: "0.72rem", color: "var(--accent-cyan)", fontFamily: "'JetBrains Mono', monospace" }}>
+          <span style={{ fontSize: "0.72rem", color: "var(--accent)", fontFamily: "var(--font-mono), monospace" }}>
             [{component.toUpperCase()}]
           </span>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.68rem", color: "#64748b", fontFamily: "'JetBrains Mono', monospace" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.68rem", color: "var(--text-muted)", fontFamily: "var(--font-mono), monospace" }}>
           <Clock size={12} />
           <span>{formattedTimestamp}</span>
           <span>•</span>
@@ -210,10 +210,10 @@ export default function AlertCard({
 
       {/* Alert Headline & Description */}
       <div>
-        <div style={{ fontSize: "0.9rem", fontWeight: 700, color: isAcknowledged ? "#94a3b8" : "#f8fafc", marginBottom: "0.2rem" }}>
+        <div style={{ fontSize: "0.9rem", fontWeight: 700, color: isAcknowledged ? "var(--text-muted)" : "var(--text)", marginBottom: "0.2rem" }}>
           {alert.title}
         </div>
-        <div style={{ fontSize: "0.78rem", color: isAcknowledged ? "#64748b" : "#cbd5e1", lineHeight: 1.4 }}>
+        <div style={{ fontSize: "0.78rem", color: isAcknowledged ? "var(--text-muted)" : "var(--text)", lineHeight: 1.4 }}>
           {alert.message}
         </div>
       </div>
@@ -222,21 +222,21 @@ export default function AlertCard({
       {!isNominal && (
         <div
           style={{
-            background: "rgba(0, 0, 0, 0.35)",
+            background: "var(--bg)",
             borderRadius: "6px",
             padding: "0.5rem 0.75rem",
             display: "flex",
             flexDirection: "column",
             gap: "0.35rem",
-            border: "1px solid rgba(255, 255, 255, 0.04)",
+            border: "1px solid var(--border)",
           }}
         >
           {evidence && (
             <div style={{ display: "flex", alignItems: "flex-start", gap: "0.4rem", fontSize: "0.7rem" }}>
-              <span style={{ color: "#94a3b8", fontWeight: 600, minWidth: "70px", fontFamily: "'JetBrains Mono', monospace" }}>
+              <span style={{ color: "var(--text-muted)", fontWeight: 600, minWidth: "70px", fontFamily: "var(--font-mono), monospace" }}>
                 EVIDENCE:
               </span>
-              <span style={{ color: color, fontFamily: "'JetBrains Mono', monospace", fontWeight: 600 }}>
+              <span style={{ color: color, fontFamily: "var(--font-mono), monospace", fontWeight: 600 }}>
                 {evidence}
               </span>
             </div>
@@ -244,10 +244,10 @@ export default function AlertCard({
 
           {action && (
             <div style={{ display: "flex", alignItems: "flex-start", gap: "0.4rem", fontSize: "0.7rem" }}>
-              <span style={{ color: "#94a3b8", fontWeight: 600, minWidth: "70px", fontFamily: "'JetBrains Mono', monospace" }}>
+              <span style={{ color: "var(--text-muted)", fontWeight: 600, minWidth: "70px", fontFamily: "var(--font-mono), monospace" }}>
                 ACTION:
               </span>
-              <span style={{ color: "#e2e8f0" }}>
+              <span style={{ color: "var(--text)" }}>
                 {action}
               </span>
             </div>
@@ -265,7 +265,7 @@ export default function AlertCard({
             flexWrap: "wrap",
             gap: "0.5rem",
             paddingTop: "0.4rem",
-            borderTop: "1px solid rgba(255, 255, 255, 0.05)",
+            borderTop: "1px solid var(--border)",
           }}
         >
           {/* Work Order Section */}
@@ -277,12 +277,12 @@ export default function AlertCard({
                   alignItems: "center",
                   gap: "0.35rem",
                   fontSize: "0.68rem",
-                  color: "#38bdf8",
-                  background: "rgba(56, 189, 248, 0.1)",
-                  border: "1px solid rgba(56, 189, 248, 0.3)",
+                  color: "var(--accent)",
+                  background: "var(--border)",
+                  border: "1px solid var(--border)",
                   borderRadius: "4px",
                   padding: "0.2rem 0.5rem",
-                  fontFamily: "'JetBrains Mono', monospace",
+                  fontFamily: "var(--font-mono), monospace",
                   fontWeight: 700,
                 }}
               >
@@ -297,15 +297,15 @@ export default function AlertCard({
                   display: "inline-flex",
                   alignItems: "center",
                   gap: "0.35rem",
-                  background: "rgba(56, 189, 248, 0.12)",
-                  border: "1px solid rgba(56, 189, 248, 0.35)",
-                  color: "var(--accent-cyan)",
+                  background: "var(--border)",
+                  border: "1px solid var(--border)",
+                  color: "var(--accent)",
                   borderRadius: "4px",
                   padding: "0.25rem 0.55rem",
                   fontSize: "0.68rem",
                   fontWeight: 700,
                   cursor: isCreatingWo ? "not-allowed" : "pointer",
-                  fontFamily: "'JetBrains Mono', monospace",
+                  fontFamily: "var(--font-mono), monospace",
                   transition: "background 0.15s ease",
                 }}
               >
@@ -324,8 +324,8 @@ export default function AlertCard({
                   alignItems: "center",
                   gap: "0.35rem",
                   fontSize: "0.68rem",
-                  color: "#10b981",
-                  fontFamily: "'JetBrains Mono', monospace",
+                  color: "var(--status-nominal)",
+                  fontFamily: "var(--font-mono), monospace",
                 }}
               >
                 <UserCheck size={14} />
@@ -340,15 +340,15 @@ export default function AlertCard({
                   display: "inline-flex",
                   alignItems: "center",
                   gap: "0.35rem",
-                  background: "rgba(255, 255, 255, 0.08)",
-                  border: "1px solid rgba(255, 255, 255, 0.2)",
-                  color: "#f8fafc",
+                  background: "var(--border)",
+                  border: "1px solid var(--border)",
+                  color: "var(--text)",
                   borderRadius: "4px",
                   padding: "0.25rem 0.65rem",
                   fontSize: "0.68rem",
                   fontWeight: 700,
                   cursor: "pointer",
-                  fontFamily: "'JetBrains Mono', monospace",
+                  fontFamily: "var(--font-mono), monospace",
                   transition: "all 0.15s ease",
                 }}
               >

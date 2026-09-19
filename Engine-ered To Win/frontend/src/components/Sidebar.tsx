@@ -170,9 +170,9 @@ export default function Sidebar({
                 fontSize: "0.72rem",
                 fontWeight: 800,
                 letterSpacing: "1px",
-                color: "#94a3b8",
+                color: "var(--text-muted)",
                 textTransform: "uppercase",
-                fontFamily: "'JetBrains Mono', monospace",
+                fontFamily: "var(--font-mono), monospace",
               }}
             >
               GCS WORKSTATION
@@ -234,8 +234,8 @@ export default function Sidebar({
                         <span
                           className="nav-tag"
                           style={{
-                            color: linkState === "live" ? "var(--accent-cyan)" : "#f59e0b",
-                            borderColor: linkState === "live" ? "rgba(56, 189, 248, 0.3)" : "rgba(245, 158, 11, 0.3)",
+                            color: linkState === "live" ? "var(--accent)" : "var(--status-caution)",
+                            borderColor: linkState === "live" ? "var(--border-strong)" : "color-mix(in srgb, var(--status-caution) 14%, var(--surface-1))",
                           }}
                         >
                           {item.tag}
@@ -245,9 +245,9 @@ export default function Sidebar({
                         <span
                           className="nav-badge-count"
                           style={{
-                            background: "rgba(239, 68, 68, 0.2)",
-                            color: "#ef4444",
-                            border: "1px solid rgba(239, 68, 68, 0.4)",
+                            background: "var(--border)",
+                            color: "var(--status-warning)",
+                            border: "1px solid color-mix(in srgb, var(--status-warning) 14%, var(--surface-1))",
                             borderRadius: "10px",
                             padding: "0.1rem 0.45rem",
                             fontSize: "0.62rem",
@@ -275,7 +275,7 @@ export default function Sidebar({
       <div className="sidebar-footer">
         {!isCollapsed ? (
           <div className="sidebar-telemetry-status">
-            <Radio size={12} style={{ color: "#10b981" }} />
+            <Radio size={12} style={{ color: "var(--status-nominal)" }} />
             <span className="footer-status-text">AVIONICS BUS NOMINAL</span>
           </div>
         ) : (
@@ -286,8 +286,8 @@ export default function Sidebar({
                 width: "8px",
                 height: "8px",
                 borderRadius: "50%",
-                background: "#10b981",
-                boxShadow: "0 0 6px #10b981",
+                background: "var(--status-nominal)",
+                boxShadow: "none",
               }}
             />
           </div>

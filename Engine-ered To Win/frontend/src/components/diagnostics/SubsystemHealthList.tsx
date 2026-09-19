@@ -132,12 +132,12 @@ export default function SubsystemHealthList({ telemetry }: SubsystemHealthListPr
   const getColor = (status: "NORMAL" | "CAUTION" | "ALERT") => {
     switch (status) {
       case "ALERT":
-        return "#ef4444";
+        return "var(--status-warning)";
       case "CAUTION":
-        return "#f59e0b";
+        return "var(--status-caution)";
       case "NORMAL":
       default:
-        return "#10b981";
+        return "var(--status-nominal)";
     }
   };
 
@@ -169,7 +169,7 @@ export default function SubsystemHealthList({ telemetry }: SubsystemHealthListPr
                   style={{
                     width: `${Math.min(100, Math.max(4, sub.score))}%`,
                     backgroundColor: color,
-                    boxShadow: `0 0 8px ${color}40`,
+                    boxShadow: "none",
                   }}
                 />
               </div>

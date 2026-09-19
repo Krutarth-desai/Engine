@@ -396,7 +396,7 @@ export default function AlertsView({
           <h2 className="view-title" style={{ margin: 0, fontSize: "1.2rem", letterSpacing: "0.04em" }}>
             <strong>ALERTS &amp; CHRONOLOGICAL PHM LOG</strong>
           </h2>
-          <p className="view-subtitle" style={{ margin: "0.2rem 0 0", fontSize: "0.72rem", color: "#64748b" }}>
+          <p className="view-subtitle" style={{ margin: "0.2rem 0 0", fontSize: "0.72rem", color: "var(--text-muted)" }}>
             Operational incident record, threshold violation tracking, and dispatch work orders
           </p>
         </div>
@@ -429,11 +429,11 @@ export default function AlertsView({
               borderRadius: "6px",
               fontSize: "0.72rem",
               fontWeight: 700,
-              background: activeTab === "ACTIVE" ? (totalActiveCount > 0 ? "rgba(239, 68, 68, 0.15)" : "rgba(16, 185, 129, 0.15)") : "rgba(255, 255, 255, 0.04)",
-              color: activeTab === "ACTIVE" ? (totalActiveCount > 0 ? "#ef4444" : "#10b981") : "#94a3b8",
-              border: `1px solid ${activeTab === "ACTIVE" ? (totalActiveCount > 0 ? "rgba(239, 68, 68, 0.4)" : "rgba(16, 185, 129, 0.4)") : "rgba(255, 255, 255, 0.08)"}`,
+              background: activeTab === "ACTIVE" ? (totalActiveCount > 0 ? "var(--surface-1)" : "var(--surface-1)") : "var(--border)",
+              color: activeTab === "ACTIVE" ? (totalActiveCount > 0 ? "var(--status-warning)" : "var(--status-nominal)") : "var(--text-muted)",
+              border: `1px solid ${activeTab === "ACTIVE" ? (totalActiveCount > 0 ? "color-mix(in srgb, var(--status-warning) 14%, var(--surface-1))" : "var(--border)") : "var(--border)"}`,
               cursor: "pointer",
-              fontFamily: "'JetBrains Mono', monospace",
+              fontFamily: "var(--font-mono), monospace",
             }}
           >
             <BellRing size={13} />
@@ -462,11 +462,11 @@ export default function AlertsView({
               borderRadius: "6px",
               fontSize: "0.72rem",
               fontWeight: 700,
-              background: activeTab === "LOG" ? "rgba(56, 189, 248, 0.15)" : "rgba(255, 255, 255, 0.04)",
-              color: activeTab === "LOG" ? "var(--accent-cyan)" : "#94a3b8",
-              border: `1px solid ${activeTab === "LOG" ? "rgba(56, 189, 248, 0.4)" : "rgba(255, 255, 255, 0.08)"}`,
+              background: activeTab === "LOG" ? "var(--border)" : "var(--border)",
+              color: activeTab === "LOG" ? "var(--accent)" : "var(--text-muted)",
+              border: `1px solid ${activeTab === "LOG" ? "var(--accent)" : "var(--border)"}`,
               cursor: "pointer",
-              fontFamily: "'JetBrains Mono', monospace",
+              fontFamily: "var(--font-mono), monospace",
             }}
           >
             <History size={13} />
@@ -487,8 +487,8 @@ export default function AlertsView({
         {/* Critical & Warning KPI */}
         <div
           style={{
-            background: activeWarningCount > 0 ? "rgba(239, 68, 68, 0.1)" : "rgba(15, 23, 42, 0.6)",
-            border: `1px solid ${activeWarningCount > 0 ? "rgba(239, 68, 68, 0.4)" : "rgba(255, 255, 255, 0.08)"}`,
+            background: activeWarningCount > 0 ? "color-mix(in srgb, var(--status-warning) 14%, var(--surface-1))" : "var(--surface-1)",
+            border: `1px solid ${activeWarningCount > 0 ? "color-mix(in srgb, var(--status-warning) 14%, var(--surface-1))" : "var(--border)"}`,
             borderRadius: "6px",
             padding: "0.6rem 0.75rem",
             display: "flex",
@@ -496,14 +496,14 @@ export default function AlertsView({
             gap: "0.6rem",
           }}
         >
-          <div style={{ color: activeWarningCount > 0 ? "#ef4444" : "#64748b" }}>
+          <div style={{ color: activeWarningCount > 0 ? "var(--status-warning)" : "var(--text-muted)" }}>
             <AlertOctagon size={20} />
           </div>
           <div>
-            <div style={{ fontSize: "0.62rem", color: "#94a3b8", fontWeight: 600, fontFamily: "'JetBrains Mono', monospace" }}>
+            <div style={{ fontSize: "0.62rem", color: "var(--text-muted)", fontWeight: 600, fontFamily: "var(--font-mono), monospace" }}>
               WARNINGS
             </div>
-            <div style={{ fontSize: "1.1rem", fontWeight: 800, color: activeWarningCount > 0 ? "#ef4444" : "#f8fafc", fontFamily: "'JetBrains Mono', monospace" }}>
+            <div style={{ fontSize: "1.1rem", fontWeight: 800, color: activeWarningCount > 0 ? "var(--status-warning)" : "var(--text)", fontFamily: "var(--font-mono), monospace" }}>
               {activeWarningCount}
             </div>
           </div>
@@ -512,8 +512,8 @@ export default function AlertsView({
         {/* Caution KPI */}
         <div
           style={{
-            background: activeCautionCount > 0 ? "rgba(245, 158, 11, 0.1)" : "rgba(15, 23, 42, 0.6)",
-            border: `1px solid ${activeCautionCount > 0 ? "rgba(245, 158, 11, 0.4)" : "rgba(255, 255, 255, 0.08)"}`,
+            background: activeCautionCount > 0 ? "color-mix(in srgb, var(--status-caution) 14%, var(--surface-1))" : "var(--surface-1)",
+            border: `1px solid ${activeCautionCount > 0 ? "color-mix(in srgb, var(--status-caution) 14%, var(--surface-1))" : "var(--border)"}`,
             borderRadius: "6px",
             padding: "0.6rem 0.75rem",
             display: "flex",
@@ -521,14 +521,14 @@ export default function AlertsView({
             gap: "0.6rem",
           }}
         >
-          <div style={{ color: activeCautionCount > 0 ? "#f59e0b" : "#64748b" }}>
+          <div style={{ color: activeCautionCount > 0 ? "var(--status-caution)" : "var(--text-muted)" }}>
             <AlertTriangle size={20} />
           </div>
           <div>
-            <div style={{ fontSize: "0.62rem", color: "#94a3b8", fontWeight: 600, fontFamily: "'JetBrains Mono', monospace" }}>
+            <div style={{ fontSize: "0.62rem", color: "var(--text-muted)", fontWeight: 600, fontFamily: "var(--font-mono), monospace" }}>
               CAUTIONS
             </div>
-            <div style={{ fontSize: "1.1rem", fontWeight: 800, color: activeCautionCount > 0 ? "#f59e0b" : "#f8fafc", fontFamily: "'JetBrains Mono', monospace" }}>
+            <div style={{ fontSize: "1.1rem", fontWeight: 800, color: activeCautionCount > 0 ? "var(--status-caution)" : "var(--text)", fontFamily: "var(--font-mono), monospace" }}>
               {activeCautionCount}
             </div>
           </div>
@@ -537,8 +537,8 @@ export default function AlertsView({
         {/* Advisory KPI */}
         <div
           style={{
-            background: activeAdvisoryCount > 0 ? "rgba(56, 189, 248, 0.1)" : "rgba(15, 23, 42, 0.6)",
-            border: `1px solid ${activeAdvisoryCount > 0 ? "rgba(56, 189, 248, 0.4)" : "rgba(255, 255, 255, 0.08)"}`,
+            background: activeAdvisoryCount > 0 ? "var(--border)" : "var(--surface-1)",
+            border: `1px solid ${activeAdvisoryCount > 0 ? "var(--accent)" : "var(--border)"}`,
             borderRadius: "6px",
             padding: "0.6rem 0.75rem",
             display: "flex",
@@ -546,14 +546,14 @@ export default function AlertsView({
             gap: "0.6rem",
           }}
         >
-          <div style={{ color: activeAdvisoryCount > 0 ? "var(--accent-cyan)" : "#64748b" }}>
+          <div style={{ color: activeAdvisoryCount > 0 ? "var(--accent)" : "var(--text-muted)" }}>
             <Info size={20} />
           </div>
           <div>
-            <div style={{ fontSize: "0.62rem", color: "#94a3b8", fontWeight: 600, fontFamily: "'JetBrains Mono', monospace" }}>
+            <div style={{ fontSize: "0.62rem", color: "var(--text-muted)", fontWeight: 600, fontFamily: "var(--font-mono), monospace" }}>
               ADVISORIES
             </div>
-            <div style={{ fontSize: "1.1rem", fontWeight: 800, color: activeAdvisoryCount > 0 ? "var(--accent-cyan)" : "#f8fafc", fontFamily: "'JetBrains Mono', monospace" }}>
+            <div style={{ fontSize: "1.1rem", fontWeight: 800, color: activeAdvisoryCount > 0 ? "var(--accent)" : "var(--text)", fontFamily: "var(--font-mono), monospace" }}>
               {activeAdvisoryCount}
             </div>
           </div>
@@ -562,8 +562,8 @@ export default function AlertsView({
         {/* Acknowledged KPI */}
         <div
           style={{
-            background: "rgba(15, 23, 42, 0.6)",
-            border: "1px solid rgba(255, 255, 255, 0.08)",
+            background: "var(--surface-1)",
+            border: "1px solid var(--border)",
             borderRadius: "6px",
             padding: "0.6rem 0.75rem",
             display: "flex",
@@ -571,14 +571,14 @@ export default function AlertsView({
             gap: "0.6rem",
           }}
         >
-          <div style={{ color: "#10b981" }}>
+          <div style={{ color: "var(--status-nominal)" }}>
             <CheckCircle2 size={20} />
           </div>
           <div>
-            <div style={{ fontSize: "0.62rem", color: "#94a3b8", fontWeight: 600, fontFamily: "'JetBrains Mono', monospace" }}>
+            <div style={{ fontSize: "0.62rem", color: "var(--text-muted)", fontWeight: 600, fontFamily: "var(--font-mono), monospace" }}>
               ACKNOWLEDGED
             </div>
-            <div style={{ fontSize: "1.1rem", fontWeight: 800, color: "#10b981", fontFamily: "'JetBrains Mono', monospace" }}>
+            <div style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--status-nominal)", fontFamily: "var(--font-mono), monospace" }}>
               {totalAckCount}
             </div>
           </div>
@@ -587,8 +587,8 @@ export default function AlertsView({
         {/* Work Orders KPI */}
         <div
           style={{
-            background: "rgba(15, 23, 42, 0.6)",
-            border: "1px solid rgba(255, 255, 255, 0.08)",
+            background: "var(--surface-1)",
+            border: "1px solid var(--border)",
             borderRadius: "6px",
             padding: "0.6rem 0.75rem",
             display: "flex",
@@ -596,14 +596,14 @@ export default function AlertsView({
             gap: "0.6rem",
           }}
         >
-          <div style={{ color: "#a855f7" }}>
+          <div style={{ color: "var(--surface-3)" }}>
             <Wrench size={20} />
           </div>
           <div>
-            <div style={{ fontSize: "0.62rem", color: "#94a3b8", fontWeight: 600, fontFamily: "'JetBrains Mono', monospace" }}>
+            <div style={{ fontSize: "0.62rem", color: "var(--text-muted)", fontWeight: 600, fontFamily: "var(--font-mono), monospace" }}>
               WORK ORDERS
             </div>
-            <div style={{ fontSize: "1.1rem", fontWeight: 800, color: "#a855f7", fontFamily: "'JetBrains Mono', monospace" }}>
+            <div style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--surface-3)", fontFamily: "var(--font-mono), monospace" }}>
               {totalWoCount}
             </div>
           </div>
@@ -622,17 +622,17 @@ export default function AlertsView({
           flexWrap: "wrap",
           gap: "0.75rem",
           padding: "0.5rem 0",
-          borderBottom: "1px solid rgba(255, 255, 255, 0.06)",
+          borderBottom: "1px solid var(--border)",
         }}
       >
         {/* Left: Severity & Subsystem Filters */}
         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
-          <span style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem", fontSize: "0.68rem", color: "#64748b", fontFamily: "'JetBrains Mono', monospace" }}>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem", fontSize: "0.68rem", color: "var(--text-muted)", fontFamily: "var(--font-mono), monospace" }}>
             <Filter size={12} /> SEVERITY:
           </span>
           {(["ALL", "WARNING", "CAUTION", "ADVISORY"] as const).map((sev) => {
             const isActive = severityFilter === sev;
-            const color = sev === "WARNING" ? "#ef4444" : sev === "CAUTION" ? "#f59e0b" : sev === "ADVISORY" ? "#38bdf8" : "#94a3b8";
+            const color = sev === "WARNING" ? "var(--status-warning)" : sev === "CAUTION" ? "var(--status-caution)" : sev === "ADVISORY" ? "var(--accent)" : "var(--text-muted)";
             return (
               <button
                 key={sev}
@@ -641,12 +641,12 @@ export default function AlertsView({
                   fontSize: "0.68rem",
                   padding: "0.2rem 0.6rem",
                   borderRadius: "4px",
-                  fontFamily: "'JetBrains Mono', monospace",
+                  fontFamily: "var(--font-mono), monospace",
                   fontWeight: 700,
                   cursor: "pointer",
-                  background: isActive ? `${color}20` : "rgba(255, 255, 255, 0.03)",
-                  color: isActive ? color : "#64748b",
-                  border: `1px solid ${isActive ? color : "rgba(255, 255, 255, 0.08)"}`,
+                  background: isActive ? `${color}20` : "var(--border)",
+                  color: isActive ? color : "var(--text-muted)",
+                  border: `1px solid ${isActive ? color : "var(--border)"}`,
                   transition: "all 0.15s ease",
                 }}
               >
@@ -655,22 +655,22 @@ export default function AlertsView({
             );
           })}
 
-          <div style={{ width: "1px", height: "16px", background: "rgba(255, 255, 255, 0.1)", margin: "0 0.2rem" }} />
+          <div style={{ width: "1px", height: "16px", background: "var(--border)", margin: "0 0.2rem" }} />
 
           {/* Subsystem Dropdown Filter */}
           <div style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem" }}>
-            <SlidersHorizontal size={12} style={{ color: "#64748b" }} />
+            <SlidersHorizontal size={12} style={{ color: "var(--text-muted)" }} />
             <select
               value={subsystemFilter}
               onChange={(e) => setSubsystemFilter(e.target.value as SubsystemCategory)}
               style={{
-                background: "rgba(15, 23, 42, 0.8)",
-                border: "1px solid rgba(255, 255, 255, 0.12)",
-                color: subsystemFilter === "ALL" ? "#94a3b8" : "var(--accent-cyan)",
+                background: "var(--surface-1)",
+                border: "1px solid var(--border)",
+                color: subsystemFilter === "ALL" ? "var(--text-muted)" : "var(--accent)",
                 borderRadius: "4px",
                 padding: "0.2rem 0.5rem",
                 fontSize: "0.68rem",
-                fontFamily: "'JetBrains Mono', monospace",
+                fontFamily: "var(--font-mono), monospace",
                 fontWeight: 600,
                 cursor: "pointer",
                 outline: "none",
@@ -692,13 +692,13 @@ export default function AlertsView({
                 display: "inline-flex",
                 alignItems: "center",
                 gap: "0.4rem",
-                background: "rgba(56, 189, 248, 0.15)",
-                border: "1px solid rgba(56, 189, 248, 0.4)",
+                background: "var(--border)",
+                border: "1px solid var(--border)",
                 borderRadius: "4px",
                 padding: "0.2rem 0.55rem",
                 fontSize: "0.68rem",
-                color: "var(--accent-cyan)",
-                fontFamily: "'JetBrains Mono', monospace",
+                color: "var(--accent)",
+                fontFamily: "var(--font-mono), monospace",
                 fontWeight: 700,
               }}
             >
@@ -708,7 +708,7 @@ export default function AlertsView({
                 style={{
                   background: "transparent",
                   border: "none",
-                  color: "var(--accent-cyan)",
+                  color: "var(--accent)",
                   cursor: "pointer",
                   padding: 0,
                   display: "inline-flex",
@@ -732,20 +732,20 @@ export default function AlertsView({
               alignItems: "center",
             }}
           >
-            <Search size={12} style={{ position: "absolute", left: "8px", color: "#64748b" }} />
+            <Search size={12} style={{ position: "absolute", left: "8px", color: "var(--text-muted)" }} />
             <input
               type="text"
               placeholder="Search alerts..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               style={{
-                background: "rgba(15, 23, 42, 0.6)",
-                border: "1px solid rgba(255, 255, 255, 0.1)",
-                color: "#f8fafc",
+                background: "var(--surface-1)",
+                border: "1px solid var(--border)",
+                color: "var(--text)",
                 borderRadius: "4px",
                 padding: "0.2rem 0.5rem 0.2rem 1.6rem",
                 fontSize: "0.68rem",
-                fontFamily: "'JetBrains Mono', monospace",
+                fontFamily: "var(--font-mono), monospace",
                 outline: "none",
                 width: "160px",
               }}
@@ -758,7 +758,7 @@ export default function AlertsView({
                   right: "6px",
                   background: "transparent",
                   border: "none",
-                  color: "#64748b",
+                  color: "var(--text-muted)",
                   cursor: "pointer",
                   padding: 0,
                   display: "inline-flex",
@@ -779,14 +779,14 @@ export default function AlertsView({
                 display: "inline-flex",
                 alignItems: "center",
                 gap: "0.35rem",
-                background: "rgba(16, 185, 129, 0.12)",
-                border: "1px solid rgba(16, 185, 129, 0.3)",
-                color: "#10b981",
+                background: "var(--border)",
+                border: "1px solid var(--border)",
+                color: "var(--status-nominal)",
                 borderRadius: "4px",
                 padding: "0.25rem 0.6rem",
                 fontSize: "0.68rem",
                 fontWeight: 700,
-                fontFamily: "'JetBrains Mono', monospace",
+                fontFamily: "var(--font-mono), monospace",
                 cursor: "pointer",
                 transition: "all 0.15s ease",
               }}
@@ -804,14 +804,14 @@ export default function AlertsView({
               display: "inline-flex",
               alignItems: "center",
               gap: "0.35rem",
-              background: "rgba(255, 255, 255, 0.05)",
-              border: "1px solid rgba(255, 255, 255, 0.15)",
-              color: "#cbd5e1",
+              background: "var(--border)",
+              border: "1px solid var(--border)",
+              color: "var(--text)",
               borderRadius: "4px",
               padding: "0.25rem 0.6rem",
               fontSize: "0.68rem",
               fontWeight: 700,
-              fontFamily: "'JetBrains Mono', monospace",
+              fontFamily: "var(--font-mono), monospace",
               cursor: "pointer",
               transition: "all 0.15s ease",
             }}
@@ -837,8 +837,8 @@ export default function AlertsView({
             <div
               className="all-nominal-panel"
               style={{
-                background: "rgba(10, 18, 32, 0.75)",
-                border: "1px solid rgba(16, 185, 129, 0.25)",
+                background: "var(--surface-1)",
+                border: "1px solid var(--border)",
                 borderRadius: "8px",
                 padding: "2rem 1.5rem",
                 display: "flex",
@@ -853,23 +853,23 @@ export default function AlertsView({
                   width: "56px",
                   height: "56px",
                   borderRadius: "50%",
-                  background: "rgba(16, 185, 129, 0.12)",
-                  border: "2px solid rgba(16, 185, 129, 0.4)",
+                  background: "var(--border)",
+                  border: "2px solid var(--border)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  color: "#10b981",
-                  boxShadow: "0 0 20px rgba(16, 185, 129, 0.25)",
+                  color: "var(--status-nominal)",
+                  boxShadow: "none",
                 }}
               >
                 <ShieldCheck size={32} />
               </div>
 
               <div>
-                <h3 style={{ margin: 0, fontSize: "1.1rem", color: "#10b981", letterSpacing: "0.04em" }}>
+                <h3 style={{ margin: 0, fontSize: "1.1rem", color: "var(--status-nominal)", letterSpacing: "0.04em" }}>
                   ALL POWERTRAIN CHANNELS NOMINAL
                 </h3>
-                <p style={{ margin: "0.35rem 0 0", fontSize: "0.76rem", color: "#94a3b8", maxWidth: "560px", lineHeight: 1.5 }}>
+                <p style={{ margin: "0.35rem 0 0", fontSize: "0.76rem", color: "var(--text-muted)", maxWidth: "560px", lineHeight: 1.5 }}>
                   Continuous digital twin residual monitoring confirms all Rotax 914 F powertrain parameters are operating within certified flight operational envelopes. Zero active cautions or warnings.
                 </p>
               </div>
@@ -888,25 +888,25 @@ export default function AlertsView({
                 {/* 1. Thermal */}
                 <div
                   style={{
-                    background: "rgba(15, 23, 42, 0.6)",
-                    border: "1px solid rgba(255, 255, 255, 0.08)",
+                    background: "var(--surface-1)",
+                    border: "1px solid var(--border)",
                     borderRadius: "6px",
                     padding: "0.75rem",
                     textAlign: "left",
                   }}
                 >
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.35rem" }}>
-                    <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--accent-cyan)", display: "flex", alignItems: "center", gap: "0.3rem" }}>
-                      <Flame size={13} style={{ color: "#f59e0b" }} /> THERMAL
+                    <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--accent)", display: "flex", alignItems: "center", gap: "0.3rem" }}>
+                      <Flame size={13} style={{ color: "var(--status-caution)" }} /> THERMAL
                     </span>
-                    <span style={{ fontSize: "0.62rem", color: "#10b981", fontWeight: 700, background: "rgba(16, 185, 129, 0.12)", padding: "0.1rem 0.35rem", borderRadius: "3px" }}>
+                    <span style={{ fontSize: "0.62rem", color: "var(--status-nominal)", fontWeight: 700, background: "var(--border)", padding: "0.1rem 0.35rem", borderRadius: "3px" }}>
                       NOMINAL
                     </span>
                   </div>
-                  <div style={{ fontSize: "0.68rem", color: "#94a3b8", fontFamily: "'JetBrains Mono', monospace" }}>
+                  <div style={{ fontSize: "0.68rem", color: "var(--text-muted)", fontFamily: "var(--font-mono), monospace" }}>
                     CHT: {payload.cht_c ?? 142.0}°C | EGT: {payload.egt_c ?? 615.0}°C
                   </div>
-                  <div style={{ fontSize: "0.64rem", color: "#64748b", marginTop: "0.2rem" }}>
+                  <div style={{ fontSize: "0.64rem", color: "var(--text-muted)", marginTop: "0.2rem" }}>
                     Thermal margin: +23.0°C
                   </div>
                 </div>
@@ -914,25 +914,25 @@ export default function AlertsView({
                 {/* 2. Lubrication */}
                 <div
                   style={{
-                    background: "rgba(15, 23, 42, 0.6)",
-                    border: "1px solid rgba(255, 255, 255, 0.08)",
+                    background: "var(--surface-1)",
+                    border: "1px solid var(--border)",
                     borderRadius: "6px",
                     padding: "0.75rem",
                     textAlign: "left",
                   }}
                 >
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.35rem" }}>
-                    <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--accent-cyan)", display: "flex", alignItems: "center", gap: "0.3rem" }}>
-                      <Droplets size={13} style={{ color: "#38bdf8" }} /> LUBRICATION
+                    <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--accent)", display: "flex", alignItems: "center", gap: "0.3rem" }}>
+                      <Droplets size={13} style={{ color: "var(--accent)" }} /> LUBRICATION
                     </span>
-                    <span style={{ fontSize: "0.62rem", color: "#10b981", fontWeight: 700, background: "rgba(16, 185, 129, 0.12)", padding: "0.1rem 0.35rem", borderRadius: "3px" }}>
+                    <span style={{ fontSize: "0.62rem", color: "var(--status-nominal)", fontWeight: 700, background: "var(--border)", padding: "0.1rem 0.35rem", borderRadius: "3px" }}>
                       NOMINAL
                     </span>
                   </div>
-                  <div style={{ fontSize: "0.68rem", color: "#94a3b8", fontFamily: "'JetBrains Mono', monospace" }}>
+                  <div style={{ fontSize: "0.68rem", color: "var(--text-muted)", fontFamily: "var(--font-mono), monospace" }}>
                     Press: {payload.oil_pressure_bar ?? 4.69} bar | Temp: {payload.oil_temperature_c ?? 92.0}°C
                   </div>
-                  <div style={{ fontSize: "0.64rem", color: "#64748b", marginTop: "0.2rem" }}>
+                  <div style={{ fontSize: "0.64rem", color: "var(--text-muted)", marginTop: "0.2rem" }}>
                     Hydrodynamic film stable
                   </div>
                 </div>
@@ -940,25 +940,25 @@ export default function AlertsView({
                 {/* 3. Combustion */}
                 <div
                   style={{
-                    background: "rgba(15, 23, 42, 0.6)",
-                    border: "1px solid rgba(255, 255, 255, 0.08)",
+                    background: "var(--surface-1)",
+                    border: "1px solid var(--border)",
                     borderRadius: "6px",
                     padding: "0.75rem",
                     textAlign: "left",
                   }}
                 >
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.35rem" }}>
-                    <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--accent-cyan)", display: "flex", alignItems: "center", gap: "0.3rem" }}>
-                      <Zap size={13} style={{ color: "#eab308" }} /> COMBUSTION
+                    <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--accent)", display: "flex", alignItems: "center", gap: "0.3rem" }}>
+                      <Zap size={13} style={{ color: "var(--status-caution)" }} /> COMBUSTION
                     </span>
-                    <span style={{ fontSize: "0.62rem", color: "#10b981", fontWeight: 700, background: "rgba(16, 185, 129, 0.12)", padding: "0.1rem 0.35rem", borderRadius: "3px" }}>
+                    <span style={{ fontSize: "0.62rem", color: "var(--status-nominal)", fontWeight: 700, background: "var(--border)", padding: "0.1rem 0.35rem", borderRadius: "3px" }}>
                       NOMINAL
                     </span>
                   </div>
-                  <div style={{ fontSize: "0.68rem", color: "#94a3b8", fontFamily: "'JetBrains Mono', monospace" }}>
+                  <div style={{ fontSize: "0.68rem", color: "var(--text-muted)", fontFamily: "var(--font-mono), monospace" }}>
                     Flow: {payload.fuel_flow_lh ?? 17.6} L/h | Timing: {payload.injection_timing_deg ?? 23.4}°
                   </div>
-                  <div style={{ fontSize: "0.64rem", color: "#64748b", marginTop: "0.2rem" }}>
+                  <div style={{ fontSize: "0.64rem", color: "var(--text-muted)", marginTop: "0.2rem" }}>
                     4-cylinder balance 100%
                   </div>
                 </div>
@@ -966,25 +966,25 @@ export default function AlertsView({
                 {/* 4. Dynamics */}
                 <div
                   style={{
-                    background: "rgba(15, 23, 42, 0.6)",
-                    border: "1px solid rgba(255, 255, 255, 0.08)",
+                    background: "var(--surface-1)",
+                    border: "1px solid var(--border)",
                     borderRadius: "6px",
                     padding: "0.75rem",
                     textAlign: "left",
                   }}
                 >
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.35rem" }}>
-                    <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--accent-cyan)", display: "flex", alignItems: "center", gap: "0.3rem" }}>
-                      <Activity size={13} style={{ color: "#a855f7" }} /> ROTOR BALANCE
+                    <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--accent)", display: "flex", alignItems: "center", gap: "0.3rem" }}>
+                      <Activity size={13} style={{ color: "var(--surface-3)" }} /> ROTOR BALANCE
                     </span>
-                    <span style={{ fontSize: "0.62rem", color: "#10b981", fontWeight: 700, background: "rgba(16, 185, 129, 0.12)", padding: "0.1rem 0.35rem", borderRadius: "3px" }}>
+                    <span style={{ fontSize: "0.62rem", color: "var(--status-nominal)", fontWeight: 700, background: "var(--border)", padding: "0.1rem 0.35rem", borderRadius: "3px" }}>
                       NOMINAL
                     </span>
                   </div>
-                  <div style={{ fontSize: "0.68rem", color: "#94a3b8", fontFamily: "'JetBrains Mono', monospace" }}>
+                  <div style={{ fontSize: "0.68rem", color: "var(--text-muted)", fontFamily: "var(--font-mono), monospace" }}>
                     Vib: {payload.vibration_g ?? 1.42}g RMS | RPM: {payload.rpm ?? 2450}
                   </div>
-                  <div style={{ fontSize: "0.64rem", color: "#64748b", marginTop: "0.2rem" }}>
+                  <div style={{ fontSize: "0.64rem", color: "var(--text-muted)", marginTop: "0.2rem" }}>
                     Harmonics within 1X/2X limits
                   </div>
                 </div>
@@ -992,25 +992,25 @@ export default function AlertsView({
                 {/* 5. Avionics */}
                 <div
                   style={{
-                    background: "rgba(15, 23, 42, 0.6)",
-                    border: "1px solid rgba(255, 255, 255, 0.08)",
+                    background: "var(--surface-1)",
+                    border: "1px solid var(--border)",
                     borderRadius: "6px",
                     padding: "0.75rem",
                     textAlign: "left",
                   }}
                 >
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.35rem" }}>
-                    <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--accent-cyan)", display: "flex", alignItems: "center", gap: "0.3rem" }}>
-                      <Radio size={13} style={{ color: "#38bdf8" }} /> ELECTRICAL
+                    <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--accent)", display: "flex", alignItems: "center", gap: "0.3rem" }}>
+                      <Radio size={13} style={{ color: "var(--accent)" }} /> ELECTRICAL
                     </span>
-                    <span style={{ fontSize: "0.62rem", color: "#10b981", fontWeight: 700, background: "rgba(16, 185, 129, 0.12)", padding: "0.1rem 0.35rem", borderRadius: "3px" }}>
+                    <span style={{ fontSize: "0.62rem", color: "var(--status-nominal)", fontWeight: 700, background: "var(--border)", padding: "0.1rem 0.35rem", borderRadius: "3px" }}>
                       NOMINAL
                     </span>
                   </div>
-                  <div style={{ fontSize: "0.68rem", color: "#94a3b8", fontFamily: "'JetBrains Mono', monospace" }}>
+                  <div style={{ fontSize: "0.68rem", color: "var(--text-muted)", fontFamily: "var(--font-mono), monospace" }}>
                     Bus: {payload.battery_voltage_v ?? 27.6}V | ECU Link: DUAL A/B
                   </div>
-                  <div style={{ fontSize: "0.64rem", color: "#64748b", marginTop: "0.2rem" }}>
+                  <div style={{ fontSize: "0.64rem", color: "var(--text-muted)", marginTop: "0.2rem" }}>
                     Alternator float current normal
                   </div>
                 </div>
@@ -1020,16 +1020,16 @@ export default function AlertsView({
               <div
                 style={{
                   fontSize: "0.7rem",
-                  color: "#64748b",
+                  color: "var(--text-muted)",
                   maxWidth: "520px",
                   lineHeight: 1.4,
-                  background: "rgba(255, 255, 255, 0.02)",
-                  border: "1px dashed rgba(255, 255, 255, 0.08)",
+                  background: "var(--border)",
+                  border: "1px dashed var(--border)",
                   borderRadius: "6px",
                   padding: "0.5rem 0.8rem",
                 }}
               >
-                <span style={{ color: "var(--accent-cyan)", fontWeight: 600 }}>Tip: </span>
+                <span style={{ color: "var(--accent)", fontWeight: 600 }}>Tip: </span>
                 Click any scenario in the <strong>Fault Injection Simulation Matrix</strong> above (e.g., <em>Lubrication Starvation</em> or <em>Cooling / Overheating</em>) to test real-time alert generation, cross-sensor isolation, and work order creation.
               </div>
             </div>
@@ -1043,16 +1043,16 @@ export default function AlertsView({
                 flexDirection: "column",
                 alignItems: "center",
                 gap: "0.6rem",
-                background: "rgba(15, 23, 42, 0.4)",
-                border: "1px dashed rgba(255, 255, 255, 0.1)",
+                background: "var(--surface-1)",
+                border: "1px dashed var(--border)",
                 borderRadius: "8px",
               }}
             >
-              <CheckCircle2 size={36} style={{ color: "#10b981" }} />
-              <span style={{ fontSize: "1rem", fontWeight: 700, color: "#f8fafc" }}>
+              <CheckCircle2 size={36} style={{ color: "var(--status-nominal)" }} />
+              <span style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text)" }}>
                 No Matching Incident Records
               </span>
-              <span style={{ fontSize: "0.76rem", color: "#64748b", maxWidth: "460px" }}>
+              <span style={{ fontSize: "0.76rem", color: "var(--text-muted)", maxWidth: "460px" }}>
                 No historical events match the current filter criteria (Severity: &quot;{severityFilter}&quot;, Subsystem: &quot;{subsystemFilter}&quot;).
               </span>
             </div>

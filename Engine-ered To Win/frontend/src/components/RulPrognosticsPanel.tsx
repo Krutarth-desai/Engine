@@ -26,9 +26,9 @@ export default function RulPrognosticsPanel({ isVisible }: RulPrognosticsPanelPr
     border: string;
   }>({
     text: "LSTM AI",
-    bg: "rgba(168, 85, 247, 0.2)",
-    color: "var(--accent-purple)",
-    border: "var(--accent-purple)",
+    bg: "var(--surface-3)",
+    color: "var(--surface-3)",
+    border: "var(--surface-3)",
   });
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -54,8 +54,8 @@ export default function RulPrognosticsPanel({ isVisible }: RulPrognosticsPanelPr
           {
             label: "Actual RUL",
             data: actualDataRef.current,
-            borderColor: "#38bdf8",
-            backgroundColor: "rgba(56, 189, 248, 0.1)",
+            borderColor: "var(--accent)",
+            backgroundColor: "var(--border)",
             tension: 0.3,
             borderWidth: 2.5,
             pointRadius: 0,
@@ -64,8 +64,8 @@ export default function RulPrognosticsPanel({ isVisible }: RulPrognosticsPanelPr
           {
             label: "LSTM Predicted RUL",
             data: predictedDataRef.current,
-            borderColor: "#a855f7",
-            backgroundColor: "rgba(168, 85, 247, 0.1)",
+            borderColor: "var(--surface-3)",
+            backgroundColor: "var(--surface-3)",
             tension: 0.3,
             borderWidth: 2.5,
             pointRadius: 0,
@@ -81,26 +81,26 @@ export default function RulPrognosticsPanel({ isVisible }: RulPrognosticsPanelPr
         plugins: {
           legend: {
             labels: {
-              color: "#94a3b8",
+              color: "var(--text-muted)",
               font: { family: "Inter", size: 11 },
             },
           },
         },
         scales: {
           x: {
-            title: { display: true, text: "Cycle", color: "#64748b" },
-            grid: { color: "rgba(255, 255, 255, 0.05)" },
+            title: { display: true, text: "Cycle", color: "var(--text-muted)" },
+            grid: { color: "var(--border)" },
             ticks: {
-              color: "#64748b",
+              color: "var(--text-muted)",
               font: { family: "JetBrains Mono", size: 10 },
               maxTicksLimit: 20,
             },
           },
           y: {
-            title: { display: true, text: "RUL (Cycles)", color: "#64748b" },
-            grid: { color: "rgba(255, 255, 255, 0.05)" },
+            title: { display: true, text: "RUL (Cycles)", color: "var(--text-muted)" },
+            grid: { color: "var(--border)" },
             ticks: {
-              color: "#64748b",
+              color: "var(--text-muted)",
               font: { family: "JetBrains Mono", size: 10 },
             },
             min: 0,
@@ -187,23 +187,23 @@ export default function RulPrognosticsPanel({ isVisible }: RulPrognosticsPanelPr
             if (predicted !== null && predicted < 30) {
               setBadgeState({
                 text: "CRITICAL RUL",
-                bg: "rgba(239, 68, 68, 0.2)",
-                color: "var(--accent-rose)",
-                border: "var(--accent-rose)",
+                bg: "var(--border)",
+                color: "var(--status-warning)",
+                border: "var(--status-warning)",
               });
             } else if (predicted !== null && predicted < 60) {
               setBadgeState({
                 text: "LOW RUL",
-                bg: "rgba(245, 158, 11, 0.2)",
-                color: "var(--accent-amber)",
-                border: "var(--accent-amber)",
+                bg: "var(--border)",
+                color: "var(--status-caution)",
+                border: "var(--status-caution)",
               });
             } else {
               setBadgeState({
                 text: "LSTM AI",
-                bg: "rgba(168, 85, 247, 0.2)",
-                color: "var(--accent-purple)",
-                border: "var(--accent-purple)",
+                bg: "var(--surface-3)",
+                color: "var(--surface-3)",
+                border: "var(--surface-3)",
               });
             }
 
@@ -293,7 +293,7 @@ export default function RulPrognosticsPanel({ isVisible }: RulPrognosticsPanelPr
               className="metric-tag"
               style={{
                 fontSize: "0.75rem",
-                fontFamily: "'JetBrains Mono', monospace",
+                fontFamily: "var(--font-mono), monospace",
               }}
               id="rul-cycle-counter"
             >
@@ -324,7 +324,7 @@ export default function RulPrognosticsPanel({ isVisible }: RulPrognosticsPanelPr
               <div
                 className="rul-metric-val"
                 id="rul-m-actual"
-                style={{ color: "var(--accent-cyan)" }}
+                style={{ color: "var(--accent)" }}
               >
                 {actualRul !== null ? actualRul.toFixed(1) : "--"}
               </div>
@@ -334,7 +334,7 @@ export default function RulPrognosticsPanel({ isVisible }: RulPrognosticsPanelPr
               <div
                 className="rul-metric-val"
                 id="rul-m-error"
-                style={{ color: "var(--accent-amber)" }}
+                style={{ color: "var(--status-caution)" }}
               >
                 {absError}
               </div>
@@ -359,7 +359,7 @@ export default function RulPrognosticsPanel({ isVisible }: RulPrognosticsPanelPr
             </div>
           </div>
           <div className="diag-log-container" style={{ marginTop: "0.85rem" }}>
-            <span style={{ color: "var(--accent-purple)", fontWeight: 700 }}>
+            <span style={{ color: "var(--surface-3)", fontWeight: 700 }}>
               RUL LOG:
             </span>
             <span id="rul-log-text">{logText}</span>
@@ -368,11 +368,11 @@ export default function RulPrognosticsPanel({ isVisible }: RulPrognosticsPanelPr
             <div
               className="advisory-box"
               id="rul-advisory"
-              style={{ borderLeftColor: "var(--accent-purple)" }}
+              style={{ borderLeftColor: "var(--surface-3)" }}
             >
               <div
                 className="advisory-title"
-                style={{ color: "var(--accent-purple)" }}
+                style={{ color: "var(--surface-3)" }}
               >
                 ⏳ CMAPSS FD001 Prognostic Dataset
               </div>

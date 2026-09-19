@@ -70,14 +70,14 @@ export default function UserMenuDropdown({
             width: "24px",
             height: "24px",
             borderRadius: "50%",
-            background: "rgba(56, 189, 248, 0.2)",
-            border: "1px solid rgba(56, 189, 248, 0.5)",
+            background: "var(--border)",
+            border: "1px solid var(--border)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             fontSize: "0.68rem",
             fontWeight: 700,
-            color: "var(--accent-cyan)",
+            color: "var(--accent)",
           }}
         >
           {userEmail ? userEmail.charAt(0).toUpperCase() : "O"}
@@ -93,19 +93,19 @@ export default function UserMenuDropdown({
         >
           {userEmail ? userEmail.split("@")[0] : "Operator"}
         </span>
-        <ChevronDown size={12} style={{ color: "#94a3b8" }} />
+        <ChevronDown size={12} style={{ color: "var(--text-muted)" }} />
       </button>
 
       {isOpen && (
         <div className="user-dropdown-menu">
           <div className="user-dropdown-header">
             <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-              <User size={16} style={{ color: "var(--accent-cyan)" }} />
+              <User size={16} style={{ color: "var(--accent)" }} />
               <div>
-                <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "#f8fafc" }}>
+                <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--text)" }}>
                   {userEmail || "Operator"}
                 </div>
-                <div style={{ fontSize: "0.65rem", color: "#64748b" }}>
+                <div style={{ fontSize: "0.65rem", color: "var(--text-muted)" }}>
                   Flight Engineer / GCS-1
                 </div>
               </div>
@@ -118,7 +118,7 @@ export default function UserMenuDropdown({
               flexDirection: "column",
               gap: "0.35rem",
               fontSize: "0.7rem",
-              color: "#94a3b8",
+              color: "var(--text-muted)",
             }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -141,7 +141,7 @@ export default function UserMenuDropdown({
 
           <div
             style={{
-              borderTop: "1px solid rgba(255, 255, 255, 0.08)",
+              borderTop: "1px solid var(--border)",
               paddingTop: "0.5rem",
               display: "flex",
               flexDirection: "column",
@@ -151,11 +151,11 @@ export default function UserMenuDropdown({
             <button
               onClick={() => setTimeDisplay(isZulu ? "local" : "zulu")}
               style={{
-                background: "rgba(255, 255, 255, 0.04)",
-                border: "1px solid rgba(255, 255, 255, 0.08)",
+                background: "var(--border)",
+                border: "1px solid var(--border)",
                 borderRadius: "4px",
                 padding: "0.3rem 0.5rem",
-                color: "#cbd5e1",
+                color: "var(--text)",
                 fontSize: "0.7rem",
                 display: "flex",
                 alignItems: "center",
@@ -172,11 +172,11 @@ export default function UserMenuDropdown({
             <button
               onClick={() => setUnitPreference(unitPreference === "psi" ? "bar" : "psi")}
               style={{
-                background: "rgba(255, 255, 255, 0.04)",
-                border: "1px solid rgba(255, 255, 255, 0.08)",
+                background: "var(--border)",
+                border: "1px solid var(--border)",
                 borderRadius: "4px",
                 padding: "0.3rem 0.5rem",
-                color: "#cbd5e1",
+                color: "var(--text)",
                 fontSize: "0.7rem",
                 display: "flex",
                 alignItems: "center",
@@ -197,9 +197,9 @@ export default function UserMenuDropdown({
                 onLogout();
               }}
               style={{
-                background: "rgba(255, 255, 255, 0.05)",
-                border: "1px solid rgba(255, 255, 255, 0.12)",
-                color: "#cbd5e1",
+                background: "var(--border)",
+                border: "1px solid var(--border)",
+                color: "var(--text)",
                 borderRadius: "4px",
                 padding: "0.35rem 0.5rem",
                 fontSize: "0.72rem",
@@ -213,12 +213,12 @@ export default function UserMenuDropdown({
                 transition: "all 0.15s ease",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = "rgba(255, 255, 255, 0.1)";
-                e.currentTarget.style.color = "#ffffff";
+                e.currentTarget.style.background = "var(--border)";
+                e.currentTarget.style.color = "var(--text)";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)";
-                e.currentTarget.style.color = "#cbd5e1";
+                e.currentTarget.style.background = "var(--border)";
+                e.currentTarget.style.color = "var(--text)";
               }}
             >
               <LogOut size={13} />

@@ -40,7 +40,7 @@ export default function MainDashboardView({
       {topActiveAlert ? (() => {
         const isCrit = topActiveAlert.level === "ALERT" || topActiveAlert.level === "CRITICAL" || topActiveAlert.level === "WARNING";
         const isWarn = topActiveAlert.level === "CAUTION";
-        const stripColor = isCrit ? "#ef4444" : isWarn ? "#f59e0b" : "#38bdf8";
+        const stripColor = isCrit ? "var(--status-warning)" : isWarn ? "var(--status-caution)" : "var(--accent)";
         return (
           <div
             className={`dashboard-active-alert-strip ${isCrit ? "alert-strip-crit" : isWarn ? "alert-strip-warn" : "alert-strip-info"}`}
@@ -52,8 +52,8 @@ export default function MainDashboardView({
               alignItems: "center",
               padding: "0.45rem 0.85rem",
               borderRadius: "6px",
-              background: isCrit ? "rgba(239, 68, 68, 0.15)" : isWarn ? "rgba(245, 158, 11, 0.15)" : "rgba(56, 189, 248, 0.15)",
-              border: `1px solid ${isCrit ? "rgba(239, 68, 68, 0.5)" : isWarn ? "rgba(245, 158, 11, 0.5)" : "rgba(56, 189, 248, 0.5)"}`,
+              background: isCrit ? "var(--surface-1)" : isWarn ? "var(--surface-1)" : "var(--border)",
+              border: `1px solid ${isCrit ? "var(--status-warning)" : isWarn ? "var(--status-caution)" : "var(--accent)"}`,
               cursor: "pointer",
               transition: "all 0.2s ease",
             }}
@@ -64,16 +64,16 @@ export default function MainDashboardView({
                 style={{
                   fontSize: "0.68rem",
                   fontWeight: 800,
-                  fontFamily: "'JetBrains Mono', monospace",
+                  fontFamily: "var(--font-mono), monospace",
                   color: stripColor,
                 }}
               >
                 [{topActiveAlert.level}]
               </span>
-            <span style={{ fontSize: "0.76rem", fontWeight: 700, color: "#f8fafc" }}>
+            <span style={{ fontSize: "0.76rem", fontWeight: 700, color: "var(--text)" }}>
               {topActiveAlert.title}
             </span>
-            <span style={{ fontSize: "0.72rem", color: "#94a3b8" }}>— {topActiveAlert.message}</span>
+            <span style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>— {topActiveAlert.message}</span>
           </div>
 
           <button
@@ -81,10 +81,10 @@ export default function MainDashboardView({
             style={{
               background: "transparent",
               border: "none",
-              color: "var(--accent-cyan)",
+              color: "var(--accent)",
               fontSize: "0.68rem",
               fontWeight: 700,
-              fontFamily: "'JetBrains Mono', monospace",
+              fontFamily: "var(--font-mono), monospace",
               display: "inline-flex",
               alignItems: "center",
               gap: "0.25rem",
@@ -105,20 +105,20 @@ export default function MainDashboardView({
             alignItems: "center",
             padding: "0.3rem 0.75rem",
             borderRadius: "4px",
-            background: "rgba(16, 185, 129, 0.05)",
-            border: "1px solid rgba(16, 185, 129, 0.2)",
+            background: "var(--surface-1)",
+            border: "1px solid var(--border)",
             fontSize: "0.68rem",
-            color: "#10b981",
-            fontFamily: "'JetBrains Mono', monospace",
+            color: "var(--status-nominal)",
+            fontFamily: "var(--font-mono), monospace",
             cursor: "pointer",
           }}
           title="All systems nominal. Click to view chronological log."
         >
           <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
-            <CheckCircle2 size={13} style={{ color: "#10b981" }} />
+            <CheckCircle2 size={13} style={{ color: "var(--status-nominal)" }} />
             <span>NO ACTIVE ALERTS — Propulsion envelope and predictive thresholds nominal</span>
           </div>
-          <span style={{ color: "#64748b", display: "inline-flex", alignItems: "center", gap: "0.2rem" }}>
+          <span style={{ color: "var(--text-muted)", display: "inline-flex", alignItems: "center", gap: "0.2rem" }}>
             Alerts Log ({payload.alerts?.length || 0}) <ChevronRight size={12} />
           </span>
         </div>
@@ -164,7 +164,7 @@ export default function MainDashboardView({
         >
           <div className="panel-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.35rem" }}>
             <div className="panel-title" style={{ display: "flex", alignItems: "center", gap: "0.45rem" }}>
-              <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "var(--accent-cyan)", boxShadow: "0 0 6px var(--accent-cyan)" }} />
+              <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "var(--accent)", boxShadow: "none" }} />
               <strong>9-CHANNEL ENGINE SENSORS</strong>
             </div>
             <button
@@ -172,11 +172,11 @@ export default function MainDashboardView({
               style={{
                 background: "transparent",
                 border: "none",
-                color: "var(--accent-cyan)",
+                color: "var(--accent)",
                 fontSize: "0.66rem",
                 fontWeight: 700,
                 cursor: "pointer",
-                fontFamily: "'JetBrains Mono', monospace",
+                fontFamily: "var(--font-mono), monospace",
                 display: "inline-flex",
                 alignItems: "center",
                 gap: "0.2rem",
@@ -192,14 +192,14 @@ export default function MainDashboardView({
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
-                background: "rgba(56, 189, 248, 0.12)",
-                border: "1px solid rgba(56, 189, 248, 0.35)",
+                background: "var(--border)",
+                border: "1px solid var(--border)",
                 borderRadius: "4px",
                 padding: "0.2rem 0.5rem",
                 marginBottom: "0.35rem",
                 fontSize: "0.68rem",
-                color: "var(--accent-cyan)",
-                fontFamily: "'JetBrains Mono', monospace",
+                color: "var(--accent)",
+                fontFamily: "var(--font-mono), monospace",
               }}
             >
               <span>FOCUS: <strong>{focusedComponent.replace(/_/g, " ").toUpperCase()}</strong></span>
@@ -208,7 +208,7 @@ export default function MainDashboardView({
                 style={{
                   background: "transparent",
                   border: "none",
-                  color: "var(--accent-cyan)",
+                  color: "var(--accent)",
                   cursor: "pointer",
                   display: "inline-flex",
                   alignItems: "center",

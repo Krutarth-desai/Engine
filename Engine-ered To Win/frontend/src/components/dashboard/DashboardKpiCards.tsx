@@ -21,10 +21,10 @@ export default function DashboardKpiCards({ payload, onNavigate }: DashboardKpiC
   // RATE: STABLE must have one colour everywhere (emerald green)
   const trendColor =
     trend.toLowerCase() === "accelerating"
-      ? "#ef4444"
+      ? "var(--status-warning)"
       : trend.toLowerCase() === "decreasing"
-      ? "#f59e0b"
-      : "#10b981";
+      ? "var(--status-caution)"
+      : "var(--status-nominal)";
 
   const riskLevel = payload.risk?.level || "LOW";
   const anomalyState = payload.risk?.anomaly || "NORMAL";
@@ -56,7 +56,7 @@ export default function DashboardKpiCards({ payload, onNavigate }: DashboardKpiC
     })
     .join(" ");
 
-  const healthColor = safeHealth > 75 ? "#10b981" : safeHealth > 45 ? "#f59e0b" : "#ef4444";
+  const healthColor = safeHealth > 75 ? "var(--status-nominal)" : safeHealth > 45 ? "var(--status-caution)" : "var(--status-warning)";
 
   return (
     <div className="dashboard-kpi-row">
@@ -73,7 +73,7 @@ export default function DashboardKpiCards({ payload, onNavigate }: DashboardKpiC
             <strong>HEALTH INDEX</strong>
           </span>
           <span className="kpi-icon" style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
-            <Activity size={14} style={{ color: "var(--accent-cyan)" }} />
+            <Activity size={14} style={{ color: "var(--accent)" }} />
             <span style={{ fontSize: "0.62rem" }}>PHM</span>
           </span>
         </div>
@@ -102,9 +102,9 @@ export default function DashboardKpiCards({ payload, onNavigate }: DashboardKpiC
               <div
                 style={{
                   fontSize: "0.62rem",
-                  fontFamily: "'JetBrains Mono', monospace",
+                  fontFamily: "var(--font-mono), monospace",
                   fontWeight: 700,
-                  color: healthDelta < 0 ? "#ef4444" : "#10b981",
+                  color: healthDelta < 0 ? "var(--status-warning)" : "var(--status-nominal)",
                   display: "inline-flex",
                   alignItems: "center",
                   gap: "0.1rem",
@@ -204,7 +204,7 @@ export default function DashboardKpiCards({ payload, onNavigate }: DashboardKpiC
                 border: `1px solid ${rulZone.borderColor}`,
                 padding: "0.15rem 0.4rem",
                 borderRadius: "4px",
-                fontFamily: "'JetBrains Mono', monospace",
+                fontFamily: "var(--font-mono), monospace",
               }}
             >
               {rulZone.label}
