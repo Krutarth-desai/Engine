@@ -223,7 +223,7 @@ export default function RegressionScatterChart({
           legend: {
             labels: {
               color: theme.textSecondary,
-              font: { family: "var(--font-inter), sans-serif", size: 11 },
+              font: { family: "var(--font-sans), system-ui, sans-serif", size: 11 },
               boxWidth: 12,
             },
           },
@@ -245,20 +245,20 @@ export default function RegressionScatterChart({
               display: true,
               text: config.xLabel,
               color: theme.textMuted,
-              font: { size: 10, family: "var(--font-jetbrains-mono), monospace" },
+              font: { size: 10, family: "var(--font-mono), monospace" },
             },
             grid: { color: theme.gridColor },
-            ticks: { color: theme.textMuted, font: { family: "var(--font-jetbrains-mono), monospace", size: 9 } },
+            ticks: { color: theme.textMuted, font: { family: "var(--font-mono), monospace", size: 9 } },
           },
           y: {
             title: {
               display: true,
               text: config.yLabel,
               color: theme.textMuted,
-              font: { size: 10, family: "var(--font-jetbrains-mono), monospace" },
+              font: { size: 10, family: "var(--font-mono), monospace" },
             },
             grid: { color: theme.gridColor },
-            ticks: { color: theme.textMuted, font: { family: "var(--font-jetbrains-mono), monospace", size: 9 } },
+            ticks: { color: theme.textMuted, font: { family: "var(--font-mono), monospace", size: 9 } },
           },
         },
       },

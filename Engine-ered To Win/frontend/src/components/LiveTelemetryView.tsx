@@ -1,11 +1,12 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { UnifiedTelemetryPayload } from "../types/telemetry";
 import EngineSensorsPanel from "./EngineSensorsPanel";
 import TelemetryChart from "./TelemetryChart";
 import TelemetryGauges from "./TelemetryGauges";
 import DigitalTwinResidualChart from "./telemetry/DigitalTwinResidualChart";
+import PageLayout from "./common/PageLayout";
 import { Activity, Cpu } from "lucide-react";
 
 interface LiveTelemetryViewProps {
@@ -13,7 +14,7 @@ interface LiveTelemetryViewProps {
 }
 
 export default function LiveTelemetryView({ payload }: LiveTelemetryViewProps) {
-  const [telemetryMode, setTelemetryMode] = React.useState<"waveforms" | "residual">("waveforms");
+  const [telemetryMode, setTelemetryMode] = useState<"waveforms" | "residual">("waveforms");
 
   // Convert payload to TelemetryData format for TelemetryChart & TelemetryGauges
   const flatTelemetry = {
@@ -36,77 +37,70 @@ export default function LiveTelemetryView({ payload }: LiveTelemetryViewProps) {
   };
 
   return (
-    <div className="view-container live-telemetry-view" style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-      <div className="view-header-strip" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.75rem" }}>
-        <div>
-          <h2 className="view-title" style={{ margin: 0, fontSize: "1.2rem", letterSpacing: "0.04em" }}>
-            <strong>9-CHANNEL LIVE TELEMETRY &amp; DYNAMICS</strong>
-          </h2>
-          <p className="view-subtitle" style={{ margin: "0.2rem 0 0", fontSize: "0.72rem", color: "var(--text-muted)" }}>
-            High-frequency 1 Hz avionics telemetry stream, min/max envelopes, and digital twin analytical residuals
-          </p>
+    <PageLayout
+      title="9-Channel Live Telemetry & Dynamics"
+      subtitle="High-frequency 1 Hz avionics telemetry stream, min/max envelopes, and digital twin analytical residuals"
+      icon={<Activity size={18} />}
+      tags={
+        <span
+          className="nav-tag"
+          style={{
+            color: "var(--accent)",
+            borderColor: "var(--border-strong)",
+            fontFamily: "var(--font-mono), monospace",
+          }}
+        >
+          LIVE 1 Hz STREAM
+        </span>
+      }
+      actions={
+        <div style={{ display: "flex", gap: "0.35rem" }} role="tablist" aria-label="Telemetry display modes">
+          <button
+            role="tab"
+            aria-selected={telemetryMode === "waveforms"}
+            onClick={() => setTelemetryMode("waveforms")}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.3rem",
+              padding: "0.25rem 0.6rem",
+              borderRadius: "4px",
+              background: telemetryMode === "waveforms" ? "var(--surface-2)" : "transparent",
+              border: `1px solid ${telemetryMode === "waveforms" ? "var(--accent)" : "var(--border)"}`,
+              color: telemetryMode === "waveforms" ? "var(--text)" : "var(--text-muted)",
+              fontSize: "11.5px",
+              cursor: "pointer",
+            }}
+          >
+            <Activity size={12} />
+            Waveforms &amp; Gauges
+          </button>
+
+          <button
+            role="tab"
+            aria-selected={telemetryMode === "residual"}
+            onClick={() => setTelemetryMode("residual")}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.3rem",
+              padding: "0.25rem 0.6rem",
+              borderRadius: "4px",
+              background: telemetryMode === "residual" ? "var(--surface-2)" : "transparent",
+              border: `1px solid ${telemetryMode === "residual" ? "var(--accent)" : "var(--border)"}`,
+              color: telemetryMode === "residual" ? "var(--text)" : "var(--text-muted)",
+              fontSize: "11.5px",
+              cursor: "pointer",
+            }}
+          >
+            <Cpu size={12} />
+            Twin Residual Overlay
+          </button>
         </div>
-
-        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          {/* Mode Switcher */}
-          <div style={{ display: "flex", gap: "0.3rem" }} role="tablist" aria-label="Telemetry display modes">
-            <button
-              role="tab"
-              aria-selected={telemetryMode === "waveforms"}
-              onClick={() => setTelemetryMode("waveforms")}
-              className={`filter-pill-btn ${telemetryMode === "waveforms" ? "active" : ""}`}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "0.35rem",
-                padding: "0.25rem 0.6rem",
-                fontSize: "0.68rem",
-                fontWeight: 700,
-                background: telemetryMode === "waveforms" ? "var(--border)" : "var(--border)",
-                color: telemetryMode === "waveforms" ? "var(--accent)" : "var(--text-muted)",
-                border: `1px solid ${telemetryMode === "waveforms" ? "var(--accent)" : "var(--border)"}`,
-                borderRadius: "4px",
-                fontFamily: "var(--font-mono), monospace",
-                cursor: "pointer",
-              }}
-            >
-              <Activity size={12} />
-              <span>WAVEFORMS &amp; GAUGES</span>
-            </button>
-
-            <button
-              role="tab"
-              aria-selected={telemetryMode === "residual"}
-              onClick={() => setTelemetryMode("residual")}
-              className={`filter-pill-btn ${telemetryMode === "residual" ? "active" : ""}`}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "0.35rem",
-                padding: "0.25rem 0.6rem",
-                fontSize: "0.68rem",
-                fontWeight: 700,
-                background: telemetryMode === "residual" ? "var(--surface-3)" : "var(--border)",
-                color: telemetryMode === "residual" ? "var(--surface-3)" : "var(--text-muted)",
-                border: `1px solid ${telemetryMode === "residual" ? "var(--surface-3)" : "var(--border)"}`,
-                borderRadius: "4px",
-                fontFamily: "var(--font-mono), monospace",
-                cursor: "pointer",
-              }}
-            >
-              <Cpu size={12} />
-              <span>TWIN RESIDUAL OVERLAY</span>
-            </button>
-          </div>
-
-          <span className="badge-live-pulse" style={{ fontSize: "0.68rem", padding: "0.25rem 0.55rem" }}>
-            LIVE 1 Hz STREAM
-          </span>
-        </div>
-      </div>
-
+      }
+    >
       {telemetryMode === "residual" ? (
-        <div style={{ height: "600px" }}>
+        <div style={{ flex: 1, minHeight: "500px" }}>
           <DigitalTwinResidualChart />
         </div>
       ) : (
@@ -130,6 +124,6 @@ export default function LiveTelemetryView({ payload }: LiveTelemetryViewProps) {
           </div>
         </div>
       )}
-    </div>
+    </PageLayout>
   );
 }

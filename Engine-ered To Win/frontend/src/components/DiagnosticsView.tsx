@@ -5,6 +5,8 @@ import { UnifiedTelemetryPayload } from "../types/telemetry";
 import SensorDiagnosisPanel from "./SensorDiagnosisPanel";
 import DiagnosisPanel from "./DiagnosisPanel";
 import FeatureContributionPanel from "./FeatureContributionPanel";
+import PageLayout from "./common/PageLayout";
+import { Cpu } from "lucide-react";
 
 interface DiagnosticsViewProps {
   payload: UnifiedTelemetryPayload;
@@ -37,34 +39,46 @@ export default function DiagnosticsView({ payload }: DiagnosticsViewProps) {
     sensor_diagnosis: payload.sensor_diagnosis,
   };
 
+  const isNominal = (payload.sensor_diagnosis?.diagnosis_type || "NORMAL") === "NORMAL";
+
   return (
-    <div className="view-container diagnostics-view">
-      <div className="view-header-strip">
-        <div>
-          <h2 className="view-title"><strong>SUBSYSTEM DIAGNOSTICS &amp; SENSOR FAULT ISOLATION</strong></h2>
-          <p className="view-subtitle">Cross-sensor regression modeling, physics health verification, and anomaly root-cause attribution</p>
+    <PageLayout
+      title="Subsystem Diagnostics & Sensor Fault Isolation"
+      subtitle="Cross-sensor regression modeling, physics health verification, and anomaly root-cause attribution"
+      icon={<Cpu size={18} />}
+      tags={
+        <span
+          className="nav-tag"
+          style={{
+            color: isNominal ? "var(--status-nominal)" : "var(--status-caution)",
+            borderColor: "var(--border)",
+            fontFamily: "var(--font-mono), monospace",
+          }}
+        >
+          DIAGNOSIS: {payload.sensor_diagnosis?.diagnosis_type || "NORMAL"}
+        </span>
+      }
+    >
+      {/* Balanced 2-Column Responsive Layout */}
+      <div
+        className="diagnostics-two-col-grid"
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1.1fr 1fr",
+          gap: "0.85rem",
+          flex: 1,
+          minHeight: 0,
+          alignItems: "start",
+        }}
+      >
+        {/* Left Column: Diagnostics Panels */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
+          <DiagnosisPanel telemetry={flatTelemetry} />
+          <SensorDiagnosisPanel telemetry={flatTelemetry} />
         </div>
-        <div className="diag-header-status">
-          <span className="status-label"><strong>CURRENT DIAGNOSIS:</strong></span>
-          <span className={`status-val status-${(payload.sensor_diagnosis?.diagnosis_type || "normal").toLowerCase()}`}>
-            <strong>{payload.sensor_diagnosis?.diagnosis_type || "NORMAL"}</strong>
-          </span>
-        </div>
-      </div>
 
-      <div className="diagnostics-view-grid">
-        {/* Row 1: Left Sensor vs Engine Diagnosis | Right Subsystem Physics Health & PHM Matrix */}
-        <div className="diag-top-row">
-          <div className="diag-col">
-            <SensorDiagnosisPanel telemetry={flatTelemetry} />
-          </div>
-          <div className="diag-col">
-            <DiagnosisPanel telemetry={flatTelemetry} />
-          </div>
-        </div>
-
-        {/* Row 2: Top Contributing Features (SHAP / Gradient Feature Attribution) */}
-        <div className="diag-bottom-row">
+        {/* Right Column: SHAP Feature Attribution & Gradients */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
           <FeatureContributionPanel
             features={payload.contributing_features || []}
             telemetry={flatTelemetry}
@@ -72,6 +86,6 @@ export default function DiagnosticsView({ payload }: DiagnosticsViewProps) {
           />
         </div>
       </div>
-    </div>
+    </PageLayout>
   );
 }
