@@ -2,6 +2,7 @@
 
 import React from "react";
 import { PrognosticsData } from "../types/telemetry";
+import { getRulZone } from "@/lib/limits";
 
 interface RulPrognosticsGaugeProps {
   prognostics: PrognosticsData;
@@ -12,25 +13,16 @@ export default function RulPrognosticsGauge({ prognostics }: RulPrognosticsGauge
   const currentRul = Math.max(0, prognostics.predicted_rul || 0);
   const rulPct = Math.min(100, Math.max(0, (currentRul / maxLife) * 100));
 
-  // Determine current zone
-  let zoneColor = "#10b981";
-  let zoneLabel = "HEALTHY";
-  if (currentRul < 30) {
-    zoneColor = "#ef4444";
-    zoneLabel = "CRITICAL";
-  } else if (currentRul < 75) {
-    zoneColor = "#f97316";
-    zoneLabel = "HIGH RISK";
-  } else if (currentRul < 130) {
-    zoneColor = "#f59e0b";
-    zoneLabel = "DEGRADING";
-  }
+  // Determine current zone strictly from limits.ts
+  const zone = getRulZone(currentRul);
+  const zoneColor = zone.color;
+  const zoneLabel = zone.label;
 
   const trendValue = prognostics.degradation_trend || "Stable";
   const trendColor =
     trendValue === "Accelerating"
       ? "#ef4444"
-      : trendValue === "Decelerating"
+      : trendValue === "Decreasing"
       ? "#f59e0b"
       : "#10b981";
 
@@ -90,12 +82,12 @@ export default function RulPrognosticsGauge({ prognostics }: RulPrognosticsGauge
             <div className="rul-progress-marker" style={{ left: "52%" }} />
           </div>
 
-          {/* Zone Legend */}
+          {/* Zone Legend from limits.ts */}
           <div className="rul-zone-legend">
-            <span className="zone-tag zone-red">0–30 CRITICAL</span>
-            <span className="zone-tag zone-orange">30–75 HIGH RISK</span>
-            <span className="zone-tag zone-yellow">75–130 DEGRADING</span>
-            <span className="zone-tag zone-green">130–250 HEALTHY</span>
+            <span className="zone-tag zone-red">0–15 FAILURE</span>
+            <span className="zone-tag zone-orange">15–50 CRITICAL</span>
+            <span className="zone-tag zone-yellow">50–125 DEGRADING</span>
+            <span className="zone-tag zone-green">125–250 HEALTHY</span>
           </div>
 
           {/* Time remaining pill */}

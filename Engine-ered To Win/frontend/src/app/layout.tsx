@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Chakra_Petch, Inter, JetBrains_Mono } from "next/font/google";
+import { TelemetryProvider } from "@/context/TelemetryContext";
 import "./globals.css";
 
 const chakraPetch = Chakra_Petch({
@@ -32,7 +33,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${chakraPetch.variable} ${inter.variable} ${jetbrainsMono.variable}`}>
-      <body>{children}</body>
+      <body>
+        <TelemetryProvider>
+          {children}
+        </TelemetryProvider>
+      </body>
     </html>
   );
 }

@@ -3867,24 +3867,250 @@
             .maintenance-grid {
                 grid-template-columns: 1fr;
             }
+        /* ==================================================== */
+        /* PHASE 1: FAULT INJECTION PANEL & SIMULATION BANNER   */
+        /* ==================================================== */
+        .simulation-active-banner {
+            background: linear-gradient(90deg, rgba(239, 68, 68, 0.25) 0%, rgba(245, 158, 11, 0.2) 100%);
+            border: 1px solid rgba(239, 68, 68, 0.6);
+            border-radius: 8px;
+            padding: 0.6rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.85rem;
+            animation: pulse-border 2s infinite ease-in-out;
         }
 
-        @media (max-width: 900px) {
-            .gcs-sidebar {
-                position: fixed;
-                top: 60px;
-                bottom: 0;
-                left: 0;
-            }
-            .gcs-sidebar.collapsed {
-                left: -64px;
-            }
-            .dashboard-kpi-row {
-                grid-template-columns: 1fr;
-            }
-            .compact-sensors-grid {
+        @keyframes pulse-border {
+            0%, 100% { box-shadow: 0 0 10px rgba(239, 68, 68, 0.25); border-color: rgba(239, 68, 68, 0.6); }
+            50% { box-shadow: 0 0 18px rgba(239, 68, 68, 0.45); border-color: rgba(239, 68, 68, 0.9); }
+        }
+
+        .sim-banner-content {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+        }
+
+        .sim-pulse-dot {
+            width: 9px;
+            height: 9px;
+            background: #ef4444;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #ef4444;
+            animation: pulse 1.2s infinite;
+        }
+
+        .sim-banner-label {
+            font-size: 0.82rem;
+            letter-spacing: 0.5px;
+            color: #f8fafc;
+        }
+
+        .sim-category-tag {
+            font-family: var(--font-jetbrains-mono), monospace;
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 0.15rem 0.45rem;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #38bdf8;
+            border: 1px solid rgba(56, 189, 248, 0.3);
+        }
+
+        .sim-reset-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #f8fafc;
+            padding: 0.35rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .sim-reset-btn:hover {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: #10b981;
+            color: #10b981;
+        }
+
+        .simulation-panel {
+            margin-bottom: 0.85rem;
+        }
+
+        .sim-panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+        }
+
+        .sim-badge-count {
+            font-size: 0.68rem;
+            color: var(--text-muted);
+        }
+
+        .sim-active-indicator {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+        }
+
+        .sim-toggle-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+
+        .simulation-content-body {
+            padding-top: 0.65rem;
+        }
+
+        .sim-instructions-text {
+            font-size: 0.76rem;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+            line-height: 1.4;
+        }
+
+        .simulation-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.65rem;
+        }
+
+        @media (max-width: 1200px) {
+            .simulation-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
         }
+
+        @media (max-width: 768px) {
+            .simulation-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .scenario-card {
+            background: rgba(14, 21, 38, 0.75);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 0.65rem 0.8rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .scenario-card:hover {
+            border-color: var(--accent-cyan);
+            background: rgba(20, 32, 56, 0.85);
+            transform: translateY(-1px);
+        }
+
+        .scenario-card.active {
+            border-color: #ef4444;
+            background: rgba(239, 68, 68, 0.12);
+            box-shadow: 0 0 12px rgba(239, 68, 68, 0.25);
+        }
+
+        .scenario-card.active.nominal-card {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.12);
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.25);
+        }
+
+        .scenario-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .scenario-card-label {
+            font-size: 0.8rem;
+            color: #f8fafc;
+        }
+
+        .scenario-category-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0.1rem 0.4rem;
+            border-radius: 4px;
+        }
+
+        .scenario-card-desc {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            line-height: 1.35;
+        }
+
+        .scenario-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.65rem;
+            font-family: var(--font-jetbrains-mono), monospace;
+            color: var(--text-muted);
+            margin-top: 0.2rem;
+            padding-top: 0.35rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .active-tag-pill {
+            color: #f8fafc;
+            background: rgba(239, 68, 68, 0.3);
+            border: 1px solid #ef4444;
+            padding: 0.08rem 0.35rem;
+            border-radius: 3px;
+            font-weight: 700;
+        }
+
+        /* Link-State Overlays and Dimming */
+        .telemetry-stale {
+            opacity: 0.6;
+            transition: opacity 0.5s ease;
+        }
+
+        .chart-stale-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(7, 11, 20, 0.65);
+            backdrop-filter: blur(2px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            border-radius: 8px;
+            pointer-events: none;
+        }
+
+        .chart-stale-badge {
+            background: rgba(245, 158, 11, 0.15);
+            border: 1px solid rgba(245, 158, 11, 0.4);
+            color: #f59e0b;
+            font-family: var(--font-jetbrains-mono), monospace;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+        }
+
+        /* Numeric alignment & typography */
+        .font-mono, .card-val, .kpi-big-num, .time-digits {
+            font-variant-numeric: tabular-nums;
+        }
+
 
 
