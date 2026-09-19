@@ -46,6 +46,11 @@
     /* Schematic ivory stroke tokens (ivory at ~55% opacity) */
     --schematic-stroke: rgba(242, 239, 233, 0.55);
     --schematic-stroke-subtle: rgba(242, 239, 233, 0.35);
+
+    /* Typography font variables */
+    --font-inter: var(--font-sans);
+    --font-chakra-petch: var(--font-sans);
+    --font-jetbrains-mono: var(--font-mono);
 }
 
 
@@ -85,12 +90,12 @@ input, select, textarea {
 
 
         body {
-            background-color: var(--bg-base);
+            background-color: var(--bg);
             background-image: none;
-            color: var(--text-primary);
-            font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            font-size: 0.8125rem; /* 13px baseline */
-            line-height: 1.5;
+            color: var(--text);
+            font-family: var(--font-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-size: 14px;
+            line-height: 20px;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -99,20 +104,99 @@ input, select, textarea {
             -moz-osx-font-smoothing: grayscale;
         }
 
-        /* Headings: Aerospace HUD styling with readable letter spacing */
-        h1, h2, h3, h4, h5, h6 {
-            font-family: var(--font-chakra-petch), var(--font-inter), sans-serif;
-            font-weight: 700;
-            color: var(--text);
-            letter-spacing: 0.02em;
+        /* Typography Scale (Size / Line-Height) */
+        .text-caption, .micro-label, .caption, small {
+            font-size: 12px;
+            line-height: 16px;
         }
 
-        /* Monospace and Tabular Numbers for Telemetry & Metrics */
+        .text-table, table td, table th {
+            font-size: 13px;
+            line-height: 18px;
+        }
+
+        .text-body, p {
+            font-size: 14px;
+            line-height: 20px;
+        }
+
+        .card-title, .panel-title, h3, h4 {
+            font-family: var(--font-sans), sans-serif;
+            font-size: 16px;
+            line-height: 24px;
+            font-weight: 600;
+            text-transform: none;
+            letter-spacing: normal;
+        }
+
+        .page-title, h1, h2 {
+            font-family: var(--font-sans), sans-serif;
+            font-size: 20px;
+            line-height: 28px;
+            font-weight: 600;
+            text-transform: none;
+            letter-spacing: normal;
+        }
+
+        .kpi-value, .metric-value-lg {
+            font-family: var(--font-sans), sans-serif;
+            font-size: 28px;
+            line-height: 32px;
+            font-weight: 600;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .hero-number, .kpi-big-num {
+            font-family: var(--font-sans), sans-serif;
+            font-size: clamp(28px, 3.5vw, 40px);
+            line-height: clamp(32px, 4vw, 44px);
+            font-weight: 600;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Headings: Sentence case, weight 600, normal letter spacing (no bold all-caps) */
+        h1, h2, h3, h4, h5, h6 {
+            font-family: var(--font-sans), sans-serif;
+            font-weight: 600;
+            color: var(--text);
+            text-transform: none;
+            letter-spacing: normal;
+        }
+
+        /* Uppercase ONLY for 12px sidebar group labels */
+        .sidebar-group-label {
+            font-size: 12px !important;
+            line-height: 16px !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.06em !important;
+            color: var(--text-muted) !important;
+            font-weight: 600 !important;
+        }
+
+        /* Monospace and Tabular Numbers for Live Telemetry, Tables, Timestamps & Axis */
         .font-mono, code, pre, [data-font="mono"], .tabular-nums,
-        .metric-value, .metric-number, .gauge-value, .kpi-value,
-        .sensor-val, .telemetry-val {
-            font-family: var(--font-jetbrains-mono), monospace !important;
+        .metric-value, .metric-number, .gauge-value,
+        .sensor-val, .telemetry-val, .timestamp, .axis-tick,
+        .chart-tick, .mono-data {
+            font-family: var(--font-mono), monospace !important;
             font-variant-numeric: tabular-nums lining-nums;
+        }
+
+        /* Numeric table columns: right-aligned with tabular numbers */
+        table td.numeric, table th.numeric,
+        .table-cell-numeric, .numeric-col {
+            text-align: right;
+            font-family: var(--font-mono), monospace;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Units: smaller, muted, next to value ("142 °C"), never glued to labels */
+        .unit, span.unit, .metric-unit {
+            font-size: 0.82em;
+            color: var(--text-muted);
+            font-weight: 400;
+            margin-left: 0.25rem;
+            display: inline-block;
         }
 
         /* Accessibility: Interactive Focus-Visible Ring */
