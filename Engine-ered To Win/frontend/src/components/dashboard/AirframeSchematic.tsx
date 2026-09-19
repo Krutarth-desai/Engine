@@ -66,8 +66,8 @@ export default function AirframeSchematic({
   const busVoltageColor = busVoltageStatus === "NORMAL" ? nominalStroke : getStatusColor(busVoltageStatus);
   const injTimingColor = injTimingStatus === "NORMAL" ? nominalStroke : getStatusColor(injTimingStatus);
 
-  // Pusher prop spin duration
-  const spinDuration = Math.max(0.06, 60 / Math.max(rpm, 800));
+  // Pusher prop spin duration: slowed down to a smooth, elegant, readable digital twin rotation
+  const spinDuration = 3.2;
 
   // Zoom & Pan transform for inner stage
   let gTransform = "none";
@@ -216,106 +216,218 @@ export default function AirframeSchematic({
             transition: "transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)",
           }}
         >
-          {/* 1. MALE UAV AERODYNAMIC AIRFRAME (Carbon Navy & Sky Blue lines) */}
+          {/* 1. MALE UAV AERODYNAMIC AIRFRAME (Authentic High-Aspect-Ratio Glider Wings) */}
           <g id="uav-wings">
-            {/* Port (Upper) Wing */}
-            <polygon
-              points="270,154 286,28 316,25 328,154"
-              fill="url(#wingSurfaceGrad)"
+            {/* Wing Carbon/Titanium Main Spar running tip-to-tip */}
+            <line
+              x1="289"
+              y1="16"
+              x2="289"
+              y2="344"
               stroke="var(--schematic-stroke)"
               strokeWidth="1.2"
+              strokeDasharray="4,3"
+              opacity="0.4"
             />
-            {/* Port Upswept Winglet */}
+
+            {/* Port (Upper) Wing: Slender High-Aspect-Ratio Aerofoil */}
             <polygon
-              points="286,28 290,14 312,16 316,25"
+              points="270,152 284,16 302,16 326,152"
+              fill="url(#wingSurfaceGrad)"
+              stroke="var(--schematic-stroke)"
+              strokeWidth="1.3"
+            />
+            {/* Port Wing Root Fairing */}
+            <path
+              d="M 252,154 C 262,154 270,152 270,152 L 326,152 C 326,152 334,154 344,154 Z"
+              fill="url(#wingSurfaceGrad)"
+              stroke="var(--schematic-stroke)"
+              strokeWidth="0.9"
+            />
+            {/* Port Upswept Aerodynamic Winglet */}
+            <polygon
+              points="284,16 286,6 304,8 302,16"
               fill="var(--surface-1)"
               stroke="var(--schematic-stroke)"
               strokeWidth="1.2"
             />
             {/* Port Navigation Strobe Light (Red) */}
-            <circle cx="288" cy="18" r="3" fill="var(--status-warning)" />
+            <circle cx="286" cy="7" r="2.5" fill="var(--status-warning)" />
 
-            {/* Port Inboard Fowler Flap */}
-            <line x1="316" y1="154" x2="319" y2="92" stroke="var(--schematic-stroke-subtle)" strokeWidth="1.2" strokeDasharray="3,2" />
-            {/* Port Outboard Aileron */}
-            <line x1="319" y1="92" x2="317" y2="30" stroke="var(--schematic-stroke-subtle)" strokeWidth="1.2" strokeDasharray="3,2" />
-            {/* Port Underwing Weapons/Sensor Pylon */}
-            <rect x="296" y="86" width="16" height="5" rx="1.5" fill="var(--surface-2)" stroke="var(--schematic-stroke)" strokeWidth="0.8" />
+            {/* Port Inboard Fowler Flap Line */}
+            <line
+              x1="322"
+              y1="152"
+              x2="311"
+              y2="82"
+              stroke="var(--schematic-stroke-subtle)"
+              strokeWidth="1.1"
+              strokeDasharray="3,2"
+            />
+            {/* Port Outboard Aileron Line */}
+            <line
+              x1="311"
+              y1="82"
+              x2="302"
+              y2="20"
+              stroke="var(--schematic-stroke-subtle)"
+              strokeWidth="1.1"
+              strokeDasharray="3,2"
+            />
+            {/* Port Underwing Store / Sensor Pylon */}
+            <rect
+              x="288"
+              y="78"
+              width="18"
+              height="5"
+              rx="1.5"
+              fill="var(--surface-2)"
+              stroke="var(--schematic-stroke)"
+              strokeWidth="0.8"
+            />
 
-            {/* Starboard (Lower) Wing */}
+            {/* Starboard (Lower) Wing: Slender High-Aspect-Ratio Aerofoil */}
             <polygon
-              points="270,206 286,332 316,335 328,206"
+              points="270,208 284,344 302,344 326,208"
               fill="url(#wingSurfaceGrad)"
               stroke="var(--schematic-stroke)"
-              strokeWidth="1.2"
+              strokeWidth="1.3"
             />
-            {/* Starboard Upswept Winglet */}
+            {/* Starboard Wing Root Fairing */}
+            <path
+              d="M 252,206 C 262,206 270,208 270,208 L 326,208 C 326,208 334,206 344,206 Z"
+              fill="url(#wingSurfaceGrad)"
+              stroke="var(--schematic-stroke)"
+              strokeWidth="0.9"
+            />
+            {/* Starboard Upswept Aerodynamic Winglet */}
             <polygon
-              points="286,332 290,346 312,344 316,335"
+              points="284,344 286,354 304,352 302,344"
               fill="var(--surface-1)"
               stroke="var(--schematic-stroke)"
               strokeWidth="1.2"
             />
             {/* Starboard Navigation Strobe Light (Green) */}
-            <circle cx="288" cy="342" r="3" fill="var(--accent)" />
+            <circle cx="286" cy="353" r="2.5" fill="var(--status-nominal)" />
 
-            {/* Starboard Inboard Fowler Flap */}
-            <line x1="316" y1="206" x2="319" y2="268" stroke="var(--schematic-stroke-subtle)" strokeWidth="1.2" strokeDasharray="3,2" />
-            {/* Starboard Outboard Aileron */}
-            <line x1="319" y1="268" x2="317" y2="330" stroke="var(--schematic-stroke-subtle)" strokeWidth="1.2" strokeDasharray="3,2" />
-            {/* Starboard Underwing Weapons/Sensor Pylon */}
-            <rect x="296" y="269" width="16" height="5" rx="1.5" fill="var(--surface-2)" stroke="var(--schematic-stroke)" strokeWidth="0.8" />
-
-            {/* Wing Main Titanium Spar */}
-            <line x1="298" y1="30" x2="298" y2="330" stroke="var(--schematic-stroke)" strokeWidth="1" strokeDasharray="4,3" opacity="0.4" />
+            {/* Starboard Inboard Fowler Flap Line */}
+            <line
+              x1="322"
+              y1="208"
+              x2="311"
+              y2="278"
+              stroke="var(--schematic-stroke-subtle)"
+              strokeWidth="1.1"
+              strokeDasharray="3,2"
+            />
+            {/* Starboard Outboard Aileron Line */}
+            <line
+              x1="311"
+              y1="278"
+              x2="302"
+              y2="340"
+              stroke="var(--schematic-stroke-subtle)"
+              strokeWidth="1.1"
+              strokeDasharray="3,2"
+            />
+            {/* Starboard Underwing Store / Sensor Pylon */}
+            <rect
+              x="288"
+              y="277"
+              width="18"
+              height="5"
+              rx="1.5"
+              fill="var(--surface-2)"
+              stroke="var(--schematic-stroke)"
+              strokeWidth="0.8"
+            />
           </g>
 
-          {/* Inverted V-Tail Empennage (Predator / Heron MALE configuration) */}
+          {/* Inverted V-Tail Empennage (Predator / Reaper MALE configuration) */}
           <g id="uav-vtail">
             {/* Upper Inverted V-Stabilizer Fin */}
             <polygon
-              points="480,166 558,102 574,105 528,172"
+              points="476,163 566,86 580,90 528,170"
               fill="var(--surface-1)"
               stroke="var(--schematic-stroke)"
               strokeWidth="1.2"
             />
-            <line x1="550" y1="104" x2="515" y2="171" stroke="var(--schematic-stroke)" strokeWidth="0.9" strokeDasharray="3,2" />
+            {/* Upper Ruddervator Control Surface Hinge */}
+            <line
+              x1="572"
+              y1="89"
+              x2="522"
+              y2="169"
+              stroke="var(--schematic-stroke-subtle)"
+              strokeWidth="0.9"
+              strokeDasharray="3,2"
+            />
 
             {/* Lower Inverted V-Stabilizer Fin */}
             <polygon
-              points="480,194 558,258 574,255 528,188"
+              points="476,197 566,274 580,270 528,190"
               fill="var(--surface-1)"
               stroke="var(--schematic-stroke)"
               strokeWidth="1.2"
             />
-            <line x1="550" y1="256" x2="515" y2="189" stroke="var(--schematic-stroke)" strokeWidth="0.9" strokeDasharray="3,2" />
+            {/* Lower Ruddervator Control Surface Hinge */}
+            <line
+              x1="572"
+              y1="271"
+              x2="522"
+              y2="191"
+              stroke="var(--schematic-stroke-subtle)"
+              strokeWidth="0.9"
+              strokeDasharray="3,2"
+            />
+
+            {/* Ventral Propeller Ground Strike Guard / Skid */}
+            <polygon
+              points="518,178 554,178 550,186 524,186"
+              fill="var(--surface-2)"
+              stroke="var(--schematic-stroke)"
+              strokeWidth="1"
+            />
           </g>
 
-          {/* Slender Aerodynamic Composite Fuselage */}
+          {/* Smooth Continuous Aerodynamic Fuselage (MALE UAV Bulbous Radome & Tapered Nacelle) */}
           <path
-            d="M 75,180 C 75,160 98,152 145,152 L 265,153 L 278,149 L 335,142 L 470,146 L 540,172 L 565,176 L 565,184 L 540,188 L 470,214 L 335,218 L 278,211 L 265,207 L 145,208 C 98,208 75,200 75,180 Z"
+            d="M 60,180
+               C 60,166 84,152 130,152
+               C 170,152 200,155 240,155
+               C 255,155 264,151 300,151
+               C 340,151 350,149 395,149
+               C 440,149 470,154 505,163
+               C 525,167 544,174 558,175
+               L 558,185
+               C 544,186 525,193 505,197
+               C 470,206 440,211 395,211
+               C 350,211 340,209 300,209
+               C 264,209 255,205 240,205
+               C 200,205 170,208 130,208
+               C 84,208 60,194 60,180 Z"
             fill="url(#fuselageBodyGrad)"
             stroke="var(--schematic-stroke)"
             strokeWidth="1.4"
           />
 
-          {/* Centerline Reference Axis */}
-          <line x1="55" y1="180" x2="570" y2="180" stroke="var(--border)" strokeDasharray="6,4" />
+          {/* Longitudinal Centerline Reference Axis */}
+          <line x1="32" y1="180" x2="568" y2="180" stroke="var(--border)" strokeDasharray="6,4" opacity="0.6" />
 
-          {/* Pitot-Static Probe Needle */}
-          <line x1="42" y1="180" x2="75" y2="180" stroke="var(--schematic-stroke)" strokeWidth="1.8" />
-          <circle cx="42" cy="180" r="1.8" fill="var(--accent)" />
+          {/* Nose Pitot-Static Probe Needle */}
+          <line x1="32" y1="180" x2="60" y2="180" stroke="var(--schematic-stroke)" strokeWidth="1.8" />
+          <circle cx="32" cy="180" r="2" fill="var(--accent)" />
 
-          {/* Forward Chin EO/IR Gimbal Turret (FLIR Sapphire Optics) */}
+          {/* Forward Chin EO/IR Gimbal Turret (FLIR Sapphire Optical Window) */}
           <g id="chin-flir-turret">
-            <circle cx="112" cy="180" r="16" fill="var(--surface-1)" stroke="var(--text-faint)" strokeWidth="1.4" />
-            <circle cx="112" cy="180" r="9" fill="var(--surface-2)" stroke="var(--schematic-stroke)" strokeWidth="1" />
-            <circle cx="114" cy="178" r="4.5" fill="var(--accent)" />
-            <circle cx="115" cy="177" r="1.5" fill="var(--text)" opacity="0.7" />
-            <rect x="104" y="174" width="3" height="6" rx="1" fill="var(--status-caution)" />
+            <circle cx="95" cy="180" r="14" fill="var(--surface-1)" stroke="var(--text-faint)" strokeWidth="1.3" />
+            <circle cx="95" cy="180" r="8" fill="var(--surface-2)" stroke="var(--schematic-stroke)" strokeWidth="1" />
+            <circle cx="97" cy="178" r="4" fill="var(--accent)" />
+            <circle cx="98" cy="177" r="1.5" fill="var(--text)" opacity="0.8" />
+            <rect x="88" y="175" width="2.5" height="5" rx="1" fill="var(--status-caution)" />
           </g>
 
-          {/* Forward SATCOM Radome & Avionics Bus (Dielectric / Gold Foil) */}
+          {/* Forward SATCOM Radome & Avionics Bus (Dielectric Arc) */}
           <g
             id="hotspot-avionics"
             className="schematic-hotspot"
@@ -333,14 +445,14 @@ export default function AirframeSchematic({
             onMouseLeave={() => setHoveredPart(null)}
           >
             <path
-              d="M 80,180 C 80,165 98,158 135,158 L 145,158 L 145,202 L 135,202 C 98,202 80,195 80,180 Z"
+              d="M 68,180 C 68,168 85,156 120,156 L 140,156 L 140,204 L 120,204 C 85,204 68,192 68,180 Z"
               fill={focusedComponent === "bus_voltage" ? "var(--surface-3)" : "var(--surface-2)"}
               stroke={focusedComponent === "bus_voltage" ? "var(--accent)" : "var(--border)"}
               strokeWidth={focusedComponent === "bus_voltage" ? 2 : 1}
             />
             {/* Gold Kapton Dielectric Antenna Arc */}
-            <path d="M 124,168 C 133,174 133,186 124,192" fill="none" stroke="var(--status-caution)" strokeWidth="1.8" />
-            <circle cx="130" cy="180" r="2.5" fill={busVoltageColor} />
+            <path d="M 116,168 C 126,174 126,186 116,192" fill="none" stroke="var(--status-caution)" strokeWidth="1.8" />
+            <circle cx="122" cy="180" r="2.5" fill={busVoltageColor} />
           </g>
 
           {/* Mid-Fuselage Main Fuel Bladder Cell & Fuel Feed Rail (Emerald Theme) */}
@@ -714,47 +826,90 @@ export default function AirframeSchematic({
             {/* Propeller Drive Shaft */}
             <rect x="548" y="177" width="14" height="6" fill="var(--text-muted)" stroke="var(--text-faint)" strokeWidth="0.8" />
 
-            {/* Mirror Chrome Aerodynamic Spinner */}
-            <path d="M 562,173 L 577,180 L 562,187 Z" fill="var(--text)" stroke="var(--text-muted)" strokeWidth="1.2" />
+            {/* Aerodynamic Pusher Propeller Spinner */}
+            <path
+              d="M 558,174 C 567,176 575,178 578,180 C 575,182 567,184 558,186 Z"
+              fill="var(--surface-3)"
+              stroke="var(--text-muted)"
+              strokeWidth="1.2"
+            />
 
-            {/* Spinning Propeller Disc Blur Ring */}
+            {/* Refined Propeller Sweep Disc */}
             <ellipse
-              cx="562"
+              cx="558"
               cy="180"
               rx="5"
               ry="48"
               fill="none"
-              stroke={rpmColor}
-              strokeWidth="1.2"
-              strokeDasharray="5,3"
-              opacity="0.55"
+              stroke="var(--schematic-stroke-subtle)"
+              strokeWidth="1"
+              strokeDasharray="4,4"
+              opacity="0.35"
             />
 
-            {/* Rotating 3-Blade Propeller with High-Visibility Hazard Yellow Safety Tips */}
-            <g transform="translate(562, 180)">
+            {/* Rotating 3-Blade Scimitar Pusher Propeller (Slowed down to 3.2s) */}
+            <g transform="translate(558, 180)">
               <g
                 style={{
                   transformOrigin: "0 0",
                   animation: `spin-propeller ${spinDuration}s linear infinite`,
                 }}
               >
-                {/* Blade 1 */}
-                <path d="M 0,-4 L 3,-46 L -3,-46 Z" fill="var(--surface-2)" stroke="var(--surface-3)" strokeWidth="0.5" />
-                {/* Yellow Safety Tip */}
-                <rect x="-3" y="-46" width="6" height="5" fill="var(--status-caution)" stroke="var(--status-caution)" strokeWidth="0.5" />
+                {/* Blade 1 (0 deg, Upper) */}
+                <g transform="rotate(0)">
+                  <path
+                    d="M -3.5,-4 C -3,-18 -1,-32 1.5,-46 L 6,-46 C 4,-32 1,-18 3.5,-4 Z"
+                    fill="var(--surface-2)"
+                    stroke="var(--schematic-stroke)"
+                    strokeWidth="0.8"
+                  />
+                  <path
+                    d="M 1.5,-46 L 6,-46 L 5.5,-40 L 1.8,-40 Z"
+                    fill="var(--status-caution)"
+                    stroke="var(--status-caution)"
+                    strokeWidth="0.5"
+                  />
+                </g>
 
-                {/* Blade 2 */}
-                <path d="M 3,2 L 40,24 L 37,29 Z" fill="var(--surface-2)" stroke="var(--surface-3)" strokeWidth="0.5" />
-                <rect x="36" y="22" width="5" height="5" fill="var(--status-caution)" stroke="var(--status-caution)" strokeWidth="0.5" />
+                {/* Blade 2 (120 deg, Lower Right) */}
+                <g transform="rotate(120)">
+                  <path
+                    d="M -3.5,-4 C -3,-18 -1,-32 1.5,-46 L 6,-46 C 4,-32 1,-18 3.5,-4 Z"
+                    fill="var(--surface-2)"
+                    stroke="var(--schematic-stroke)"
+                    strokeWidth="0.8"
+                  />
+                  <path
+                    d="M 1.5,-46 L 6,-46 L 5.5,-40 L 1.8,-40 Z"
+                    fill="var(--status-caution)"
+                    stroke="var(--status-caution)"
+                    strokeWidth="0.5"
+                  />
+                </g>
 
-                {/* Blade 3 */}
-                <path d="M -3,2 L -40,24 L -37,29 Z" fill="var(--surface-2)" stroke="var(--surface-3)" strokeWidth="0.5" />
-                <rect x="-41" y="22" width="5" height="5" fill="var(--status-caution)" stroke="var(--status-caution)" strokeWidth="0.5" />
+                {/* Blade 3 (240 deg, Lower Left) */}
+                <g transform="rotate(240)">
+                  <path
+                    d="M -3.5,-4 C -3,-18 -1,-32 1.5,-46 L 6,-46 C 4,-32 1,-18 3.5,-4 Z"
+                    fill="var(--surface-2)"
+                    stroke="var(--schematic-stroke)"
+                    strokeWidth="0.8"
+                  />
+                  <path
+                    d="M 1.5,-46 L 6,-46 L 5.5,-40 L 1.8,-40 Z"
+                    fill="var(--status-caution)"
+                    stroke="var(--status-caution)"
+                    strokeWidth="0.5"
+                  />
+                </g>
+
+                {/* Central Propeller Hub Boss */}
+                <circle cx="0" cy="0" r="4.5" fill="var(--surface-3)" stroke="var(--border-strong)" strokeWidth="1" />
               </g>
             </g>
 
             {/* Propeller RPM Sensor Node */}
-            <circle cx="562" cy="180" r="4" fill={rpmColor} />
+            <circle cx="558" cy="180" r="3.5" fill={rpmColor} />
 
             {viewMode === "engine" && (
               <text x="532" y="170" fill="var(--border-strong)" fontSize="5.5" fontFamily="var(--font-mono), monospace" fontWeight="700">

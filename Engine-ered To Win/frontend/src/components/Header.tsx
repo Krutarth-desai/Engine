@@ -115,35 +115,47 @@ export default function Header({
         style={{
           display: "flex",
           alignItems: "center",
-          gap: "0.65rem",
+          gap: "0.85rem",
+          background: "var(--surface-2)",
+          border: "1px solid var(--border)",
+          borderRadius: "6px",
+          padding: "0 0.75rem",
+          height: "30px",
           whiteSpace: "nowrap",
           flexWrap: "nowrap",
-          flexShrink: 1,
-          minWidth: 0,
-          margin: "0 0.5rem",
+          flexShrink: 0,
+          boxSizing: "border-box",
         }}
       >
-        <div className="metric-chip" style={{ flexShrink: 0 }}>
-          <span className="metric-label">TAIL</span>
-          <span className="metric-value text-cyan"><strong>{vehicleId}</strong></span>
-        </div>
-        <div className="metric-chip mission-chip-optional" style={{ flexShrink: 0 }}>
-          <span className="metric-label">MISSION</span>
-          <span className="metric-value text-blue" style={{ fontSize: "0.75rem" }}>{missionId}</span>
-        </div>
-        <div className="metric-chip" style={{ flexShrink: 0 }}>
-          <span className="metric-label">MODE</span>
-          <span className="metric-value" style={{ color: "var(--status-nominal)", fontSize: "0.72rem" }}>
-            <strong>CRUISE</strong>
+        <div className="metric-chip" style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
+          <span className="metric-label" style={{ fontSize: "10.5px", color: "var(--text-faint)", fontFamily: "var(--font-mono), monospace", fontWeight: 600 }}>TAIL</span>
+          <span className="metric-value" style={{ fontSize: "12px", color: "var(--text)", fontFamily: "var(--font-mono), monospace", fontWeight: 700 }}>
+            {vehicleId}
           </span>
         </div>
-        <div className="metric-chip" style={{ flexShrink: 0 }}>
-          <span className="metric-label">ALT</span>
-          <span className="metric-value font-mono">{altitude >= 10000 ? `${(altitude / 1000).toFixed(0)}K` : altitude.toLocaleString()} FT</span>
+        <div className="metric-chip mission-chip-optional" style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
+          <span className="metric-label" style={{ fontSize: "10.5px", color: "var(--text-faint)", fontFamily: "var(--font-mono), monospace", fontWeight: 600 }}>MISSION</span>
+          <span className="metric-value" style={{ fontSize: "12px", color: "var(--text-muted)", fontFamily: "var(--font-mono), monospace", fontWeight: 600 }}>
+            {missionId}
+          </span>
         </div>
-        <div className="metric-chip" style={{ flexShrink: 0 }}>
-          <span className="metric-label">THR</span>
-          <span className="metric-value font-mono">{throttle}%</span>
+        <div className="metric-chip" style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
+          <span className="metric-label" style={{ fontSize: "10.5px", color: "var(--text-faint)", fontFamily: "var(--font-mono), monospace", fontWeight: 600 }}>MODE</span>
+          <span className="metric-value" style={{ fontSize: "11px", color: "var(--status-nominal)", fontFamily: "var(--font-mono), monospace", fontWeight: 700 }}>
+            CRUISE
+          </span>
+        </div>
+        <div className="metric-chip" style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
+          <span className="metric-label" style={{ fontSize: "10.5px", color: "var(--text-faint)", fontFamily: "var(--font-mono), monospace", fontWeight: 600 }}>ALT</span>
+          <span className="metric-value font-mono tabular-nums" style={{ fontSize: "12px", color: "var(--text)", fontWeight: 600 }}>
+            {altitude >= 10000 ? `${(altitude / 1000).toFixed(0)}K` : altitude.toLocaleString()} FT
+          </span>
+        </div>
+        <div className="metric-chip" style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
+          <span className="metric-label" style={{ fontSize: "10.5px", color: "var(--text-faint)", fontFamily: "var(--font-mono), monospace", fontWeight: 600 }}>THR</span>
+          <span className="metric-value font-mono tabular-nums" style={{ fontSize: "12px", color: "var(--text)", fontWeight: 600 }}>
+            {throttle}%
+          </span>
         </div>
       </div>
 
@@ -153,7 +165,7 @@ export default function Header({
         style={{
           display: "flex",
           alignItems: "center",
-          gap: "0.65rem",
+          gap: "0.5rem",
           flexShrink: 0,
           whiteSpace: "nowrap",
         }}
@@ -163,10 +175,22 @@ export default function Header({
           className="header-clock-pill"
           onClick={() => setTimeDisplay(isZulu ? "local" : "zulu")}
           title={`Click to switch to ${isZulu ? "Local" : "Zulu"} time`}
+          style={{
+            height: "30px",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "0.45rem",
+            background: "var(--surface-2)",
+            border: "1px solid var(--border)",
+            borderRadius: "6px",
+            padding: "0 0.6rem",
+            boxSizing: "border-box",
+            cursor: "pointer",
+          }}
         >
           <Clock size={12} style={{ color: "var(--accent)" }} />
-          <span>{clockFormatted}</span>
-          <span style={{ fontSize: "0.6rem", color: isZulu ? "var(--accent)" : "var(--text-muted)", fontWeight: 700 }}>
+          <span style={{ fontSize: "11.5px", fontFamily: "var(--font-mono), monospace", fontVariantNumeric: "tabular-nums", color: "var(--text)" }}>{clockFormatted}</span>
+          <span style={{ fontSize: "10px", color: isZulu ? "var(--accent)" : "var(--text-muted)", fontWeight: 700, fontFamily: "var(--font-mono), monospace" }}>
             {isZulu ? "ZULU" : "LOC"}
           </span>
         </button>
@@ -175,35 +199,39 @@ export default function Header({
         {isSimulationActive ? (
           <div
             style={{
+              height: "30px",
               display: "inline-flex",
               alignItems: "center",
               gap: "0.35rem",
-              background: "var(--surface-1)",
-              border: "1px solid color-mix(in srgb, var(--status-caution) 14%, var(--surface-1))",
+              background: "color-mix(in srgb, var(--status-caution) 12%, var(--surface-1))",
+              border: "1px solid color-mix(in srgb, var(--status-caution) 35%, transparent)",
               color: "var(--status-caution)",
-              borderRadius: "5px",
-              padding: "0.15rem 0.45rem",
-              fontSize: "0.64rem",
+              borderRadius: "6px",
+              padding: "0 0.55rem",
+              fontSize: "11px",
               fontFamily: "var(--font-mono), monospace",
               fontWeight: 700,
+              boxSizing: "border-box",
             }}
           >
-            <AlertTriangle size={11} />
+            <AlertTriangle size={12} />
             <span>SIM: {activeScenario.replace(/_/g, " ").toUpperCase()}</span>
             <button
               onClick={resetScenario}
               title="Reset simulation to nominal baseline"
               style={{
-                background: "var(--border)",
-                border: "none",
+                background: "var(--surface-2)",
+                border: "1px solid var(--border)",
                 color: "var(--text)",
-                borderRadius: "3px",
-                padding: "0.08rem 0.3rem",
+                borderRadius: "4px",
+                padding: "0.1rem 0.35rem",
                 cursor: "pointer",
                 display: "inline-flex",
                 alignItems: "center",
                 gap: "0.2rem",
-                fontSize: "0.6rem",
+                fontSize: "10px",
+                fontFamily: "var(--font-mono), monospace",
+                fontWeight: 600,
               }}
             >
               <RotateCcw size={9} />
@@ -213,55 +241,77 @@ export default function Header({
         ) : (
           <div
             style={{
+              height: "30px",
               display: "inline-flex",
               alignItems: "center",
-              gap: "0.25rem",
-              fontSize: "0.64rem",
+              gap: "0.3rem",
+              fontSize: "11px",
               color: "var(--status-nominal)",
-              background: "var(--border)",
+              background: "var(--surface-2)",
               border: "1px solid var(--border)",
-              borderRadius: "4px",
-              padding: "0.15rem 0.4rem",
+              borderRadius: "6px",
+              padding: "0 0.55rem",
+              boxSizing: "border-box",
               fontFamily: "var(--font-mono), monospace",
+              fontWeight: 700,
             }}
           >
-            <ShieldCheck size={11} />
+            <ShieldCheck size={12} />
             <span>NOMINAL</span>
           </div>
         )}
 
-        {/* Est. Engine Time Remaining (Count down, '-' when stale) */}
+        {/* Est. Engine Time Remaining */}
         <div
           className="remaining-time-badge"
           title="Estimated operational engine time remaining based on active RUL (1 cycle = 60s)"
-          style={{ opacity: isStale ? 0.65 : 1 }}
+          style={{
+            height: "30px",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "0.45rem",
+            background: "var(--surface-2)",
+            border: "1px solid var(--border)",
+            borderRadius: "6px",
+            padding: "0 0.6rem",
+            boxSizing: "border-box",
+            opacity: isStale ? 0.65 : 1,
+          }}
         >
-          <span className="time-icon" style={{ fontSize: "0.72rem" }}>REM:</span>
-          <div className="time-content">
-            <span className="time-label" style={{ fontSize: "0.55rem" }}>EST. ENGINE TIME</span>
-            <span className="time-digits font-mono" id="header-remaining-time">
-              {dynamicRemainingTime}
-            </span>
-          </div>
+          <span style={{ fontSize: "10.5px", color: "var(--text-faint)", fontFamily: "var(--font-mono), monospace", fontWeight: 600 }}>REM</span>
+          <span
+            id="header-remaining-time"
+            style={{
+              fontSize: "12px",
+              fontFamily: "var(--font-mono), monospace",
+              fontWeight: 700,
+              color: "var(--accent)",
+              fontVariantNumeric: "tabular-nums",
+            }}
+          >
+            {dynamicRemainingTime}
+          </span>
         </div>
 
-        {/* Link-State Indicator (Compact chip; reconnecting is amber, not loud red) */}
+        {/* Link-State Indicator */}
         <div
           id="conn-badge"
           className="status-pill"
           role="status"
           aria-live="polite"
           style={{
-            borderColor: `${getLinkColor()}60`,
+            height: "30px",
             color: getLinkColor(),
-            background: `${getLinkColor()}15`,
+            background: "var(--surface-2)",
+            border: "1px solid var(--border)",
             display: "inline-flex",
             alignItems: "center",
             gap: "0.35rem",
-            padding: "0.2rem 0.5rem",
-            borderRadius: "5px",
+            padding: "0 0.55rem",
+            borderRadius: "6px",
+            boxSizing: "border-box",
             fontFamily: "var(--font-mono), monospace",
-            fontSize: "0.68rem",
+            fontSize: "11px",
           }}
           title={`Telemetry Stream State: ${getLinkLabel()} (${relativeTime})`}
         >
@@ -277,12 +327,11 @@ export default function Header({
                 boxShadow: "none",
                 width: "6px",
                 height: "6px",
+                borderRadius: "50%",
               }}
             />
           )}
-          <span>
-            <strong>{getLinkLabel()}</strong>
-          </span>
+          <span style={{ fontWeight: 700 }}>{getLinkLabel()}</span>
         </div>
 
         {/* Modular Operator Profile Dropdown */}

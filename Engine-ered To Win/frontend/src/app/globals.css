@@ -1764,11 +1764,12 @@ input, select, textarea {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0.65rem 1.5rem;
-            background: rgba(10, 16, 30, 0.95);
+            padding: 0 1.25rem;
+            height: 52px;
+            background: var(--surface-1);
             border-bottom: 1px solid var(--border);
-            
             z-index: 50;
+            box-sizing: border-box;
         }
 
         .mission-center-bar {
