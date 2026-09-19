@@ -2,12 +2,14 @@
 
 import React from "react";
 import { FeatureContribution } from "../types/telemetry";
+import { useTelemetry } from "@/context/TelemetryContext";
 
 interface FeatureContributionPanelProps {
   features: FeatureContribution[];
 }
 
 export default function FeatureContributionPanel({ features }: FeatureContributionPanelProps) {
+  const { focusedComponent } = useTelemetry();
   // Sort by magnitude (absolute score) descending
   const sortedFeatures = [...features].sort((a, b) => {
     const magA = Math.abs(a.score);
@@ -52,12 +54,29 @@ export default function FeatureContributionPanel({ features }: FeatureContributi
             const pct = Math.min(100, (mag / maxMag) * 100);
 
             const barColor = isNegative ? "#38bdf8" : feat.direction === "STABLE" ? "#10b981" : "#f43f5e";
+            const isFocused = Boolean(focusedComponent && (
+              feat.name.toLowerCase().includes(focusedComponent.toLowerCase().replace(/_/g, " ")) ||
+              focusedComponent.toLowerCase().includes(feat.name.toLowerCase().split(" ")[0])
+            ));
 
             return (
-              <div key={feat.name} className="feature-bar-row" style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+              <div
+                key={feat.name}
+                className={`feature-bar-row ${isFocused ? "focused-feature-row" : ""}`}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.6rem",
+                  padding: isFocused ? "0.2rem 0.4rem" : "0",
+                  background: isFocused ? "rgba(56, 189, 248, 0.12)" : "transparent",
+                  border: isFocused ? "1px solid rgba(56, 189, 248, 0.4)" : "1px solid transparent",
+                  borderRadius: "4px",
+                  transition: "all 0.2s ease",
+                }}
+              >
                 {/* Feature Name & Direction Indicator */}
                 <div style={{ width: "130px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <span style={{ fontSize: "0.72rem", fontWeight: 700, color: "#f8fafc" }}>
+                  <span style={{ fontSize: "0.72rem", fontWeight: 700, color: isFocused ? "var(--accent-cyan)" : "#f8fafc" }}>
                     {feat.name}
                   </span>
                   <span

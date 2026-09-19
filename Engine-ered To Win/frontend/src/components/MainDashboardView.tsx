@@ -8,7 +8,7 @@ import SensorCard from "./common/SensorCard";
 import { NavView } from "./Sidebar";
 import { SensorKey } from "@/lib/limits";
 import { useTelemetry } from "@/context/TelemetryContext";
-import { BellRing, CheckCircle2, ChevronRight } from "lucide-react";
+import { BellRing, CheckCircle2, ChevronRight, X } from "lucide-react";
 
 interface MainDashboardViewProps {
   payload: UnifiedTelemetryPayload;
@@ -174,6 +174,41 @@ export default function MainDashboardView({
               TIME-SERIES →
             </button>
           </div>
+
+          {focusedComponent && (
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                background: "rgba(56, 189, 248, 0.12)",
+                border: "1px solid rgba(56, 189, 248, 0.35)",
+                borderRadius: "4px",
+                padding: "0.25rem 0.6rem",
+                marginBottom: "0.45rem",
+                fontSize: "0.68rem",
+                color: "var(--accent-cyan)",
+                fontFamily: "'JetBrains Mono', monospace",
+              }}
+            >
+              <span>FOCUS: <strong>{focusedComponent.replace(/_/g, " ").toUpperCase()}</strong></span>
+              <button
+                onClick={() => setFocusedComponent(null)}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  color: "var(--accent-cyan)",
+                  cursor: "pointer",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "0.2rem",
+                  fontSize: "0.65rem",
+                }}
+              >
+                <X size={12} /> CLEAR
+              </button>
+            </div>
+          )}
 
           <div
             className="compact-sensor-card-grid"

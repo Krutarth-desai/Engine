@@ -16,6 +16,7 @@ import RulPrognosticsView from "@/components/RulPrognosticsView";
 import RegressionTrendsView from "@/components/RegressionTrendsView";
 import MaintenanceView from "@/components/MaintenanceView";
 import AlertsView from "@/components/AlertsView";
+import TimeScrubBar from "@/components/common/TimeScrubBar";
 
 interface AeroTwinAppProps {
   initialView?: NavView;
@@ -215,6 +216,7 @@ export default function AeroTwinApp({ initialView = "dashboard" }: AeroTwinAppPr
                 />
               )}
             </main>
+            <TimeScrubBar />
           </div>
         </div>
       )}

@@ -5,7 +5,8 @@ import { PhmAlertItem } from "../types/telemetry";
 import { supabase } from "@/lib/supabase";
 import FaultInjectionPanel from "./common/FaultInjectionPanel";
 import AlertCard, { mapSeverity } from "./alerts/AlertCard";
-import { BellRing, History, CheckCircle2, Filter } from "lucide-react";
+import { BellRing, History, CheckCircle2, Filter, X } from "lucide-react";
+import { useTelemetry } from "@/context/TelemetryContext";
 
 interface AlertsViewProps {
   alerts?: PhmAlertItem[];
@@ -25,6 +26,7 @@ interface AckRecord {
 export default function AlertsView({
   alerts = [],
 }: AlertsViewProps) {
+  const { focusedComponent, setFocusedComponent } = useTelemetry();
   const [activeTab, setActiveTab] = useState<TabType>("ACTIVE");
   const [severityFilter, setSeverityFilter] = useState<SeverityFilter>("ALL");
   const [ackMap, setAckMap] = useState<Record<string, AckRecord>>({});
@@ -147,21 +149,29 @@ export default function AlertsView({
     }
   };
 
-  // Filter alerts by active status & severity
+  const matchesFocus = (a: PhmAlertItem) => {
+    if (!focusedComponent) return true;
+    const text = `${a.title} ${a.message} ${(a as { component?: string }).component || ""}`.toLowerCase();
+    const fc = focusedComponent.toLowerCase().replace(/_/g, " ");
+    return text.includes(fc) || fc.includes(text.split(" ")[0]);
+  };
+
+  // Filter alerts by active status & severity & focused component
   const activeAlerts = alerts.filter((a) => {
     const { display } = mapSeverity(a.level);
     const isNominal = display === "Nominal";
     const isAck = !!ackMap[a.id];
     const matchesSev = severityFilter === "ALL" || display.toUpperCase() === severityFilter;
-    return !isNominal && !isAck && matchesSev;
+    return !isNominal && !isAck && matchesSev && matchesFocus(a);
   });
 
   const totalActiveCount = alerts.filter((a) => {
     const { display } = mapSeverity(a.level);
-    return display !== "Nominal" && !ackMap[a.id];
+    return display !== "Nominal" && !ackMap[a.id] && matchesFocus(a);
   }).length;
 
   const logAlerts = alerts.filter((a) => {
+    if (!matchesFocus(a)) return false;
     if (severityFilter === "ALL") return true;
     const { display } = mapSeverity(a.level);
     return display.toUpperCase() === severityFilter;
@@ -288,6 +298,41 @@ export default function AlertsView({
             </button>
           );
         })}
+
+        {focusedComponent && (
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.4rem",
+              background: "rgba(56, 189, 248, 0.15)",
+              border: "1px solid rgba(56, 189, 248, 0.4)",
+              borderRadius: "4px",
+              padding: "0.2rem 0.55rem",
+              fontSize: "0.68rem",
+              color: "var(--accent-cyan)",
+              fontFamily: "'JetBrains Mono', monospace",
+              fontWeight: 700,
+            }}
+          >
+            <span>FOCUS: {focusedComponent.toUpperCase()}</span>
+            <button
+              onClick={() => setFocusedComponent(null)}
+              style={{
+                background: "transparent",
+                border: "none",
+                color: "var(--accent-cyan)",
+                cursor: "pointer",
+                padding: 0,
+                display: "inline-flex",
+                alignItems: "center",
+              }}
+              title="Clear component focus"
+            >
+              <X size={12} />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Alerts Feed List */}

@@ -37,7 +37,7 @@ export interface TelemetryContextValue {
   setUnitPreference: (pref: UnitPreference) => void;
   setTimeDisplay: (pref: TimeDisplayPreference) => void;
   setFocusedComponent: (comp: string | null) => void;
-  setReplayIndex: (index: number | null) => void;
+  setReplayIndex: React.Dispatch<React.SetStateAction<number | null>>;
 }
 
 const TelemetryContext = createContext<TelemetryContextValue | null>(null);
@@ -224,6 +224,24 @@ function reconcilePayload(raw: UnifiedTelemetryPayload): UnifiedTelemetryPayload
   return copy;
 }
 
+const INITIAL_HISTORY: UnifiedTelemetryPayload[] = Array.from({ length: 30 }, (_, i) => {
+  const cycle = i + 1;
+  const timeOffset = (30 - i) * 60000;
+  const ts = new Date(Date.now() - timeOffset).toISOString();
+  return {
+    ...DEFAULT_PAYLOAD,
+    cycle,
+    timestamp: ts,
+    rpm: 2450 + (i % 5) * 5 - 10,
+    cht_c: 140.0 + (i % 4) * 0.8,
+    egt_c: 610.0 + (i % 6) * 1.5,
+    oil_pressure_bar: 4.69 + (i % 3) * 0.02,
+    oil_temperature_c: 91.0 + (i % 3) * 0.5,
+    fuel_flow_lh: 17.5 + (i % 4) * 0.1,
+    vibration_g: 1.40 + (i % 5) * 0.01,
+  };
+});
+
 export function TelemetryProvider({ children }: { children: React.ReactNode }) {
   const [payload, setPayload] = useState<UnifiedTelemetryPayload>(DEFAULT_PAYLOAD);
   const [lastUpdateAt, setLastUpdateAt] = useState<Date | null>(null);
@@ -234,10 +252,49 @@ export function TelemetryProvider({ children }: { children: React.ReactNode }) {
   const [activeScenario, setActiveScenario] = useState<string>("Normal");
   const [unitPreference, setUnitPreference] = useState<UnitPreference>("psi");
   const [timeDisplay, setTimeDisplay] = useState<TimeDisplayPreference>("local");
-  const [focusedComponent, setFocusedComponent] = useState<string | null>(null);
-  const [historyBuffer, setHistoryBuffer] = useState<UnifiedTelemetryPayload[]>([DEFAULT_PAYLOAD]);
+  const [focusedComponent, setFocusedComponent] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    try {
+      return new URLSearchParams(window.location.search).get("focus");
+    } catch {
+      return null;
+    }
+  });
+  const [historyBuffer, setHistoryBuffer] = useState<UnifiedTelemetryPayload[]>([...INITIAL_HISTORY, DEFAULT_PAYLOAD]);
   const [replayIndex, setReplayIndex] = useState<number | null>(null);
   const isSimulated = true;
+
+  // Listen to popstate for browser back/forward navigation
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handlePopState = () => {
+      try {
+        const f = new URLSearchParams(window.location.search).get("focus");
+        setFocusedComponent(f);
+      } catch {
+        // Ignored
+      }
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  const handleSetFocusedComponent = useCallback((comp: string | null) => {
+    setFocusedComponent(comp);
+    if (typeof window !== "undefined") {
+      try {
+        const url = new URL(window.location.href);
+        if (comp) {
+          url.searchParams.set("focus", comp);
+        } else {
+          url.searchParams.delete("focus");
+        }
+        window.history.replaceState({}, "", url.toString());
+      } catch {
+        // Ignored
+      }
+    }
+  }, []);
 
   const wsRef = useRef<WebSocket | null>(null);
 
@@ -421,7 +478,7 @@ export function TelemetryProvider({ children }: { children: React.ReactNode }) {
     resetScenario,
     setUnitPreference,
     setTimeDisplay,
-    setFocusedComponent,
+    setFocusedComponent: handleSetFocusedComponent,
     setReplayIndex,
   };
 

@@ -5,12 +5,16 @@ import { UnifiedTelemetryPayload } from "../types/telemetry";
 import EngineSensorsPanel from "./EngineSensorsPanel";
 import TelemetryChart from "./TelemetryChart";
 import TelemetryGauges from "./TelemetryGauges";
+import DigitalTwinResidualChart from "./telemetry/DigitalTwinResidualChart";
+import { Activity, Cpu } from "lucide-react";
 
 interface LiveTelemetryViewProps {
   payload: UnifiedTelemetryPayload;
 }
 
 export default function LiveTelemetryView({ payload }: LiveTelemetryViewProps) {
+  const [telemetryMode, setTelemetryMode] = React.useState<"waveforms" | "residual">("waveforms");
+
   // Convert payload to TelemetryData format for TelemetryChart & TelemetryGauges
   const flatTelemetry = {
     timestamp: payload.timestamp,
@@ -32,34 +36,100 @@ export default function LiveTelemetryView({ payload }: LiveTelemetryViewProps) {
   };
 
   return (
-    <div className="view-container live-telemetry-view">
-      <div className="view-header-strip">
+    <div className="view-container live-telemetry-view" style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+      <div className="view-header-strip" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.75rem" }}>
         <div>
-          <h2 className="view-title"><strong>9-CHANNEL LIVE TELEMETRY &amp; TIME-SERIES DYNAMICS</strong></h2>
-          <p className="view-subtitle">High-frequency 1 Hz avionics telemetry stream, min/max envelopes, and rolling thermal waveforms</p>
-        </div>
-        <span className="badge-live-pulse">LIVE 1 Hz STREAM</span>
-      </div>
-
-      <div className="telemetry-view-grid">
-        {/* Left Column: Detailed 9-Sensor Panel */}
-        <div className="telemetry-col-left">
-          <EngineSensorsPanel sensors={payload.sensor_list || []} />
+          <h2 className="view-title" style={{ margin: 0, fontSize: "1.2rem", letterSpacing: "0.04em" }}>
+            <strong>9-CHANNEL LIVE TELEMETRY &amp; DYNAMICS</strong>
+          </h2>
+          <p className="view-subtitle" style={{ margin: "0.2rem 0 0", fontSize: "0.72rem", color: "#64748b" }}>
+            High-frequency 1 Hz avionics telemetry stream, min/max envelopes, and digital twin analytical residuals
+          </p>
         </div>
 
-        {/* Right Column: Dynamic Time-Series Waveforms & Gauge Clusters */}
-        <div className="telemetry-col-right">
-          {/* Real-Time 30-Second Thermal Waveforms */}
-          <div className="telemetry-chart-card">
-            <TelemetryChart telemetry={flatTelemetry} />
+        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+          {/* Mode Switcher */}
+          <div style={{ display: "flex", gap: "0.3rem" }} role="tablist" aria-label="Telemetry display modes">
+            <button
+              role="tab"
+              aria-selected={telemetryMode === "waveforms"}
+              onClick={() => setTelemetryMode("waveforms")}
+              className={`filter-pill-btn ${telemetryMode === "waveforms" ? "active" : ""}`}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.35rem",
+                padding: "0.25rem 0.6rem",
+                fontSize: "0.68rem",
+                fontWeight: 700,
+                background: telemetryMode === "waveforms" ? "rgba(56, 189, 248, 0.15)" : "rgba(255, 255, 255, 0.04)",
+                color: telemetryMode === "waveforms" ? "var(--accent-cyan)" : "#94a3b8",
+                border: `1px solid ${telemetryMode === "waveforms" ? "rgba(56, 189, 248, 0.4)" : "rgba(255, 255, 255, 0.08)"}`,
+                borderRadius: "4px",
+                fontFamily: "'JetBrains Mono', monospace",
+                cursor: "pointer",
+              }}
+            >
+              <Activity size={12} />
+              <span>WAVEFORMS &amp; GAUGES</span>
+            </button>
+
+            <button
+              role="tab"
+              aria-selected={telemetryMode === "residual"}
+              onClick={() => setTelemetryMode("residual")}
+              className={`filter-pill-btn ${telemetryMode === "residual" ? "active" : ""}`}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.35rem",
+                padding: "0.25rem 0.6rem",
+                fontSize: "0.68rem",
+                fontWeight: 700,
+                background: telemetryMode === "residual" ? "rgba(168, 85, 247, 0.15)" : "rgba(255, 255, 255, 0.04)",
+                color: telemetryMode === "residual" ? "var(--accent-purple)" : "#94a3b8",
+                border: `1px solid ${telemetryMode === "residual" ? "rgba(168, 85, 247, 0.4)" : "rgba(255, 255, 255, 0.08)"}`,
+                borderRadius: "4px",
+                fontFamily: "'JetBrains Mono', monospace",
+                cursor: "pointer",
+              }}
+            >
+              <Cpu size={12} />
+              <span>TWIN RESIDUAL OVERLAY</span>
+            </button>
           </div>
 
-          {/* Analog/Digital Multi-Gauge Cluster */}
-          <div className="telemetry-gauges-card">
-            <TelemetryGauges telemetry={flatTelemetry} />
-          </div>
+          <span className="badge-live-pulse" style={{ fontSize: "0.68rem", padding: "0.25rem 0.55rem" }}>
+            LIVE 1 Hz STREAM
+          </span>
         </div>
       </div>
+
+      {telemetryMode === "residual" ? (
+        <div style={{ height: "600px" }}>
+          <DigitalTwinResidualChart />
+        </div>
+      ) : (
+        <div className="telemetry-view-grid">
+          {/* Left Column: Detailed 9-Sensor Panel */}
+          <div className="telemetry-col-left">
+            <EngineSensorsPanel sensors={payload.sensor_list || []} />
+          </div>
+
+          {/* Right Column: Dynamic Time-Series Waveforms & Gauge Clusters */}
+          <div className="telemetry-col-right">
+            {/* Real-Time 30-Second Thermal Waveforms */}
+            <div className="telemetry-chart-card">
+              <TelemetryChart telemetry={flatTelemetry} />
+            </div>
+
+            {/* Analog/Digital Multi-Gauge Cluster */}
+            <div className="telemetry-gauges-card">
+              <TelemetryGauges telemetry={flatTelemetry} />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
