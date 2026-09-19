@@ -80,6 +80,23 @@ function deriveAlertIntelligence(alert: PhmAlertItem & {
   let evidence = alert.evidence || "";
   let action = alert.recommended_action || "Inspect telemetry channel and verify cross-sensor redundancy.";
 
+  // If already nominal or informational, never derive catastrophic failure evidence
+  if (
+    alert.level === "NORMAL" ||
+    alert.level === "INFO" ||
+    text.includes("nominal") ||
+    text.includes("all systems normal") ||
+    text.includes("optimal")
+  ) {
+    return {
+      component: alert.component || "All Powertrain Subsystems",
+      evidence: evidence || "All monitored sensor telemetry channels operating within certified envelope.",
+      action: action !== "Inspect telemetry channel and verify cross-sensor redundancy."
+        ? action
+        : "Continuous telemetry baseline nominal. Maintain scheduled flight plan.",
+    };
+  }
+
   if (text.includes("overheat") || text.includes("cht") || text.includes("cooling")) {
     component = "Cylinder Head & Thermal Radiator";
     evidence = evidence || "CHT: 174.5°C (> 165.0°C Warning limit) | EGT: 688°C (> 680°C Trigger)";
@@ -96,7 +113,7 @@ function deriveAlertIntelligence(alert: PhmAlertItem & {
     component = "Crankshaft & Main Bearings";
     evidence = evidence || "Vibration: 2.35g RMS (> 2.00g Warning limit) | 1X Harmonic Spike";
     action = action || "Throttle back out of harmonic resonance band; schedule borescope and spectrometry assay.";
-  } else if (text.includes("spark") || text.includes("ignition") || text.includes("fouling")) {
+  } else if (text.includes("spark") || text.includes("ignition") || text.includes("fouling") || text.includes("misfire")) {
     component = "Dual Magneto & Ignition Harness";
     evidence = evidence || "Mag Drop: -160 RPM (> 150 RPM Spec) | Combustion Roughness: 0.78";
     action = action || "Verify dual magneto switch position; run lean-of-peak 2-minute cleaning cycle.";

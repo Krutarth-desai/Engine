@@ -36,22 +36,22 @@ export default function FaultInjectionPanel({
   const getCategoryIcon = (category: string) => {
     switch (category) {
       case "THERMAL":
-        return <Flame className="w-3.5 h-3.5 text-amber-400" />;
+        return <Flame size={14} style={{ color: "#f59e0b" }} />;
       case "LUBRICATION":
-        return <Droplets className="w-3.5 h-3.5 text-blue-400" />;
+        return <Droplets size={14} style={{ color: "#38bdf8" }} />;
       case "COMBUSTION":
-        return <Flame className="w-3.5 h-3.5 text-orange-400" />;
+        return <Flame size={14} style={{ color: "#f97316" }} />;
       case "MECHANICAL":
-        return <Activity className="w-3.5 h-3.5 text-purple-400" />;
+        return <Activity size={14} style={{ color: "#a855f7" }} />;
       case "AVIONICS":
-        return <Radio className="w-3.5 h-3.5 text-cyan-400" />;
+        return <Radio size={14} style={{ color: "#38bdf8" }} />;
       case "IGNITION":
-        return <Zap className="w-3.5 h-3.5 text-yellow-400" />;
+        return <Zap size={14} style={{ color: "#eab308" }} />;
       case "PROPULSION":
-        return <AlertTriangle className="w-3.5 h-3.5 text-rose-500" />;
+        return <AlertTriangle size={14} style={{ color: "#f43f5e" }} />;
       case "NORMAL":
       default:
-        return <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />;
+        return <CheckCircle2 size={14} style={{ color: "#10b981" }} />;
     }
   };
 
@@ -72,7 +72,7 @@ export default function FaultInjectionPanel({
             onClick={resetScenario}
             title="Restore Nominal Cruise Baseline"
           >
-            <RotateCcw className="w-3.5 h-3.5" />
+            <RotateCcw size={13} />
             <span>Reset to Nominal</span>
           </button>
         </div>
@@ -92,18 +92,19 @@ export default function FaultInjectionPanel({
               setIsExpanded(!isExpanded);
             }
           }}
+          style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", userSelect: "none" }}
         >
-          <div className="panel-title flex items-center gap-2">
-            <FlaskConical className="w-4 h-4 text-cyan-400" />
-            <span>Fault Injection Simulation Matrix</span>
-            <span className="sim-badge-count font-mono">
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <FlaskConical size={16} style={{ color: "var(--accent-cyan)" }} />
+            <span style={{ fontWeight: 700, fontSize: "0.85rem" }}>Fault Injection Simulation Matrix</span>
+            <span className="sim-badge-count font-mono" style={{ fontSize: "0.68rem", color: "#64748b" }}>
               ({SCENARIO_REGISTRY.length} SCENARIOS)
             </span>
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className="sim-active-indicator font-mono">
-              ACTIVE: <strong className="text-cyan-400">{currentScenario.label}</strong>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <span className="sim-active-indicator font-mono" style={{ fontSize: "0.72rem", color: "#94a3b8" }}>
+              ACTIVE: <strong style={{ color: "var(--accent-cyan)" }}>{currentScenario.label}</strong>
             </span>
             <button
               className="sim-toggle-btn"
@@ -112,11 +113,23 @@ export default function FaultInjectionPanel({
                 e.stopPropagation();
                 setIsExpanded(!isExpanded);
               }}
+              style={{
+                background: "rgba(255, 255, 255, 0.05)",
+                border: "1px solid rgba(255, 255, 255, 0.15)",
+                borderRadius: "4px",
+                color: "#94a3b8",
+                padding: "0.2rem 0.45rem",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                minHeight: "26px",
+              }}
             >
               {isExpanded ? (
-                <ChevronUp className="w-4 h-4 text-slate-400" />
+                <ChevronUp size={14} style={{ color: "#94a3b8" }} />
               ) : (
-                <ChevronDown className="w-4 h-4 text-slate-400" />
+                <ChevronDown size={14} style={{ color: "#94a3b8" }} />
               )}
             </button>
           </div>

@@ -26,6 +26,7 @@ interface HeaderProps {
 
 export default function Header({
   userEmail,
+  isConnected = false,
   vehicleId = "UAV_ENG_001",
   missionId = "ISR_PATROL_27",
   altitude = 15000,
@@ -74,7 +75,7 @@ export default function Header({
   const getLinkLabel = () => {
     switch (linkState) {
       case "live":
-        return "LIVE 1 Hz";
+        return isConnected ? "LIVE 1 Hz" : "SIM LIVE 1 Hz";
       case "stale":
         return "LINK STALE";
       case "reconnecting":
@@ -108,7 +109,7 @@ export default function Header({
         </div>
       </div>
 
-      {/* Center: Mission Chips (Never Wrap) */}
+      {/* Center: Mission Chips (Responsive, Never Truncated Mid-Value) */}
       <div
         className="mission-center-bar"
         style={{
@@ -117,30 +118,32 @@ export default function Header({
           gap: "0.65rem",
           whiteSpace: "nowrap",
           flexWrap: "nowrap",
-          overflow: "hidden",
+          flexShrink: 1,
+          minWidth: 0,
+          margin: "0 0.5rem",
         }}
       >
-        <div className="metric-chip">
+        <div className="metric-chip" style={{ flexShrink: 0 }}>
           <span className="metric-label">TAIL</span>
           <span className="metric-value text-cyan"><strong>{vehicleId}</strong></span>
         </div>
-        <div className="metric-chip">
+        <div className="metric-chip mission-chip-optional" style={{ flexShrink: 0 }}>
           <span className="metric-label">MISSION</span>
           <span className="metric-value text-blue" style={{ fontSize: "0.75rem" }}>{missionId}</span>
         </div>
-        <div className="metric-chip">
+        <div className="metric-chip" style={{ flexShrink: 0 }}>
           <span className="metric-label">MODE</span>
           <span className="metric-value" style={{ color: "#10b981", fontSize: "0.72rem" }}>
             <strong>CRUISE</strong>
           </span>
         </div>
-        <div className="metric-chip">
+        <div className="metric-chip" style={{ flexShrink: 0 }}>
           <span className="metric-label">ALT</span>
-          <span className="metric-value">{altitude.toLocaleString()} FT</span>
+          <span className="metric-value font-mono">{altitude >= 10000 ? `${(altitude / 1000).toFixed(0)}K` : altitude.toLocaleString()} FT</span>
         </div>
-        <div className="metric-chip">
+        <div className="metric-chip" style={{ flexShrink: 0 }}>
           <span className="metric-label">THR</span>
-          <span className="metric-value">{throttle}%</span>
+          <span className="metric-value font-mono">{throttle}%</span>
         </div>
       </div>
 

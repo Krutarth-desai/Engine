@@ -1694,6 +1694,14 @@
             display: flex;
             align-items: baseline;
             gap: 0.4rem;
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 1440px) {
+            .mission-chip-optional {
+                display: none !important;
+            }
         }
 
         .metric-label {
@@ -4037,11 +4045,22 @@
         }
 
         .sim-toggle-btn {
-            background: transparent;
-            border: none;
+            background: rgba(255, 255, 255, 0.05) !important;
+            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+            border-radius: 4px;
             cursor: pointer;
-            display: flex;
+            display: inline-flex;
             align-items: center;
+            justify-content: center;
+            color: #94a3b8;
+            padding: 0.2rem 0.45rem;
+            min-height: 26px !important;
+        }
+
+        .sim-toggle-btn:hover {
+            background: rgba(56, 189, 248, 0.12) !important;
+            border-color: rgba(56, 189, 248, 0.4) !important;
+            color: var(--accent-cyan);
         }
 
         .simulation-content-body {
