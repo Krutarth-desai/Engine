@@ -1,6 +1,19 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useTelemetry } from "@/context/TelemetryContext";
+import {
+  LayoutDashboard,
+  Activity,
+  Cpu,
+  Gauge,
+  TrendingUp,
+  Wrench,
+  BellRing,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Radio,
+} from "lucide-react";
 
 export type NavView =
   | "dashboard"
@@ -14,7 +27,8 @@ export type NavView =
 interface NavItem {
   id: NavView;
   label: string;
-  icon: string;
+  icon: React.ReactNode;
+  shortcut: string;
   tag?: string;
   badge?: number;
 }
@@ -39,55 +53,130 @@ export default function Sidebar({
   onSelectEngine,
   activeAlertCount,
 }: SidebarProps) {
+  const { linkState, payload } = useTelemetry();
   const [isCollapsed, setIsCollapsed] = useState(false);
+
+  const sensorChannelCount = payload.sensor_list?.length || 9;
+  const linkLabel = linkState === "live" ? "LIVE" : linkState.toUpperCase();
 
   const navSections: NavSection[] = [
     {
       heading: "OVERVIEW",
       items: [
-        { id: "dashboard" as NavView, label: "Dashboard", icon: "DASH", tag: "LIVE" },
+        {
+          id: "dashboard",
+          label: "Dashboard",
+          icon: <LayoutDashboard size={17} />,
+          shortcut: "1",
+          tag: linkLabel,
+        },
       ],
     },
     {
       heading: "MONITORING",
       items: [
-        { id: "telemetry" as NavView, label: "Live Telemetry", icon: "TLM", tag: "9 CH" },
+        {
+          id: "telemetry",
+          label: "Live Telemetry",
+          icon: <Activity size={17} />,
+          shortcut: "2",
+          tag: `${sensorChannelCount} CH`,
+        },
       ],
     },
     {
       heading: "ANALYSIS",
       items: [
-        { id: "diagnostics" as NavView, label: "Diagnostics", icon: "DIAG" },
-        { id: "rul" as NavView, label: "RUL & Prognostics", icon: "RUL" },
-        { id: "regression" as NavView, label: "Regression & Trends", icon: "REG" },
+        {
+          id: "diagnostics",
+          label: "Diagnostics",
+          icon: <Cpu size={17} />,
+          shortcut: "3",
+        },
+        {
+          id: "rul",
+          label: "RUL & Prognostics",
+          icon: <Gauge size={17} />,
+          shortcut: "4",
+        },
+        {
+          id: "regression",
+          label: "Regression & Trends",
+          icon: <TrendingUp size={17} />,
+          shortcut: "5",
+        },
       ],
     },
     {
       heading: "OPERATIONS",
       items: [
-        { id: "maintenance" as NavView, label: "Maintenance", icon: "MNT" },
         {
-          id: "alerts" as NavView,
+          id: "maintenance",
+          label: "Maintenance",
+          icon: <Wrench size={17} />,
+          shortcut: "6",
+        },
+        {
+          id: "alerts",
           label: "Alerts",
-          icon: "ALR",
+          icon: <BellRing size={17} />,
+          shortcut: "7",
           badge: activeAlertCount > 0 ? activeAlertCount : undefined,
         },
       ],
     },
   ];
 
+  // Global keyboard shortcuts: 1-7 switch views
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      const activeElement = document.activeElement;
+      const isInput =
+        activeElement &&
+        (activeElement.tagName === "INPUT" ||
+          activeElement.tagName === "TEXTAREA" ||
+          activeElement.tagName === "SELECT");
+      if (isInput || e.ctrlKey || e.metaKey || e.altKey) return;
+
+      const keyMap: Record<string, NavView> = {
+        "1": "dashboard",
+        "2": "telemetry",
+        "3": "diagnostics",
+        "4": "rul",
+        "5": "regression",
+        "6": "maintenance",
+        "7": "alerts",
+      };
+
+      if (keyMap[e.key]) {
+        onSelectView(keyMap[e.key]);
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onSelectView]);
+
   const engineOptions = ["UAV_ENG_001", "UAV_ENG_002", "TEST_BENCH_ROTAX"];
 
   return (
     <aside className={`gcs-sidebar ${isCollapsed ? "collapsed" : ""}`}>
-      {/* Sidebar Header with Toggle */}
+      {/* Sidebar Top: Clean Station Title (No Duplicate AeroTwin Branding) */}
       <div className="sidebar-header">
         <div className="sidebar-brand-title">
           {!isCollapsed && (
-            <>
-              <span className="sidebar-logo">▲</span>
-              <span className="sidebar-title-text"><strong>AEROTWIN GCS</strong></span>
-            </>
+            <span
+              style={{
+                fontSize: "0.72rem",
+                fontWeight: 800,
+                letterSpacing: "1px",
+                color: "#94a3b8",
+                textTransform: "uppercase",
+                fontFamily: "'JetBrains Mono', monospace",
+              }}
+            >
+              GCS WORKSTATION
+            </span>
           )}
         </div>
         <button
@@ -96,13 +185,13 @@ export default function Sidebar({
           title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
           aria-label="Toggle Sidebar"
         >
-          {isCollapsed ? "▶" : "◀"}
+          {isCollapsed ? <PanelLeftOpen size={15} /> : <PanelLeftClose size={15} />}
         </button>
       </div>
 
-      {/* Engine Selector Dropdown */}
+      {/* Engine Target Selector */}
       <div className="sidebar-engine-selector">
-        {!isCollapsed && <span className="engine-selector-label"><strong>TARGET ENGINE</strong></span>}
+        {!isCollapsed && <span className="engine-selector-label"><strong>ACTIVE VEHICLE</strong></span>}
         <div className="engine-dropdown-wrap">
           <span className="engine-chip-icon">SYS:</span>
           <select
@@ -110,6 +199,7 @@ export default function Sidebar({
             value={selectedEngine}
             onChange={(e) => onSelectEngine(e.target.value)}
             disabled={isCollapsed}
+            title={selectedEngine}
           >
             {engineOptions.map((eng) => (
               <option key={eng} value={eng}>
@@ -121,7 +211,7 @@ export default function Sidebar({
       </div>
 
       {/* Navigation Sections */}
-      <nav className="sidebar-nav">
+      <nav className="sidebar-nav" aria-label="Main Navigation">
         {navSections.map((sec) => (
           <div key={sec.heading} className="nav-group">
             {!isCollapsed && <div className="nav-group-heading">{sec.heading}</div>}
@@ -133,17 +223,44 @@ export default function Sidebar({
                     <button
                       className={`nav-item-btn ${isActive ? "active" : ""}`}
                       onClick={() => onSelectView(item.id)}
-                      title={item.label}
+                      aria-current={isActive ? "page" : undefined}
+                      title={`${item.label} (Shortcut: [${item.shortcut}])`}
                     >
                       <span className="nav-icon">{item.icon}</span>
                       {!isCollapsed && (
                         <span className="nav-label">{item.label}</span>
                       )}
                       {!isCollapsed && item.tag && (
-                        <span className="nav-tag">{item.tag}</span>
+                        <span
+                          className="nav-tag"
+                          style={{
+                            color: linkState === "live" ? "var(--accent-cyan)" : "#f59e0b",
+                            borderColor: linkState === "live" ? "rgba(56, 189, 248, 0.3)" : "rgba(245, 158, 11, 0.3)",
+                          }}
+                        >
+                          {item.tag}
+                        </span>
                       )}
                       {!isCollapsed && item.badge !== undefined && (
-                        <span className="nav-badge-count">{item.badge}</span>
+                        <span
+                          className="nav-badge-count"
+                          style={{
+                            background: "rgba(239, 68, 68, 0.2)",
+                            color: "#ef4444",
+                            border: "1px solid rgba(239, 68, 68, 0.4)",
+                            borderRadius: "10px",
+                            padding: "0.1rem 0.45rem",
+                            fontSize: "0.62rem",
+                            fontWeight: 700,
+                          }}
+                        >
+                          {item.badge}
+                        </span>
+                      )}
+                      {!isCollapsed && (
+                        <span className="sidebar-shortcut-hint">
+                          {item.shortcut}
+                        </span>
                       )}
                     </button>
                   </li>
@@ -154,12 +271,25 @@ export default function Sidebar({
         ))}
       </nav>
 
-      {/* Sidebar Footer status */}
+      {/* Sidebar Footer Status */}
       <div className="sidebar-footer">
-        {!isCollapsed && (
+        {!isCollapsed ? (
           <div className="sidebar-telemetry-status">
-            <span className="footer-status-dot"></span>
-            <span className="footer-status-text">AVIONICS BUS OK</span>
+            <Radio size={12} style={{ color: "#10b981" }} />
+            <span className="footer-status-text">AVIONICS BUS NOMINAL</span>
+          </div>
+        ) : (
+          <div style={{ textAlign: "center", padding: "0.5rem 0" }} title="Avionics Bus Nominal">
+            <span
+              style={{
+                display: "inline-block",
+                width: "8px",
+                height: "8px",
+                borderRadius: "50%",
+                background: "#10b981",
+                boxShadow: "0 0 6px #10b981",
+              }}
+            />
           </div>
         )}
       </div>
