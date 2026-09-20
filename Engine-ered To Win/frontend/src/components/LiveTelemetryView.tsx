@@ -38,9 +38,10 @@ export default function LiveTelemetryView({ payload }: LiveTelemetryViewProps) {
 
   return (
     <PageLayout
-      title="9-Channel Live Telemetry & Dynamics"
+      title="Live Telemetry"
       subtitle="High-frequency 1 Hz avionics telemetry stream, min/max envelopes, and digital twin analytical residuals"
       icon={<Activity size={18} />}
+      noScroll={true}
       tags={
         <span
           className="nav-tag"

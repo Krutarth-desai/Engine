@@ -100,7 +100,7 @@ export default function MaintenanceHistoryTable() {
 
       {/* TBO & Hours Due Counters */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.6rem", marginBottom: "0.75rem" }}>
-        <div style={{ background: "var(--border)", border: "1px solid var(--border)", borderRadius: "6px", padding: "0.5rem 0.75rem" }}>
+        <div style={{ background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: "6px", padding: "0.5rem 0.75rem" }}>
           <div style={{ fontSize: "0.64rem", color: "var(--text-muted)" }}>CURRENT FLIGHT HOURS</div>
           <div className="font-mono" style={{ fontSize: "1.2rem", fontWeight: 800, color: "var(--text)", marginTop: "0.15rem" }}>
             {currentHours} <span style={{ fontSize: "0.65rem", color: "var(--text-muted)" }}>HRS</span>
@@ -108,7 +108,7 @@ export default function MaintenanceHistoryTable() {
           <div style={{ fontSize: "0.58rem", color: "var(--status-nominal)" }}>Logged across 27 sorties</div>
         </div>
 
-        <div style={{ background: "var(--border)", border: "1px solid var(--border)", borderRadius: "6px", padding: "0.5rem 0.75rem" }}>
+        <div style={{ background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: "6px", padding: "0.5rem 0.75rem" }}>
           <div style={{ fontSize: "0.64rem", color: "var(--text-muted)" }}>50-HR INSPECTION DUE IN</div>
           <div className="font-mono" style={{ fontSize: "1.2rem", fontWeight: 800, color: "var(--accent)", marginTop: "0.15rem" }}>
             {hoursUntil50h} <span style={{ fontSize: "0.65rem", color: "var(--text-muted)" }}>HRS</span>
@@ -116,7 +116,7 @@ export default function MaintenanceHistoryTable() {
           <div style={{ fontSize: "0.58rem", color: "var(--text-muted)" }}>Due at 50.0 flight hours</div>
         </div>
 
-        <div style={{ background: "var(--border)", border: "1px solid var(--border)", borderRadius: "6px", padding: "0.5rem 0.75rem" }}>
+        <div style={{ background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: "6px", padding: "0.5rem 0.75rem" }}>
           <div style={{ fontSize: "0.64rem", color: "var(--text-muted)" }}>TIME TO OVERHAUL (TBO)</div>
           <div className="font-mono" style={{ fontSize: "1.2rem", fontWeight: 800, color: "var(--status-nominal)", marginTop: "0.15rem" }}>
             {tboHoursRemaining} <span style={{ fontSize: "0.65rem", color: "var(--text-muted)" }}>HRS</span>

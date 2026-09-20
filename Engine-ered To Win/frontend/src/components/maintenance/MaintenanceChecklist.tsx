@@ -295,8 +295,8 @@ export default function MaintenanceChecklist() {
             <div
               key={chk.id}
               style={{
-                background: isDone ? "var(--surface-1)" : isDue ? "color-mix(in srgb, var(--status-warning) 14%, var(--surface-1))" : "var(--surface-1)",
-                border: `1px solid ${isDone ? "var(--border)" : isDue ? "color-mix(in srgb, var(--status-warning) 14%, var(--surface-1))" : "var(--border)"}`,
+                background: isDone ? "var(--surface-2)" : isDue ? "color-mix(in srgb, var(--status-warning) 14%, var(--surface-2))" : "var(--surface-2)",
+                border: `1px solid ${isDue ? "var(--status-warning)" : "var(--border)"}`,
                 borderRadius: "6px",
                 padding: "0.55rem 0.75rem",
                 display: "flex",

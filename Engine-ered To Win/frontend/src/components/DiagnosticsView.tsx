@@ -71,7 +71,7 @@ export default function DiagnosticsView({ payload }: DiagnosticsViewProps) {
           gap: "0.85rem",
           flex: 1,
           minHeight: 0,
-          alignItems: "start",
+          alignItems: "stretch",
         }}
       >
         <DiagnosisPanel telemetry={flatTelemetry} />

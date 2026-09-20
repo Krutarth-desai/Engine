@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useTelemetry } from "@/context/TelemetryContext";
+import PageLayout from "./common/PageLayout";
 import { Settings, Sliders, Monitor, Bell, HardDrive } from "lucide-react";
 
 export default function SettingsView() {
@@ -12,19 +13,11 @@ export default function SettingsView() {
   const [activeSection, setActiveSection] = useState<string>("units");
 
   return (
-    <div className="view-container" style={{ display: "flex", flexDirection: "column", gap: "1rem", padding: "1rem 1.25rem", minHeight: "100%", boxSizing: "border-box" }}>
-      {/* View Header */}
-      <div className="view-header-strip" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", borderBottom: "1px solid var(--border)", paddingBottom: "0.75rem" }}>
-        <div>
-          <h1 className="page-title" style={{ margin: 0, display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <Settings size={20} style={{ color: "var(--accent)" }} />
-            Workstation Settings & GCS Preferences
-          </h1>
-          <p className="text-caption" style={{ color: "var(--text-muted)", margin: "0.25rem 0 0 0" }}>
-            Ground Control Station display units, telemetry sampling rates, and alert trigger thresholds.
-          </p>
-        </div>
-      </div>
+    <PageLayout
+      title="Workstation Settings & GCS Preferences"
+      subtitle="Ground Control Station display units, telemetry sampling rates, and alert trigger thresholds."
+      icon={<Settings size={18} />}
+    >
 
       {/* Main Settings Split: Left List, Right Form */}
       <div style={{ display: "grid", gridTemplateColumns: "220px 1fr", gap: "1.25rem", flex: 1, minHeight: 0 }}>
@@ -218,6 +211,6 @@ export default function SettingsView() {
           )}
         </div>
       </div>
-    </div>
+    </PageLayout>
   );
 }

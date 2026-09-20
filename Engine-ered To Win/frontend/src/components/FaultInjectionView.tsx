@@ -2,6 +2,7 @@
 
 import React from "react";
 import { useTelemetry } from "@/context/TelemetryContext";
+import PageLayout from "./common/PageLayout";
 import { Zap, AlertTriangle, RefreshCw, CheckCircle2 } from "lucide-react";
 import { SCENARIO_REGISTRY, ScenarioItem } from "@/lib/scenarios";
 
@@ -13,39 +14,31 @@ export default function FaultInjectionView() {
     SCENARIO_REGISTRY.find((s) => s.id === activeScenario) || SCENARIO_REGISTRY[0];
 
   return (
-    <div className="view-container" style={{ display: "flex", flexDirection: "column", gap: "1rem", padding: "1rem 1.25rem", minHeight: "100%", boxSizing: "border-box" }}>
-      {/* Page Header */}
-      <div className="view-header-strip" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", borderBottom: "1px solid var(--border)", paddingBottom: "0.75rem" }}>
-        <div>
-          <h1 className="page-title" style={{ margin: 0, display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <Zap size={20} style={{ color: "var(--accent)" }} />
-            Fault Injection Simulation Matrix
-          </h1>
-          <p className="text-caption" style={{ color: "var(--text-muted)", margin: "0.25rem 0 0 0" }}>
-            Evaluate predictive model anomaly detection, RUL degradation rates, and isolation confidence across 9 failure modes.
-          </p>
-        </div>
-        <div style={{ display: "flex", gap: "0.5rem" }}>
-          {isSimulationActive && (
-            <button
-              onClick={resetScenario}
-              className="btn-secondary"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "0.4rem",
-                padding: "0.35rem 0.85rem",
-                borderRadius: "6px",
-                fontSize: "12px",
-                cursor: "pointer",
-              }}
-            >
-              <RefreshCw size={14} />
-              Reset to Nominal Cruise
-            </button>
-          )}
-        </div>
-      </div>
+    <PageLayout
+      title="Fault Injection Simulation Matrix"
+      subtitle="Evaluate predictive model anomaly detection, RUL degradation rates, and isolation confidence across 9 failure modes."
+      icon={<Zap size={18} />}
+      actions={
+        isSimulationActive ? (
+          <button
+            onClick={resetScenario}
+            className="btn-secondary"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.4rem",
+              padding: "0.35rem 0.85rem",
+              borderRadius: "6px",
+              fontSize: "12px",
+              cursor: "pointer",
+            }}
+          >
+            <RefreshCw size={14} />
+            Reset to Nominal Cruise
+          </button>
+        ) : undefined
+      }
+    >
 
       {/* Active Scenario Banner */}
       <div
@@ -194,6 +187,6 @@ export default function FaultInjectionView() {
           );
         })}
       </div>
-    </div>
+    </PageLayout>
   );
 }

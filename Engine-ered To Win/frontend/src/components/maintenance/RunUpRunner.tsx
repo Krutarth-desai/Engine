@@ -48,7 +48,8 @@ export default function RunUpRunner() {
             alignItems: "center",
             justifyContent: "space-between",
             padding: "0.45rem 0.75rem",
-            background: "var(--border)",
+            background: "var(--surface-2)",
+            border: "1px solid var(--border)",
             borderRadius: "6px",
           }}
         >
@@ -62,7 +63,7 @@ export default function RunUpRunner() {
           </div>
           <div>
             {runUpStep === 1 ? (
-              <span className="text-cyan font-mono" style={{ fontSize: "0.68rem" }}>
+              <span className="font-mono" style={{ fontSize: "0.68rem", color: "var(--accent)" }}>
                 EVALUATING...
               </span>
             ) : runUpResults.magDropPass ? (
@@ -82,7 +83,8 @@ export default function RunUpRunner() {
             alignItems: "center",
             justifyContent: "space-between",
             padding: "0.45rem 0.75rem",
-            background: "var(--border)",
+            background: "var(--surface-2)",
+            border: "1px solid var(--border)",
             borderRadius: "6px",
           }}
         >
@@ -96,7 +98,7 @@ export default function RunUpRunner() {
           </div>
           <div>
             {runUpStep === 2 ? (
-              <span className="text-cyan font-mono" style={{ fontSize: "0.68rem" }}>
+              <span className="font-mono" style={{ fontSize: "0.68rem", color: "var(--accent)" }}>
                 EVALUATING...
               </span>
             ) : runUpResults.idlePass ? (
@@ -116,7 +118,8 @@ export default function RunUpRunner() {
             alignItems: "center",
             justifyContent: "space-between",
             padding: "0.45rem 0.75rem",
-            background: "var(--border)",
+            background: "var(--surface-2)",
+            border: "1px solid var(--border)",
             borderRadius: "6px",
           }}
         >
@@ -130,7 +133,7 @@ export default function RunUpRunner() {
           </div>
           <div>
             {runUpStep === 3 ? (
-              <span className="text-cyan font-mono" style={{ fontSize: "0.68rem" }}>
+              <span className="font-mono" style={{ fontSize: "0.68rem", color: "var(--accent)" }}>
                 EVALUATING...
               </span>
             ) : runUpResults.fullPowerPass ? (

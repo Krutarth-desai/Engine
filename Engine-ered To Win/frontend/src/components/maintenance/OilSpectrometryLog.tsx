@@ -32,7 +32,7 @@ export default function OilSpectrometryLog() {
             <div
               key={m.element}
               style={{
-                background: "var(--border)",
+                background: "var(--surface-2)",
                 border: "1px solid var(--border)",
                 borderRadius: "6px",
                 padding: "0.45rem 0.6rem",

@@ -26,17 +26,17 @@ export default function EngineSensorsPanel({ sensors }: EngineSensorsPanelProps)
   const { historyBuffer, focusedComponent, setFocusedComponent } = useTelemetry();
 
   return (
-    <div className="panel engine-sensors-panel">
-      <div className="panel-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+    <div className="panel engine-sensors-panel" style={{ height: "100%", display: "flex", flexDirection: "column", minHeight: 0, boxSizing: "border-box" }}>
+      <div className="panel-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexShrink: 0 }}>
         <div className="panel-title">
-          <strong>9-CHANNEL ENGINE SENSORS</strong>
+          <strong>ENGINE SENSOR STREAM</strong>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
           {focusedComponent && (
             <button
               onClick={() => setFocusedComponent(null)}
               style={{
-                background: "var(--border)",
+                background: "var(--surface-2)",
                 border: "1px solid var(--border)",
                 color: "var(--accent)",
                 borderRadius: "4px",
@@ -56,10 +56,11 @@ export default function EngineSensorsPanel({ sensors }: EngineSensorsPanelProps)
       <div
         className="sensors-list"
         style={{
-          display: "grid",
-          gridTemplateColumns: "1fr",
-          gap: "0.5rem",
-          maxHeight: "calc(100vh - 240px)",
+          display: "flex",
+          flexDirection: "column",
+          gap: "0.35rem",
+          flex: 1,
+          minHeight: 0,
           overflowY: "auto",
           paddingRight: "0.25rem",
         }}

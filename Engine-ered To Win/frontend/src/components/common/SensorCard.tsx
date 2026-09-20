@@ -275,14 +275,14 @@ export default function SensorCard({
       className={`sensor-universal-card ${isFocused ? "focused" : ""}`}
       onClick={() => onFocus?.(sensorKey)}
       style={{
-        background: isFocused ? "var(--border)" : "var(--surface-1)",
+        background: isFocused ? "var(--surface-2)" : "var(--surface-1)",
         border: `1px solid ${isFocused ? "var(--accent)" : "var(--border)"}`,
         borderRadius: "8px",
-        padding: "0.85rem 1rem",
+        padding: "0.55rem 0.75rem",
         cursor: onFocus ? "pointer" : "default",
-        transition: "all 0.2s ease",
+        transition: "all 0.15s ease",
         position: "relative",
-        boxShadow: isFocused ? "0 0 16px var(--border)" : "none",
+        boxShadow: isFocused ? "0 0 12px var(--border)" : "none",
       }}
       title={`Click to focus ${displayName}`}
     >

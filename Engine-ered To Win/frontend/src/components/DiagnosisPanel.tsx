@@ -44,10 +44,10 @@ export default function DiagnosisPanel({ telemetry }: DiagnosisPanelProps) {
   }, []);
 
   return (
-    <div className="panel diagnosis-panel">
+    <div className="panel diagnosis-panel" style={{ height: "100%", display: "flex", flexDirection: "column", boxSizing: "border-box" }}>
       <div className="panel-header">
         <div className="panel-title flex items-center gap-2">
-          <Activity className="w-4 h-4 text-cyan-400" />
+          <Activity className="w-4 h-4" style={{ color: "var(--accent)" }} />
           <span>Physics Health &amp; Subsystem Diagnosis</span>
         </div>
         <span className="overview-badge font-mono">
@@ -63,7 +63,7 @@ export default function DiagnosisPanel({ telemetry }: DiagnosisPanelProps) {
         <span className="font-bold text-xs tracking-wider uppercase text-slate-300">
           Telemetry Feature Regression (CHT vs RPM)
         </span>
-        <span className="font-mono text-xs text-cyan-400">
+        <span className="font-mono text-xs" style={{ color: "var(--accent)" }}>
           LIVE BUFFER ({historyBuffer.length} PTS)
         </span>
       </div>

@@ -55,7 +55,7 @@ export default function MaintenanceView({ payload }: MaintenanceViewProps) {
           gap: "0.85rem",
           flex: 1,
           minHeight: 0,
-          alignItems: "start",
+          alignItems: "stretch",
         }}
       >
         {/* Left Column: Directives, Protocols & Test Runners */}

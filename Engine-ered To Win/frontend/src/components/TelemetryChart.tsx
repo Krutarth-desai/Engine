@@ -275,7 +275,7 @@ export default function TelemetryChart({ telemetry: propTelemetry }: TelemetryCh
   const lastUpdateFormatted = lastUpdateAt ? fmtTimestamp(lastUpdateAt, timeDisplay === "zulu") : "--:--:--";
 
   return (
-    <div className="panel" style={{ display: "flex", flexDirection: "column", gap: "0.65rem", height: "100%", position: "relative" }}>
+    <div className="panel" style={{ display: "flex", flexDirection: "column", gap: "0.45rem", height: "100%", minHeight: 0, position: "relative", boxSizing: "border-box" }}>
       {/* Stale Overlay */}
       {linkState !== "live" && (
         <div className="chart-stale-overlay">
@@ -286,10 +286,10 @@ export default function TelemetryChart({ telemetry: propTelemetry }: TelemetryCh
       )}
 
       {/* Header with Time-Window Selector */}
-      <div className="panel-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div className="panel-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexShrink: 0 }}>
         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
           <span className="panel-title">
-            <strong>STACKED THERMAL &amp; COMBUSTION DYNAMICS</strong>
+            <strong>THERMAL &amp; COMBUSTION WAVEFORMS</strong>
           </span>
           <span style={{ fontSize: "0.62rem", color: "var(--accent)", fontFamily: "var(--font-mono), monospace" }}>
             [SYNCHRONIZED TIME AXIS]
@@ -304,7 +304,7 @@ export default function TelemetryChart({ telemetry: propTelemetry }: TelemetryCh
               key={sec}
               onClick={() => setWindowSeconds(sec)}
               style={{
-                background: windowSeconds === sec ? "var(--border)" : "var(--border)",
+                background: windowSeconds === sec ? "var(--surface-2)" : "transparent",
                 border: `1px solid ${windowSeconds === sec ? "var(--accent)" : "var(--border)"}`,
                 color: windowSeconds === sec ? "var(--accent)" : "var(--text-muted)",
                 borderRadius: "4px",
@@ -322,8 +322,8 @@ export default function TelemetryChart({ telemetry: propTelemetry }: TelemetryCh
       </div>
 
       {/* Stacked Chart Top: EGT Combustion */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 0.25rem" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: "0.2rem", flex: 1, minHeight: 0 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 0.25rem", flexShrink: 0 }}>
           <span style={{ fontSize: "0.68rem", fontWeight: 700, color: "var(--status-warning)", fontFamily: "var(--font-mono), monospace" }}>
             EXHAUST GAS TEMPERATURE (EGT)
           </span>
@@ -331,17 +331,17 @@ export default function TelemetryChart({ telemetry: propTelemetry }: TelemetryCh
             TRIGGER: 680 °C
           </span>
         </div>
-        <div style={{ height: "140px", position: "relative" }}>
+        <div style={{ flex: 1, minHeight: "105px", position: "relative" }}>
           <canvas ref={canvasEgtRef} />
         </div>
       </div>
 
       {/* Divider */}
-      <div style={{ height: "1px", background: "var(--border)", margin: "0.2rem 0" }} />
+      <div style={{ height: "1px", background: "var(--border)", margin: "0.15rem 0", flexShrink: 0 }} />
 
       {/* Stacked Chart Bottom: CHT & Oil Temp */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 0.25rem" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: "0.2rem", flex: 1, minHeight: 0 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 0.25rem", flexShrink: 0 }}>
           <span style={{ fontSize: "0.68rem", fontWeight: 700, color: "var(--accent)", fontFamily: "var(--font-mono), monospace" }}>
             CYLINDER HEAD TEMP (CHT) &amp; OIL TEMP
           </span>
@@ -349,7 +349,7 @@ export default function TelemetryChart({ telemetry: propTelemetry }: TelemetryCh
             TRIGGER: CHT 165 °C
           </span>
         </div>
-        <div style={{ height: "140px", position: "relative" }}>
+        <div style={{ flex: 1, minHeight: "105px", position: "relative" }}>
           <canvas ref={canvasChtRef} />
         </div>
       </div>

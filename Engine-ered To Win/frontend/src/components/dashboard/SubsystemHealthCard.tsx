@@ -149,7 +149,7 @@ export default function SubsystemHealthCard({ payload }: SubsystemHealthCardProp
             <div
               key={sub.id}
               style={{
-                background: isExpanded ? "var(--surface-2)" : "transparent",
+                background: isExpanded ? "var(--surface-3)" : "var(--surface-2)",
                 border: `1px solid ${isExpanded ? "var(--border-strong)" : "var(--border)"}`,
                 borderRadius: "6px",
                 padding: "0.35rem 0.55rem",

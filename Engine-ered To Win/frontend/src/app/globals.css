@@ -1,17 +1,17 @@
 :root {
     color-scheme: dark;
-    --bg: #0B0B0C;
-    --surface-1: #121214;
-    --surface-2: #19191C;
-    --surface-3: #212125;
-    --border: #26262A;
-    --border-strong: #3A3A40;
-    --text: #EDEDEF;
-    --text-muted: #A3A3AB;
-    --text-faint: #8A8A93;
+    --bg: #0A0A0D;
+    --surface-1: #15161A;
+    --surface-2: #1E2026;
+    --surface-3: #282A33;
+    --border: #2B2D37;
+    --border-strong: #3F4350;
+    --text: #F0EFF4;
+    --text-muted: #ACB0BD;
+    --text-faint: #848795;
     --accent: #F2EFE9;
-    --accent-contrast: #0B0B0C;
-    --status-nominal: var(--text-muted);
+    --accent-contrast: #0A0A0D;
+    --status-nominal: #5BA872;
     --status-advisory: var(--accent);
     --status-caution: #E3A53A;
     --status-warning: #EB5F57;
@@ -410,22 +410,32 @@ input, select, textarea {
         }
 
         .panel {
-            background: var(--bg-card);
-            border-radius: 12px;
+            background: var(--surface-1);
+            border: 1px solid var(--border);
+            border-radius: 10px;
             padding: 1.15rem;
             position: relative;
-            box-shadow: 0 8px 32px var(--bg);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
             display: flex;
             flex-direction: column;
+            box-sizing: border-box;
+        }
+
+        .card {
+            background: var(--surface-1);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            position: relative;
+            box-sizing: border-box;
         }
 
         .panel-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 0.85rem;
-            border-bottom: 1px solid var(--border-subtle);
-            padding-bottom: 0.5rem;
+            margin-bottom: 0.65rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 0.45rem;
         }
 
         .panel-title {
@@ -2978,13 +2988,14 @@ input, select, textarea {
 
         /* GCS Active View Area */
         .gcs-view-area {
-            flex-grow: 1;
-            padding: 1.25rem 1.5rem;
+            flex: 1;
+            min-height: 0;
+            padding: 0;
+            margin: 0;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 1.25rem;
-            background: var(--surface-1);
+            background: var(--bg);
         }
 
         /* View Standard Header Strip */
@@ -3428,22 +3439,39 @@ input, select, textarea {
 
         .telemetry-view-grid {
             display: grid;
-            grid-template-columns: 320px 1fr;
-            gap: 1.25rem;
-            align-items: start;
+            grid-template-columns: 330px 1fr;
+            gap: 0.75rem;
+            flex: 1;
+            min-height: 0;
+            height: 100%;
+        }
+
+        .telemetry-col-left {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            min-height: 0;
         }
 
         .telemetry-col-right {
-            display: flex;
-            flex-direction: column;
-            gap: 1.25rem;
+            display: grid;
+            grid-template-rows: 1.15fr 1fr;
+            gap: 0.75rem;
+            height: 100%;
+            min-height: 0;
         }
 
         .telemetry-chart-card,
         .telemetry-gauges-card {
             background: var(--surface-1);
+            border: 1px solid var(--border);
             border-radius: 10px;
-            padding: 0.85rem;
+            padding: 0.65rem 0.85rem;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            overflow: hidden;
+            box-sizing: border-box;
         }
 
         /* ==========================================================================

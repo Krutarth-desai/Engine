@@ -5,6 +5,7 @@ import { PhmAlertItem } from "../types/telemetry";
 import { supabase } from "@/lib/supabase";
 import FaultInjectionPanel from "./common/FaultInjectionPanel";
 import AlertCard, { mapSeverity } from "./alerts/AlertCard";
+import PageLayout from "./common/PageLayout";
 import {
   BellRing,
   History,
@@ -389,19 +390,11 @@ export default function AlertsView({
   const displayedList = activeTab === "ACTIVE" ? activeAlerts : combinedIncidentLog;
 
   return (
-    <div className="view-container alerts-view" style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-      {/* Header Strip */}
-      <div className="view-header-strip" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.75rem" }}>
-        <div>
-          <h2 className="view-title" style={{ margin: 0, fontSize: "1.2rem", letterSpacing: "0.04em" }}>
-            <strong>ALERTS &amp; CHRONOLOGICAL PHM LOG</strong>
-          </h2>
-          <p className="view-subtitle" style={{ margin: "0.2rem 0 0", fontSize: "0.72rem", color: "var(--text-muted)" }}>
-            Operational incident record, threshold violation tracking, and dispatch work orders
-          </p>
-        </div>
-
-        {/* Tab Switcher with A11y Tablist & Keyboard Nav */}
+    <PageLayout
+      title="Alerts & Chronological PHM Log"
+      subtitle="Operational incident record, threshold violation tracking, and dispatch work orders"
+      icon={<BellRing size={18} />}
+      actions={
         <div
           role="tablist"
           aria-label="Alerts view tabs"
@@ -415,29 +408,23 @@ export default function AlertsView({
             tabIndex={activeTab === "ACTIVE" ? 0 : -1}
             className={`filter-pill-btn ${activeTab === "ACTIVE" ? "active" : ""}`}
             onClick={() => setActiveTab("ACTIVE")}
-            onKeyDown={(e) => {
-              if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
-                e.preventDefault();
-                setActiveTab("LOG");
-              }
-            }}
             style={{
               display: "inline-flex",
               alignItems: "center",
-              gap: "0.4rem",
-              padding: "0.35rem 0.75rem",
-              borderRadius: "6px",
-              fontSize: "0.72rem",
-              fontWeight: 700,
-              background: activeTab === "ACTIVE" ? (totalActiveCount > 0 ? "var(--surface-1)" : "var(--surface-1)") : "var(--border)",
-              color: activeTab === "ACTIVE" ? (totalActiveCount > 0 ? "var(--status-warning)" : "var(--status-nominal)") : "var(--text-muted)",
-              border: `1px solid ${activeTab === "ACTIVE" ? (totalActiveCount > 0 ? "color-mix(in srgb, var(--status-warning) 14%, var(--surface-1))" : "var(--border)") : "var(--border)"}`,
+              gap: "0.35rem",
+              padding: "0.25rem 0.65rem",
+              borderRadius: "4px",
+              fontSize: "11.5px",
+              fontWeight: 600,
+              background: activeTab === "ACTIVE" ? "var(--surface-2)" : "transparent",
+              color: activeTab === "ACTIVE" ? "var(--text)" : "var(--text-muted)",
+              border: `1px solid ${activeTab === "ACTIVE" ? "var(--accent)" : "var(--border)"}`,
               cursor: "pointer",
               fontFamily: "var(--font-mono), monospace",
             }}
           >
-            <BellRing size={13} />
-            <span>ACTIVE ALERTS ({totalActiveCount})</span>
+            <BellRing size={12} />
+            <span>ACTIVE ({totalActiveCount})</span>
           </button>
 
           <button
@@ -448,32 +435,27 @@ export default function AlertsView({
             tabIndex={activeTab === "LOG" ? 0 : -1}
             className={`filter-pill-btn ${activeTab === "LOG" ? "active" : ""}`}
             onClick={() => setActiveTab("LOG")}
-            onKeyDown={(e) => {
-              if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
-                e.preventDefault();
-                setActiveTab("ACTIVE");
-              }
-            }}
             style={{
               display: "inline-flex",
               alignItems: "center",
-              gap: "0.4rem",
-              padding: "0.35rem 0.75rem",
-              borderRadius: "6px",
-              fontSize: "0.72rem",
-              fontWeight: 700,
-              background: activeTab === "LOG" ? "var(--border)" : "var(--border)",
-              color: activeTab === "LOG" ? "var(--accent)" : "var(--text-muted)",
+              gap: "0.35rem",
+              padding: "0.25rem 0.65rem",
+              borderRadius: "4px",
+              fontSize: "11.5px",
+              fontWeight: 600,
+              background: activeTab === "LOG" ? "var(--surface-2)" : "transparent",
+              color: activeTab === "LOG" ? "var(--text)" : "var(--text-muted)",
               border: `1px solid ${activeTab === "LOG" ? "var(--accent)" : "var(--border)"}`,
               cursor: "pointer",
               fontFamily: "var(--font-mono), monospace",
             }}
           >
-            <History size={13} />
+            <History size={12} />
             <span>INCIDENT LOG ({combinedIncidentLog.length})</span>
           </button>
         </div>
-      </div>
+      }
+    >
 
       {/* Operational KPI Counters & Quick Actions Bar */}
       <div
@@ -1071,7 +1053,7 @@ export default function AlertsView({
           ))
         )}
       </div>
-    </div>
+    </PageLayout>
   );
 }
 

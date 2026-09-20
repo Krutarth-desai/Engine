@@ -2,6 +2,7 @@
 
 import React from "react";
 import { useTelemetry } from "@/context/TelemetryContext";
+import PageLayout from "./common/PageLayout";
 import { Compass, Navigation, Clock, ShieldCheck, Fuel } from "lucide-react";
 
 export default function MissionView() {
@@ -19,18 +20,11 @@ export default function MissionView() {
   ];
 
   return (
-    <div className="view-container" style={{ display: "flex", flexDirection: "column", gap: "1rem", padding: "1rem 1.25rem", minHeight: "100%", boxSizing: "border-box" }}>
-      {/* View Header */}
-      <div className="view-header-strip" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", borderBottom: "1px solid var(--border)", paddingBottom: "0.75rem" }}>
-        <div>
-          <h1 className="page-title" style={{ margin: 0, display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <Compass size={20} style={{ color: "var(--accent)" }} />
-            Mission Profile & Tactical Operational Envelope
-          </h1>
-          <p className="text-caption" style={{ color: "var(--text-muted)", margin: "0.25rem 0 0 0" }}>
-            MALE UAV ISR Patrol 27 • Route Waypoints, Endurance Budget & Propulsion Limits
-          </p>
-        </div>
+    <PageLayout
+      title="Mission Profile & Tactical Operational Envelope"
+      subtitle="MALE UAV ISR Patrol 27 • Route Waypoints, Endurance Budget & Propulsion Limits"
+      icon={<Compass size={18} />}
+      tags={
         <div style={{ display: "flex", gap: "0.5rem" }}>
           <span className="nav-tag" style={{ color: "var(--accent)", borderColor: "var(--border-strong)" }}>
             PROFILE: ISR_PATROL_27
@@ -39,7 +33,8 @@ export default function MissionView() {
             TAIL: UAV_ENG_001
           </span>
         </div>
-      </div>
+      }
+    >
 
       {/* Metric Cards Row */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem" }}>
@@ -231,6 +226,6 @@ export default function MissionView() {
           </div>
         </div>
       </div>
-    </div>
+    </PageLayout>
   );
 }

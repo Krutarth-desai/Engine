@@ -31,10 +31,10 @@ export default function TelemetryGauges({ telemetry }: TelemetryGaugesProps) {
   ];
 
   return (
-    <div className="panel telemetry-gauges-panel" style={{ height: "100%", display: "flex", flexDirection: "column" }}>
-      <div className="panel-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+    <div className="panel telemetry-gauges-panel" style={{ height: "100%", minHeight: 0, display: "flex", flexDirection: "column", boxSizing: "border-box" }}>
+      <div className="panel-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexShrink: 0 }}>
         <span className="panel-title">
-          <strong>9-CHANNEL SENSOR GAUGES (UNIFIED HUD SCALES)</strong>
+          <strong>AVIONICS HUD SENSOR GAUGES</strong>
         </span>
         <span
           className="metric-tag font-mono"
@@ -50,8 +50,9 @@ export default function TelemetryGauges({ telemetry }: TelemetryGaugesProps) {
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(3, 1fr)",
-          gap: "0.6rem",
+          gap: "0.45rem",
           flex: 1,
+          minHeight: 0,
           overflowY: "auto",
         }}
       >
