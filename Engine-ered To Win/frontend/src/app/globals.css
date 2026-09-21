@@ -3615,11 +3615,7 @@ input, select, textarea {
             gap: 1.25rem;
         }
 
-        .cmapss-view-wrap {
-            background: var(--surface-1);
-            border-radius: 10px;
-            padding: 1rem;
-        }
+
 
         /* ==========================================================================
            PAGE 5: REGRESSION & TRENDS VIEW STYLES

@@ -88,20 +88,15 @@ export default function ModelInfoPopover() {
             </div>
 
             <div style={{ background: "var(--border)", padding: "0.5rem", borderRadius: "5px", border: "1px solid var(--border)" }}>
-              <div style={{ fontWeight: 700, color: "var(--text)", marginBottom: "0.2rem" }}>Cycle Definitions:</div>
-              <ul style={{ paddingLeft: "1.1rem", margin: 0, display: "flex", flexDirection: "column", gap: "0.25rem" }}>
-                <li>
-                  <strong>UAV Piston:</strong> 1 cycle = 60 seconds of operational flight cruise profile (run-up to cruise power).
-                </li>
-                <li>
-                  <strong>NASA C-MAPSS:</strong> 1 cycle = 1 simulated turbofan flight mission (takeoff, climb, cruise, descent, thrust reverser).
-                </li>
-              </ul>
+              <div style={{ fontWeight: 700, color: "var(--text)", marginBottom: "0.2rem" }}>Cycle Definition:</div>
+              <p style={{ margin: 0, color: "var(--text-muted)", fontSize: "0.7rem" }}>
+                <strong>UAV Piston:</strong> 1 cycle = 60 seconds of operational flight cruise profile (run-up to cruise power).
+              </p>
             </div>
 
             <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", marginTop: "0.25rem" }}>
               <span className="overview-badge">LSTM INFERENCE</span>
-              <span className="overview-badge">CMAPSS FD001</span>
+              <span className="overview-badge">ROTAX 914 F</span>
               <span className="overview-badge">PYTORCH HEADLESS</span>
             </div>
           </div>

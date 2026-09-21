@@ -4,7 +4,6 @@ import React, { useEffect, useRef, useMemo } from "react";
 import { Chart as ChartJS, registerables } from "chart.js";
 import { UnifiedTelemetryPayload } from "@/types/telemetry";
 import { fmt } from "@/lib/format";
-import { getThemeColors } from "@/lib/chartTheme";
 
 ChartJS.register(...registerables);
 
@@ -30,86 +29,48 @@ interface PlotConfig {
   yLabel: string;
   getX: (p: UnifiedTelemetryPayload) => number;
   getY: (p: UnifiedTelemetryPayload) => number;
-  colorKey: "accent" | "statusCaution" | "statusNominal" | "chart1";
+  color: string;
 }
 
 const CONFIGS: Record<string, PlotConfig> = {
   cht_rpm: {
     title: "CHT vs RPM (Thermal Power Coupling)",
-    xLabel: "Engine RPM (RPM)",
+    xLabel: "Engine RPM",
     yLabel: "CHT (°C)",
-    getX: (p) => p.rpm ?? p.sensors?.rpm?.value ?? 2450,
-    getY: (p) => p.cht_c ?? p.sensors?.cht?.value ?? 142.0,
-    colorKey: "accent",
+    getX: (p) => p.sensors?.rpm?.value ?? p.rpm ?? 2450,
+    getY: (p) => p.sensors?.cht?.value ?? p.cht_c ?? 142.0,
+    color: "#38BDF8", // Cyan
   },
   egt_fuel: {
     title: "EGT vs Fuel Flow (Combustion Stoichiometry)",
     xLabel: "Fuel Flow (L/h)",
     yLabel: "EGT (°C)",
-    getX: (p) => p.fuel_flow_lh ?? p.sensors?.fuel_flow?.value ?? 17.6,
-    getY: (p) => p.egt_c ?? p.sensors?.egt?.value ?? 615.0,
-    colorKey: "statusCaution",
+    getX: (p) => p.sensors?.fuel_flow?.value ?? p.fuel_flow_lh ?? 17.6,
+    getY: (p) => p.sensors?.egt?.value ?? p.egt_c ?? 615.0,
+    color: "#F59E0B", // Amber
   },
   oil_p_oil_t: {
     title: "Oil Pressure vs Oil Temp (Lubrication Viscosity)",
     xLabel: "Oil Temperature (°C)",
     yLabel: "Oil Pressure (psi)",
-    getX: (p) => p.oil_temperature_c ?? p.sensors?.oil_temperature?.value ?? 92.0,
+    getX: (p) => p.sensors?.oil_temperature?.value ?? p.oil_temperature_c ?? 92.0,
     getY: (p) => {
-      if (p.oil_pressure_bar) return p.oil_pressure_bar * 14.5038;
       const sVal = p.sensors?.oil_pressure?.value;
       if (sVal !== undefined) return sVal;
+      if (p.oil_pressure_bar) return p.oil_pressure_bar * 14.5038;
       return 68.0;
     },
-    colorKey: "statusNominal",
+    color: "#5BA872", // Emerald Green
   },
   vib_rpm: {
     title: "Vibration vs RPM (Dynamic Rotor Harmonics)",
-    xLabel: "Engine RPM (RPM)",
+    xLabel: "Engine RPM",
     yLabel: "Vibration (g)",
-    getX: (p) => p.rpm ?? p.sensors?.rpm?.value ?? 2450,
-    getY: (p) => p.vibration_g ?? p.sensors?.vibration?.value ?? 1.42,
-    colorKey: "chart1",
+    getX: (p) => p.sensors?.rpm?.value ?? p.rpm ?? 2450,
+    getY: (p) => p.sensors?.vibration?.value ?? p.vibration_g ?? 1.42,
+    color: "#F87171", // Coral/Red
   },
 };
-
-/**
- * Generates realistic operational baseline scatter clusters when buffer is still warming up.
- */
-function generateBaselinePoints(plotType: string): { x: number; y: number }[] {
-  const pts: { x: number; y: number }[] = [];
-  for (let i = 0; i < 28; i++) {
-    const seed = i / 27;
-    switch (plotType) {
-      case "cht_rpm": {
-        const rpm = 2360 + seed * 220 + Math.sin(i * 1.5) * 15;
-        const cht = 138.0 + seed * 7.5 + Math.cos(i * 1.3) * 1.0;
-        pts.push({ x: Math.round(rpm), y: Math.round(cht * 10) / 10 });
-        break;
-      }
-      case "egt_fuel": {
-        const fuel = 16.5 + seed * 2.2 + Math.sin(i * 1.4) * 0.2;
-        const egt = 598.0 + seed * 32.0 + Math.cos(i * 1.2) * 3.5;
-        pts.push({ x: Math.round(fuel * 10) / 10, y: Math.round(egt * 10) / 10 });
-        break;
-      }
-      case "oil_p_oil_t": {
-        const temp = 88.0 + seed * 9.5 + Math.sin(i * 1.1) * 0.8;
-        const psi = 71.5 - seed * 6.5 + Math.cos(i * 1.4) * 0.9;
-        pts.push({ x: Math.round(temp * 10) / 10, y: Math.round(psi * 10) / 10 });
-        break;
-      }
-      case "vib_rpm":
-      default: {
-        const rpm = 2360 + seed * 220 + Math.sin(i * 1.5) * 15;
-        const vib = 1.32 + seed * 0.24 + Math.cos(i * 2.0) * 0.03;
-        pts.push({ x: Math.round(rpm), y: Math.round(vib * 100) / 100 });
-        break;
-      }
-    }
-  }
-  return pts;
-}
 
 export default function RegressionScatterChart({
   points,
@@ -119,23 +80,18 @@ export default function RegressionScatterChart({
 }: RegressionScatterChartProps) {
   const config = CONFIGS[plotType] || CONFIGS.cht_rpm;
 
-  // Compute OLS Linear Regression from telemetry buffer with baseline fallback
+  // Compute OLS Linear Regression from telemetry buffer
   const { dataPoints, regressionLine, stats, isReady } = useMemo(() => {
-    let xyPairs = (points || [])
+    const xyPairs = (points || [])
       .map((p) => ({ x: config.getX(p), y: config.getY(p) }))
       .filter((pt) => !isNaN(pt.x) && !isNaN(pt.y) && isFinite(pt.x) && isFinite(pt.y));
 
-    // If buffer is warming up, seamlessly supplement with realistic baseline points
-    if (xyPairs.length < minPoints) {
-      xyPairs = generateBaselinePoints(plotType);
-    }
-
     const n = xyPairs.length;
-    if (n === 0) {
+    if (n < minPoints) {
       return {
         dataPoints: [],
         regressionLine: [],
-        stats: { r: 0, slope: 0, intercept: 0, r2: 0, residualStd: 0, pointsCount: 0 },
+        stats: { r: 0, slope: 0, intercept: 0, r2: 0, residualStd: 0, pointsCount: n },
         isReady: false,
       };
     }
@@ -181,7 +137,7 @@ export default function RegressionScatterChart({
     const minX = Math.min(...xyPairs.map((p) => p.x));
     const maxX = Math.max(...xyPairs.map((p) => p.x));
     const span = maxX - minX;
-    const pad = span > 0 ? span * 0.06 : 5;
+    const pad = span > 0 ? span * 0.05 : 5;
     const startX = minX - pad;
     const endX = maxX + pad;
 
@@ -203,29 +159,28 @@ export default function RegressionScatterChart({
       },
       isReady: true,
     };
-  }, [points, minPoints, config, plotType]);
+  }, [points, minPoints, config]);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const chartInstanceRef = useRef<ChartJS | null>(null);
 
+  // Initialize or update chart
   useEffect(() => {
     if (!isReady || !canvasRef.current) return;
 
     const ctx = canvasRef.current.getContext("2d");
     if (!ctx) return;
 
-    if (chartInstanceRef.current) {
-      chartInstanceRef.current.destroy();
-    }
+    const primaryColor = config.color;
 
-    const theme = getThemeColors();
-    const colorMap: Record<string, string> = {
-      accent: theme.accent,
-      statusCaution: theme.statusCaution,
-      statusNominal: theme.statusNominal,
-      chart1: theme.chart1,
-    };
-    const primaryColor = colorMap[config.colorKey] || theme.accent;
+    // If chart already exists, update data smoothly without tearing down canvas
+    if (chartInstanceRef.current) {
+      chartInstanceRef.current.data.datasets[0].data = dataPoints;
+      chartInstanceRef.current.data.datasets[1].data = regressionLine;
+      chartInstanceRef.current.data.datasets[1].label = `OLS Fit (y = ${stats.slope >= 0 ? "+" : ""}${stats.slope.toFixed(3)}x + ${stats.intercept.toFixed(1)})`;
+      chartInstanceRef.current.update("none");
+      return;
+    }
 
     const chart = new ChartJS(ctx, {
       type: "scatter",
@@ -236,17 +191,17 @@ export default function RegressionScatterChart({
             label: "Telemetry Points",
             data: dataPoints,
             backgroundColor: primaryColor,
-            borderColor: theme.bg,
+            borderColor: "#0A0A0D",
             borderWidth: 1.5,
-            pointRadius: 4,
-            pointHoverRadius: 6,
+            pointRadius: 4.5,
+            pointHoverRadius: 6.5,
           },
           {
             type: "line",
             label: `OLS Fit (y = ${stats.slope >= 0 ? "+" : ""}${stats.slope.toFixed(3)}x + ${stats.intercept.toFixed(1)})`,
             data: regressionLine,
             borderColor: primaryColor,
-            borderWidth: 2,
+            borderWidth: 2.2,
             pointRadius: 0,
             pointHoverRadius: 0,
             showLine: true,
@@ -264,22 +219,22 @@ export default function RegressionScatterChart({
             position: "top",
             align: "end",
             labels: {
-              color: theme.textMuted,
-              font: { family: "var(--font-mono), monospace", size: 10 },
+              color: "#94A3B8",
+              font: { family: "'JetBrains Mono', monospace", size: 10 },
               boxWidth: 8,
               boxHeight: 8,
               padding: 6,
             },
           },
           tooltip: {
-            backgroundColor: theme.tooltipBg,
-            titleColor: theme.accent,
-            bodyColor: theme.text,
-            borderColor: theme.borderStrong,
+            backgroundColor: "#1E2026",
+            titleColor: "#F0EFF4",
+            bodyColor: "#94A3B8",
+            borderColor: "#3F4350",
             borderWidth: 1,
             padding: 8,
-            titleFont: { family: "var(--font-mono), monospace", size: 11, weight: 600 },
-            bodyFont: { family: "var(--font-mono), monospace", size: 10 },
+            titleFont: { family: "'JetBrains Mono', monospace", size: 11, weight: 600 },
+            bodyFont: { family: "'JetBrains Mono', monospace", size: 10 },
             callbacks: {
               label: (context) =>
                 ` ${config.xLabel}: ${fmt(context.parsed.x, 1)} | ${config.yLabel}: ${fmt(context.parsed.y, 2)}`,
@@ -292,34 +247,34 @@ export default function RegressionScatterChart({
             title: {
               display: true,
               text: config.xLabel,
-              color: theme.textMuted,
-              font: { size: 10, family: "var(--font-mono), monospace" },
+              color: "#94A3B8",
+              font: { size: 10, family: "'JetBrains Mono', monospace" },
               padding: { top: 2 },
             },
-            grid: { color: theme.gridColor },
+            grid: { color: "rgba(255, 255, 255, 0.08)" },
             ticks: {
-              color: theme.textMuted,
-              font: { family: "var(--font-mono), monospace", size: 9 },
+              color: "#94A3B8",
+              font: { family: "'JetBrains Mono', monospace", size: 9 },
               maxTicksLimit: 6,
             },
-            border: { color: theme.border },
+            border: { color: "rgba(255, 255, 255, 0.12)" },
           },
           y: {
             type: "linear",
             title: {
               display: true,
               text: config.yLabel,
-              color: theme.textMuted,
-              font: { size: 10, family: "var(--font-mono), monospace" },
+              color: "#94A3B8",
+              font: { size: 10, family: "'JetBrains Mono', monospace" },
               padding: { bottom: 2 },
             },
-            grid: { color: theme.gridColor },
+            grid: { color: "rgba(255, 255, 255, 0.08)" },
             ticks: {
-              color: theme.textMuted,
-              font: { family: "var(--font-mono), monospace", size: 9 },
+              color: "#94A3B8",
+              font: { family: "'JetBrains Mono', monospace", size: 9 },
               maxTicksLimit: 6,
             },
-            border: { color: theme.border },
+            border: { color: "rgba(255, 255, 255, 0.12)" },
           },
         },
       },
@@ -336,7 +291,7 @@ export default function RegressionScatterChart({
   if (!isReady) {
     if (backendImage) {
       return (
-        <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ width: "100%", height: "100%", minHeight: "220px", display: "flex", alignItems: "center", justifyContent: "center" }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={backendImage}
@@ -349,73 +304,91 @@ export default function RegressionScatterChart({
 
     return (
       <div
+        className="plot-placeholder"
         style={{
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
+          padding: "2rem",
+          minHeight: "220px",
           width: "100%",
-          height: "100%",
-          color: "var(--text-muted)",
-          fontFamily: "var(--font-mono), monospace",
-          fontSize: "11px",
-          gap: "0.5rem",
+          boxSizing: "border-box",
         }}
       >
-        <span className="loading-spinner" />
-        <span>Synthesizing rolling regression baseline...</span>
+        <span className="loading-spinner mb-3" />
+        <span style={{ fontSize: "0.8rem", color: "var(--text)" }}>
+          Collecting rolling telemetry buffer...
+        </span>
+        <span style={{ fontSize: "0.72rem", fontFamily: "var(--font-mono), monospace", color: "var(--accent)", marginTop: "0.25rem" }}>
+          {stats.pointsCount}/{minPoints} points collected
+        </span>
+        <div style={{ width: "12rem", height: "6px", background: "var(--border)", borderRadius: "9999px", overflow: "hidden", marginTop: "0.5rem" }}>
+          <div
+            style={{
+              height: "100%",
+              background: "var(--accent)",
+              transition: "width 0.3s ease",
+              width: `${Math.min(100, (stats.pointsCount / minPoints) * 100)}%`,
+            }}
+          />
+        </div>
       </div>
     );
   }
 
   return (
     <div
+      className="regression-chart-card"
       style={{
         display: "flex",
         flexDirection: "column",
         width: "100%",
         height: "100%",
-        minHeight: 0,
+        minHeight: "260px",
       }}
     >
-      <div style={{ flex: 1, minHeight: 0, position: "relative", width: "100%" }}>
+      <div style={{ flex: 1, minHeight: "200px", position: "relative", width: "100%" }}>
         <canvas ref={canvasRef} style={{ display: "block", width: "100%", height: "100%" }} />
       </div>
 
       {/* Discrete Label-Over-Value Statistical Cells */}
       <div
+        className="regression-stats-grid"
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(5, 1fr)",
           gap: "0.35rem",
-          marginTop: "0.4rem",
+          marginTop: "0.5rem",
           paddingTop: "0.35rem",
           borderTop: "1px solid var(--border)",
           flexShrink: 0,
         }}
       >
         <div
+          className="stat-card-cell"
           style={{
             background: "var(--surface-2)",
             border: "1px solid var(--border)",
             borderRadius: "6px",
-            padding: "0.2rem 0.35rem",
+            padding: "0.25rem 0.35rem",
             textAlign: "center",
           }}
         >
           <div style={{ fontSize: "9px", color: "var(--text-muted)", letterSpacing: "0.5px", textTransform: "uppercase" }}>
             PEARSON r
           </div>
-          <div style={{ fontFamily: "var(--font-mono), monospace", fontSize: "11px", fontWeight: 700, color: "var(--accent)" }}>
+          <div style={{ fontFamily: "var(--font-mono), monospace", fontSize: "11px", fontWeight: 700, color: config.color }}>
             {stats.r >= 0 ? "+" : ""}{stats.r.toFixed(3)}
           </div>
         </div>
         <div
+          className="stat-card-cell"
           style={{
             background: "var(--surface-2)",
             border: "1px solid var(--border)",
             borderRadius: "6px",
-            padding: "0.2rem 0.35rem",
+            padding: "0.25rem 0.35rem",
             textAlign: "center",
           }}
         >
@@ -427,27 +400,29 @@ export default function RegressionScatterChart({
           </div>
         </div>
         <div
+          className="stat-card-cell"
           style={{
             background: "var(--surface-2)",
             border: "1px solid var(--border)",
             borderRadius: "6px",
-            padding: "0.2rem 0.35rem",
+            padding: "0.25rem 0.35rem",
             textAlign: "center",
           }}
         >
           <div style={{ fontSize: "9px", color: "var(--text-muted)", letterSpacing: "0.5px", textTransform: "uppercase" }}>
-            R² FIT
+            DETERMINATION (R²)
           </div>
           <div style={{ fontFamily: "var(--font-mono), monospace", fontSize: "11px", fontWeight: 700, color: "var(--status-nominal)" }}>
             {stats.r2.toFixed(3)}
           </div>
         </div>
         <div
+          className="stat-card-cell"
           style={{
             background: "var(--surface-2)",
             border: "1px solid var(--border)",
             borderRadius: "6px",
-            padding: "0.2rem 0.35rem",
+            padding: "0.25rem 0.35rem",
             textAlign: "center",
           }}
         >
@@ -459,18 +434,19 @@ export default function RegressionScatterChart({
           </div>
         </div>
         <div
+          className="stat-card-cell"
           style={{
             background: "var(--surface-2)",
             border: "1px solid var(--border)",
             borderRadius: "6px",
-            padding: "0.2rem 0.35rem",
+            padding: "0.25rem 0.35rem",
             textAlign: "center",
           }}
         >
           <div style={{ fontSize: "9px", color: "var(--text-muted)", letterSpacing: "0.5px", textTransform: "uppercase" }}>
             BUFFER
           </div>
-          <div style={{ fontFamily: "var(--font-mono), monospace", fontSize: "11px", fontWeight: 700, color: "var(--accent)" }}>
+          <div style={{ fontFamily: "var(--font-mono), monospace", fontSize: "11px", fontWeight: 700, color: config.color }}>
             {stats.pointsCount} PTS
           </div>
         </div>

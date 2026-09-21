@@ -14,7 +14,7 @@ export default function LstmMetricsPanel({ prognostics }: LstmMetricsPanelProps)
         <div className="panel-title">
           <strong>LSTM PROGNOSTIC METRICS</strong>
         </div>
-        <span className="model-chip"><strong>CMAPSS FD001</strong></span>
+        <span className="model-chip"><strong>ROTAX 914 F</strong></span>
       </div>
 
       <div className="lstm-grid-2x3">
