@@ -1,22 +1,18 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { UnifiedTelemetryPayload } from "../types/telemetry";
 import EngineSensorsPanel from "./EngineSensorsPanel";
 import TelemetryChart from "./TelemetryChart";
-import TelemetryGauges from "./TelemetryGauges";
-import DigitalTwinResidualChart from "./telemetry/DigitalTwinResidualChart";
 import PageLayout from "./common/PageLayout";
-import { Activity, Cpu } from "lucide-react";
+import { Activity } from "lucide-react";
 
 interface LiveTelemetryViewProps {
   payload: UnifiedTelemetryPayload;
 }
 
 export default function LiveTelemetryView({ payload }: LiveTelemetryViewProps) {
-  const [telemetryMode, setTelemetryMode] = useState<"waveforms" | "residual">("waveforms");
-
-  // Convert payload to TelemetryData format for TelemetryChart & TelemetryGauges
+  // Convert payload to TelemetryData format for TelemetryChart
   const flatTelemetry = {
     timestamp: payload.timestamp,
     engine_id: payload.vehicle?.vehicle_id || "ENG_001",
@@ -39,7 +35,7 @@ export default function LiveTelemetryView({ payload }: LiveTelemetryViewProps) {
   return (
     <PageLayout
       title="Live Telemetry"
-      subtitle="High-frequency 1 Hz avionics telemetry stream, min/max envelopes, and digital twin analytical residuals"
+      subtitle="High-frequency 1 Hz avionics telemetry stream, real-time waveform dynamics, and 9-channel sensor status"
       icon={<Activity size={18} />}
       noScroll={true}
       tags={
@@ -54,77 +50,19 @@ export default function LiveTelemetryView({ payload }: LiveTelemetryViewProps) {
           LIVE 1 Hz STREAM
         </span>
       }
-      actions={
-        <div style={{ display: "flex", gap: "0.35rem" }} role="tablist" aria-label="Telemetry display modes">
-          <button
-            role="tab"
-            aria-selected={telemetryMode === "waveforms"}
-            onClick={() => setTelemetryMode("waveforms")}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "0.3rem",
-              padding: "0.25rem 0.6rem",
-              borderRadius: "4px",
-              background: telemetryMode === "waveforms" ? "var(--surface-2)" : "transparent",
-              border: `1px solid ${telemetryMode === "waveforms" ? "var(--accent)" : "var(--border)"}`,
-              color: telemetryMode === "waveforms" ? "var(--text)" : "var(--text-muted)",
-              fontSize: "11.5px",
-              cursor: "pointer",
-            }}
-          >
-            <Activity size={12} />
-            Waveforms &amp; Gauges
-          </button>
-
-          <button
-            role="tab"
-            aria-selected={telemetryMode === "residual"}
-            onClick={() => setTelemetryMode("residual")}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "0.3rem",
-              padding: "0.25rem 0.6rem",
-              borderRadius: "4px",
-              background: telemetryMode === "residual" ? "var(--surface-2)" : "transparent",
-              border: `1px solid ${telemetryMode === "residual" ? "var(--accent)" : "var(--border)"}`,
-              color: telemetryMode === "residual" ? "var(--text)" : "var(--text-muted)",
-              fontSize: "11.5px",
-              cursor: "pointer",
-            }}
-          >
-            <Cpu size={12} />
-            Twin Residual Overlay
-          </button>
-        </div>
-      }
     >
-      {telemetryMode === "residual" ? (
-        <div style={{ flex: 1, minHeight: "500px" }}>
-          <DigitalTwinResidualChart />
+      <div className="telemetry-view-container">
+        {/* Top: Horizontal 9-Channel Engine System Sensors */}
+        <div className="telemetry-sensors-row">
+          <EngineSensorsPanel sensors={payload.sensor_list || []} horizontal={true} />
         </div>
-      ) : (
-        <div className="telemetry-view-grid">
-          {/* Left Column: Detailed 9-Sensor Panel */}
-          <div className="telemetry-col-left">
-            <EngineSensorsPanel sensors={payload.sensor_list || []} />
-          </div>
 
-          {/* Right Column: Dynamic Time-Series Waveforms & Gauge Clusters */}
-          <div className="telemetry-col-right">
-            {/* Real-Time 30-Second Thermal Waveforms */}
-            <div className="telemetry-chart-card">
-              <TelemetryChart telemetry={flatTelemetry} />
-            </div>
-
-            {/* Analog/Digital Multi-Gauge Cluster */}
-            <div className="telemetry-gauges-card">
-              <TelemetryGauges telemetry={flatTelemetry} />
-            </div>
-          </div>
+        {/* Bottom: Real-Time Dynamic Thermal & Combustion Waveforms */}
+        <div className="telemetry-chart-container">
+          <TelemetryChart telemetry={flatTelemetry} />
         </div>
-      )}
+      </div>
     </PageLayout>
   );
 }
+

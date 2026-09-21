@@ -8,6 +8,8 @@ import { useTelemetry } from "@/context/TelemetryContext";
 
 interface EngineSensorsPanelProps {
   sensors: SensorItem[];
+  horizontal?: boolean;
+  compact?: boolean;
 }
 
 const KEY_MAP: Record<string, SensorKey> = {
@@ -22,14 +24,41 @@ const KEY_MAP: Record<string, SensorKey> = {
   injection_timing: "injection_timing",
 };
 
-export default function EngineSensorsPanel({ sensors }: EngineSensorsPanelProps) {
+export default function EngineSensorsPanel({
+  sensors,
+  horizontal = true,
+  compact = true,
+}: EngineSensorsPanelProps) {
   const { historyBuffer, focusedComponent, setFocusedComponent } = useTelemetry();
 
   return (
-    <div className="panel engine-sensors-panel" style={{ height: "100%", display: "flex", flexDirection: "column", minHeight: 0, boxSizing: "border-box" }}>
+    <div
+      className="panel engine-sensors-panel"
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        minHeight: 0,
+        boxSizing: "border-box",
+        padding: "0.6rem 0.85rem",
+        gap: "0.45rem",
+        height: horizontal ? "auto" : "100%",
+        flexShrink: 0,
+      }}
+    >
       <div className="panel-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexShrink: 0 }}>
-        <div className="panel-title">
-          <strong>ENGINE SENSOR STREAM</strong>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+          <div className="panel-title">
+            <strong>ENGINE SYSTEM SENSORS</strong>
+          </div>
+          <span
+            style={{
+              fontSize: "0.62rem",
+              color: "var(--accent)",
+              fontFamily: "var(--font-mono), monospace",
+            }}
+          >
+            [9-CHANNEL REAL-TIME STREAM]
+          </span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
           {focusedComponent && (
@@ -55,15 +84,25 @@ export default function EngineSensorsPanel({ sensors }: EngineSensorsPanelProps)
 
       <div
         className="sensors-list"
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "0.35rem",
-          flex: 1,
-          minHeight: 0,
-          overflowY: "auto",
-          paddingRight: "0.25rem",
-        }}
+        style={
+          horizontal
+            ? {
+                display: "grid",
+                gridTemplateColumns: "repeat(9, minmax(115px, 1fr))",
+                gap: "0.45rem",
+                overflowX: "auto",
+                paddingBottom: "0.15rem",
+              }
+            : {
+                display: "flex",
+                flexDirection: "column",
+                gap: "0.35rem",
+                flex: 1,
+                minHeight: 0,
+                overflowY: "auto",
+                paddingRight: "0.25rem",
+              }
+        }
       >
         {sensors.map((sensor) => {
           const sKey = KEY_MAP[sensor.key] || (sensor.key as SensorKey);
@@ -96,6 +135,7 @@ export default function EngineSensorsPanel({ sensors }: EngineSensorsPanelProps)
               trend={sensor.trend}
               delta10s={delta10s}
               isFocused={isFocused}
+              compact={compact}
               onFocus={(k) => {
                 setFocusedComponent(focusedComponent === k ? null : k);
               }}

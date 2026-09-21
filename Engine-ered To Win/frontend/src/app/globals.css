@@ -3437,6 +3437,37 @@ input, select, textarea {
            PAGE 2: LIVE TELEMETRY VIEW STYLES
            ========================================================================== */
 
+        .telemetry-view-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.65rem;
+            flex: 1;
+            min-height: 0;
+            height: 100%;
+        }
+
+        .telemetry-sensors-row {
+            flex-shrink: 0;
+            width: 100%;
+        }
+
+        .telemetry-chart-container {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .engine-sensors-panel .sensors-list::-webkit-scrollbar {
+            height: 4px;
+        }
+
+        .engine-sensors-panel .sensors-list::-webkit-scrollbar-thumb {
+            background: var(--border-strong);
+            border-radius: 2px;
+        }
+
         .telemetry-view-grid {
             display: grid;
             grid-template-columns: 330px 1fr;
