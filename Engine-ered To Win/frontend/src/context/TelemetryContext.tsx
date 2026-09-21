@@ -223,6 +223,8 @@ const INITIAL_HISTORY: UnifiedTelemetryPayload[] = Array.from({ length: 30 }, (_
   const oil_pressure_psi = Math.round((71.5 - seed * 6.5 + Math.cos(i * 1.4) * 0.9) * 10) / 10;
   const oil_pressure_bar = Math.round((oil_pressure_psi / 14.5038) * 100) / 100;
   const vibration_g = Math.round((1.32 + seed * 0.24 + Math.cos(i * 2.0) * 0.03) * 100) / 100;
+  const bus_voltage_v = Math.round((27.6 + Math.sin(i * 1.7) * 0.25) * 10) / 10;
+  const injection_timing_deg = Math.round((23.4 + Math.cos(i * 1.5) * 0.35) * 10) / 10;
 
   const cycleSensors = {
     ...DEFAULT_PAYLOAD.sensors,
@@ -233,6 +235,8 @@ const INITIAL_HISTORY: UnifiedTelemetryPayload[] = Array.from({ length: 30 }, (_
     oil_temperature: { ...DEFAULT_PAYLOAD.sensors.oil_temperature, value: oil_temperature_c },
     fuel_flow: { ...DEFAULT_PAYLOAD.sensors.fuel_flow, value: fuel_flow_lh },
     vibration: { ...DEFAULT_PAYLOAD.sensors.vibration, value: vibration_g },
+    bus_voltage: { ...DEFAULT_PAYLOAD.sensors.bus_voltage, value: bus_voltage_v },
+    injection_timing: { ...DEFAULT_PAYLOAD.sensors.injection_timing, value: injection_timing_deg },
   };
 
   return {

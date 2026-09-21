@@ -3437,6 +3437,32 @@ input, select, textarea {
            PAGE 2: LIVE TELEMETRY VIEW STYLES
            ========================================================================== */
 
+        .telemetry-view-split-50 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            flex: 1;
+            min-height: 0;
+            height: 100%;
+        }
+
+        .telemetry-split-col {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .sensors-list-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 0.45rem;
+            flex: 1;
+            min-height: 0;
+        }
+
         .telemetry-view-container {
             display: flex;
             flex-direction: column;
@@ -4070,7 +4096,8 @@ input, select, textarea {
             .compact-sensors-grid {
                 grid-template-columns: repeat(3, 1fr);
             }
-            .telemetry-view-grid {
+            .telemetry-view-grid,
+            .telemetry-view-split-50 {
                 grid-template-columns: 1fr;
             }
             .diag-top-row {

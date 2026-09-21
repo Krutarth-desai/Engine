@@ -51,14 +51,14 @@ export default function LiveTelemetryView({ payload }: LiveTelemetryViewProps) {
         </span>
       }
     >
-      <div className="telemetry-view-container">
-        {/* Top: Horizontal 9-Channel Engine System Sensors */}
-        <div className="telemetry-sensors-row">
-          <EngineSensorsPanel sensors={payload.sensor_list || []} horizontal={true} />
+      <div className="telemetry-view-split-50">
+        {/* Left 50%: ENGINE SYSTEM SENSORS (Responsive 3x3 Grid) */}
+        <div className="telemetry-split-col">
+          <EngineSensorsPanel sensors={payload.sensor_list || []} />
         </div>
 
-        {/* Bottom: Real-Time Dynamic Thermal & Combustion Waveforms */}
-        <div className="telemetry-chart-container">
+        {/* Right 50%: THERMAL & COMBUSTION WAVEFORMS */}
+        <div className="telemetry-split-col">
           <TelemetryChart telemetry={flatTelemetry} />
         </div>
       </div>

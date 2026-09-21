@@ -26,7 +26,6 @@ const KEY_MAP: Record<string, SensorKey> = {
 
 export default function EngineSensorsPanel({
   sensors,
-  horizontal = true,
   compact = true,
 }: EngineSensorsPanelProps) {
   const { historyBuffer, focusedComponent, setFocusedComponent } = useTelemetry();
@@ -37,15 +36,14 @@ export default function EngineSensorsPanel({
       style={{
         display: "flex",
         flexDirection: "column",
+        height: "100%",
         minHeight: 0,
         boxSizing: "border-box",
-        padding: "0.6rem 0.85rem",
+        padding: "0.65rem 0.85rem",
         gap: "0.45rem",
-        height: horizontal ? "auto" : "100%",
-        flexShrink: 0,
       }}
     >
-      <div className="panel-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexShrink: 0 }}>
+      <div className="panel-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexShrink: 0, marginBottom: "0.2rem" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
           <div className="panel-title">
             <strong>ENGINE SYSTEM SENSORS</strong>
@@ -83,26 +81,15 @@ export default function EngineSensorsPanel({
       </div>
 
       <div
-        className="sensors-list"
-        style={
-          horizontal
-            ? {
-                display: "grid",
-                gridTemplateColumns: "repeat(9, minmax(115px, 1fr))",
-                gap: "0.45rem",
-                overflowX: "auto",
-                paddingBottom: "0.15rem",
-              }
-            : {
-                display: "flex",
-                flexDirection: "column",
-                gap: "0.35rem",
-                flex: 1,
-                minHeight: 0,
-                overflowY: "auto",
-                paddingRight: "0.25rem",
-              }
-        }
+        className="sensors-list-grid"
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(3, 1fr)",
+          gridTemplateRows: "repeat(3, 1fr)",
+          gap: "0.45rem",
+          flex: 1,
+          minHeight: 0,
+        }}
       >
         {sensors.map((sensor) => {
           const sKey = KEY_MAP[sensor.key] || (sensor.key as SensorKey);

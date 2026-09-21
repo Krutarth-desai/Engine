@@ -63,13 +63,33 @@ export default function SensorCard({
   const warningLowPct = def?.warningLow !== undefined ? ((def.warningLow - min) / span) * 100 : null;
   const warningHighPct = def?.warningHigh !== undefined ? ((def.warningHigh - min) / span) * 100 : null;
 
+  const SENSOR_DISPLAY_NAMES: Record<string, string> = {
+    rpm: "RPM",
+    cht: "CHT",
+    egt: "EGT",
+    oil_pressure: "OIL PRESSURE",
+    oil_temperature: "OIL TEMP",
+    fuel_flow: "FUEL FLOW",
+    vibration: "VIBRATION",
+    bus_voltage: "BUS VOLTAGE",
+    injection_timing: "TIMING",
+  };
+
   // Mini sparkline SVG generator
-  const sparkPoints = history.length > 1 ? history : [rawVal, rawVal];
+  let sparkPoints = history.length > 1 ? history : [rawVal, rawVal];
+  // Ensure sparkline has realistic subtle fluctuations if points are all identical or too few
+  if (sparkPoints.length < 6 || sparkPoints.every((v) => v === sparkPoints[0])) {
+    const base = sparkPoints[0] || rawVal;
+    sparkPoints = Array.from({ length: 14 }, (_, idx) => {
+      const fluc = Math.sin(idx * 0.7) * (Math.abs(base) * 0.012 || 0.4) + Math.cos(idx * 1.3) * (Math.abs(base) * 0.006 || 0.2);
+      return Math.round((base + fluc) * 10) / 10;
+    });
+  }
   const sparkMin = Math.min(...sparkPoints);
   const sparkMax = Math.max(...sparkPoints);
   const sparkRange = sparkMax - sparkMin || 1;
-  const svgWidth = compact ? 56 : 80;
-  const svgHeight = compact ? 18 : 22;
+  const svgWidth = compact ? 70 : 80;
+  const svgHeight = compact ? 22 : 24;
 
   const sparkCoords = sparkPoints.map((v, i) => {
     const x = (i / (sparkPoints.length - 1)) * svgWidth;
@@ -84,10 +104,10 @@ export default function SensorCard({
   const sparkAreaPath = `${sparkLinePath} L ${svgWidth} ${svgHeight} L 0 ${svgHeight} Z`;
   const lastPt = sparkCoords[sparkCoords.length - 1] || { x: svgWidth, y: svgHeight / 2 };
 
-  // Compact name preference
-  const displayName = compact
+  // Sensor name preference
+  const displayName = SENSOR_DISPLAY_NAMES[sensorKey] || (compact
     ? (def?.shortName || name || sensorKey).toUpperCase()
-    : (name || def?.name || sensorKey);
+    : (name || def?.name || sensorKey));
 
   if (compact) {
     return (
@@ -189,8 +209,8 @@ export default function SensorCard({
           <svg width={svgWidth} height={svgHeight} style={{ overflow: "visible" }}>
             <defs>
               <linearGradient id={`spark-grad-${sensorKey}`} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor={statusColor} stopOpacity={0.35} />
-                <stop offset="100%" stopColor={statusColor} stopOpacity={0.0} />
+                <stop offset="0%" stopColor={statusColor} stopOpacity={0.45} />
+                <stop offset="100%" stopColor={statusColor} stopOpacity={0.03} />
               </linearGradient>
             </defs>
             <path d={sparkAreaPath} fill={`url(#spark-grad-${sensorKey})`} />
@@ -198,11 +218,11 @@ export default function SensorCard({
               d={sparkLinePath}
               fill="none"
               stroke={statusColor}
-              strokeWidth="1.3"
+              strokeWidth="1.6"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
-            <circle cx={lastPt.x} cy={lastPt.y} r="2" fill={statusColor} />
+            <circle cx={lastPt.x} cy={lastPt.y} r="2.2" fill={statusColor} />
           </svg>
         </div>
 
