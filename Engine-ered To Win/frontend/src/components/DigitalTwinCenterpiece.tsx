@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import AirframeSchematic from "./dashboard/AirframeSchematic";
 import { UnifiedTelemetryPayload } from "@/types/telemetry";
+import { SCENARIOS_BY_ID } from "@/lib/scenarios";
 import { Cpu, Info } from "lucide-react";
 
 interface DigitalTwinCenterpieceProps {
@@ -122,7 +123,7 @@ export default function DigitalTwinCenterpiece({
                 fontWeight: 600,
               }}
             >
-              FAULT: {activeScenario}
+              FAULT: {(SCENARIOS_BY_ID.get(activeScenario)?.label || activeScenario.replace(/_/g, " ")).toUpperCase()}
             </span>
           )}
         </div>

@@ -1,12 +1,13 @@
 export interface SensorDiagnosis {
   diagnosis_type: "NORMAL" | "POSSIBLE_SENSOR_FAILURE" | "POSSIBLE_ENGINE_FAILURE" | "UNKNOWN" | string;
-  sensor_fault_confidence: number;
-  engine_fault_confidence: number;
-  persistence_count: number;
+  sensor_fault_confidence?: number;
+  engine_fault_confidence?: number;
+  persistence_count?: number;
   suspected_sensor?: string | null;
   affected_sensors?: string[];
   sensor_scores?: Record<string, number>;
   evidence?: string;
+  top_fault_attribution?: string;
 }
 
 export interface TelemetryData {

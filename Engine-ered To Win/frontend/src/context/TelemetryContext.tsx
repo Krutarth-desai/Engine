@@ -202,6 +202,7 @@ function reconcilePayload(raw: UnifiedTelemetryPayload): UnifiedTelemetryPayload
       }
       return s;
     });
+    copy.sensors = Object.fromEntries(copy.sensor_list.map((s) => [s.key, s]));
   }
 
   return copy;
@@ -454,6 +455,20 @@ export function TelemetryProvider({ children }: { children: React.ReactNode }) {
         const nextFuel = Math.round(((prev.fuel_flow_lh ?? 17.6) + jitter * 0.05) * 10) / 10;
         const nextVib = Math.round(((prev.vibration_g ?? 1.42) + jitter * 0.02) * 100) / 100;
 
+        // Synchronize updated sensor_list and sensors so all dashboard components see live variations
+        const nextSensorList = (prev.sensor_list || []).map((s) => {
+          let val = s.value;
+          if (s.key === "rpm") val = nextRpm;
+          else if (s.key === "cht") val = nextCht;
+          else if (s.key === "egt") val = nextEgt;
+          else if (s.key === "oil_pressure") val = Math.round(nextOilBar * 14.5038 * 10) / 10;
+          else if (s.key === "oil_temperature") val = nextOilT;
+          else if (s.key === "fuel_flow") val = nextFuel;
+          else if (s.key === "vibration") val = nextVib;
+          return { ...s, value: val };
+        });
+        const nextSensors = Object.fromEntries(nextSensorList.map((s) => [s.key, s]));
+
         const updated: UnifiedTelemetryPayload = {
           ...prev,
           cycle: (prev.cycle ?? 31) + 1,
@@ -465,6 +480,8 @@ export function TelemetryProvider({ children }: { children: React.ReactNode }) {
           oil_temperature_c: nextOilT,
           fuel_flow_lh: nextFuel,
           vibration_g: nextVib,
+          sensor_list: nextSensorList,
+          sensors: nextSensors,
           prognostics: {
             ...prev.prognostics,
             remaining_time_str: remStr,
@@ -499,6 +516,14 @@ export function TelemetryProvider({ children }: { children: React.ReactNode }) {
         case "Overheating":
           overrides = {
             health_index: 68,
+            anomaly_score: 0.884,
+            evidence: "Cylinder #3 CHT at 178.4°C exceeded 165°C limit; EGT elevated to 695°C.",
+            sensor_diagnosis: {
+              diagnosis_type: "ISOLATED (THERMAL SPIKE)",
+              engine_fault_confidence: 0.96,
+              evidence: "Cylinder #3 CHT at 178.4°C exceeded 165°C limit; EGT elevated to 695°C.",
+              top_fault_attribution: "Cylinder Head #3 & Cooling Radiator",
+            },
             risk: {
               level: "HIGH",
               anomaly: "ALERT",
@@ -548,6 +573,14 @@ export function TelemetryProvider({ children }: { children: React.ReactNode }) {
         case "Lubrication":
           overrides = {
             health_index: 48,
+            anomaly_score: 0.942,
+            evidence: "Oil galley pressure collapsed to 1.82 bar (26.4 psi); oil temperature elevated to 106.8°C.",
+            sensor_diagnosis: {
+              diagnosis_type: "ISOLATED (PRESSURE DECAY)",
+              engine_fault_confidence: 0.98,
+              evidence: "Oil galley pressure collapsed to 1.82 bar (26.4 psi); oil temperature elevated to 106.8°C.",
+              top_fault_attribution: "Oil Galley & Scavenge Pump",
+            },
             risk: {
               level: "CRITICAL",
               anomaly: "ALERT",
@@ -597,6 +630,14 @@ export function TelemetryProvider({ children }: { children: React.ReactNode }) {
         case "Vibration_Fault":
           overrides = {
             health_index: 62,
+            anomaly_score: 0.815,
+            evidence: "Crankcase accelerometer detected persistent 1X harmonic resonance spike at 2.45g RMS.",
+            sensor_diagnosis: {
+              diagnosis_type: "ISOLATED (HARMONIC SPIKE)",
+              engine_fault_confidence: 0.95,
+              evidence: "Crankcase accelerometer detected persistent 1X harmonic resonance spike at 2.45g RMS.",
+              top_fault_attribution: "Crankcase & Dynafocal Mounts",
+            },
             risk: {
               level: "HIGH",
               anomaly: "ALERT",
@@ -635,6 +676,14 @@ export function TelemetryProvider({ children }: { children: React.ReactNode }) {
         case "Injector_Degradation":
           overrides = {
             health_index: 75,
+            anomaly_score: 0.680,
+            evidence: "Fuel delivery restricted to 14.2 L/h (< 15.0 L/h); cylinder #2 running lean-biased.",
+            sensor_diagnosis: {
+              diagnosis_type: "ISOLATED (LEAN EXCURSION)",
+              engine_fault_confidence: 0.92,
+              evidence: "Fuel delivery restricted to 14.2 L/h (< 15.0 L/h); cylinder #2 running lean-biased.",
+              top_fault_attribution: "Fuel Rail & Solenoid Injectors",
+            },
             risk: {
               level: "MEDIUM",
               anomaly: "CAUTION",
@@ -673,6 +722,14 @@ export function TelemetryProvider({ children }: { children: React.ReactNode }) {
         case "Misfire":
           overrides = {
             health_index: 58,
+            anomaly_score: 0.790,
+            evidence: "RPM drop of 170 RPM with combustion roughness 0.82; intermittent spark failure on Cylinder 1.",
+            sensor_diagnosis: {
+              diagnosis_type: "ISOLATED (COMBUSTION RIPPLE)",
+              engine_fault_confidence: 0.94,
+              evidence: "RPM drop of 170 RPM with combustion roughness 0.82; intermittent spark failure on Cylinder 1.",
+              top_fault_attribution: "Dual Magneto & Ignition Harness",
+            },
             risk: {
               level: "HIGH",
               anomaly: "ALERT",
@@ -711,6 +768,14 @@ export function TelemetryProvider({ children }: { children: React.ReactNode }) {
         case "Sensor_Drift":
           overrides = {
             health_index: 82,
+            anomaly_score: 0.440,
+            evidence: "Thermocouple readout diverging from physics-based digital twin thermal model (Z-score 3.42).",
+            sensor_diagnosis: {
+              diagnosis_type: "ISOLATED (ANALYTICAL DRIFT)",
+              engine_fault_confidence: 0.89,
+              evidence: "Thermocouple readout diverging from physics-based digital twin thermal model (Z-score 3.42).",
+              top_fault_attribution: "CHT Thermocouple Harness",
+            },
             risk: {
               level: "LOW",
               anomaly: "CAUTION",
@@ -749,6 +814,14 @@ export function TelemetryProvider({ children }: { children: React.ReactNode }) {
         case "Sensor_Fault_Temp":
           overrides = {
             health_index: 84,
+            anomaly_score: 0.520,
+            evidence: "Erratic temperature step-gradient > 25°C/s detected without matching EGT change.",
+            sensor_diagnosis: {
+              diagnosis_type: "ISOLATED (STEP TRANSIENT)",
+              engine_fault_confidence: 0.93,
+              evidence: "Erratic temperature step-gradient > 25°C/s detected without matching EGT change.",
+              top_fault_attribution: "Avionics DAU / CHT Probe",
+            },
             risk: {
               level: "LOW",
               anomaly: "CAUTION",
@@ -787,6 +860,14 @@ export function TelemetryProvider({ children }: { children: React.ReactNode }) {
         case "Engine_Failure_Multi":
           overrides = {
             health_index: 24,
+            anomaly_score: 0.985,
+            evidence: "Correlated multi-sensor breakdown across thermal, hydraulic, and mechanical systems.",
+            sensor_diagnosis: {
+              diagnosis_type: "COMPOUND SYSTEM FAILURE",
+              engine_fault_confidence: 0.99,
+              evidence: "Correlated multi-sensor breakdown across thermal, hydraulic, and mechanical systems.",
+              top_fault_attribution: "Core Propulsion Bay",
+            },
             risk: {
               level: "CRITICAL",
               anomaly: "ALERT",
@@ -837,6 +918,14 @@ export function TelemetryProvider({ children }: { children: React.ReactNode }) {
         default:
           overrides = {
             health_index: 96,
+            anomaly_score: 0.028,
+            evidence: "Cross-sensor telemetry correlates nominally with calibrated baseline bounds.",
+            sensor_diagnosis: {
+              diagnosis_type: "NOMINAL",
+              engine_fault_confidence: 0.98,
+              evidence: "Cross-sensor telemetry correlates nominally with calibrated baseline bounds.",
+              top_fault_attribution: "All Subsystems Nominal",
+            },
             risk: {
               level: "LOW",
               anomaly: "NORMAL",
@@ -867,7 +956,7 @@ export function TelemetryProvider({ children }: { children: React.ReactNode }) {
         if (s.key === "rpm" && overrides.rpm !== undefined) val = overrides.rpm;
         if (s.key === "cht" && overrides.cht_c !== undefined) val = overrides.cht_c;
         if (s.key === "egt" && overrides.egt_c !== undefined) val = overrides.egt_c;
-        if (s.key === "oil_pressure" && overrides.oil_pressure_bar !== undefined) val = overrides.oil_pressure_bar;
+        if (s.key === "oil_pressure" && overrides.oil_pressure_bar !== undefined) val = Math.round(overrides.oil_pressure_bar * 14.5038 * 10) / 10;
         if (s.key === "oil_temperature" && overrides.oil_temperature_c !== undefined) val = overrides.oil_temperature_c;
         if (s.key === "fuel_flow" && overrides.fuel_flow_lh !== undefined) val = overrides.fuel_flow_lh;
         if (s.key === "vibration" && overrides.vibration_g !== undefined) val = overrides.vibration_g;

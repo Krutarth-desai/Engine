@@ -4,6 +4,7 @@ import React from "react";
 import { UnifiedTelemetryPayload } from "@/types/telemetry";
 import { getRulZone } from "@/lib/limits";
 import { fmtHealthIndex } from "@/lib/format";
+import { SCENARIOS_BY_ID } from "@/lib/scenarios";
 import { NavView } from "@/components/Sidebar";
 import { Activity, Gauge, ArrowUpRight, ArrowDownRight, Radio } from "lucide-react";
 
@@ -60,7 +61,7 @@ export default function DashboardKpiCards({ payload, onNavigate }: DashboardKpiC
     : "var(--status-nominal)";
 
   const activeMode = payload.fault_label && payload.fault_label !== "Normal"
-    ? payload.fault_label
+    ? (SCENARIOS_BY_ID.get(payload.fault_label)?.label || payload.fault_label.replace(/_/g, " "))
     : "Nominal Cruise";
   const missionPhase = payload.vehicle?.mission_id ? `${payload.vehicle.mission_id} (WP-04)` : "ISR_PATROL_27 (WP-04)";
 
