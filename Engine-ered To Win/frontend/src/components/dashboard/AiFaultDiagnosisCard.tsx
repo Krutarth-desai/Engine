@@ -2,19 +2,20 @@
 
 import React from "react";
 import { UnifiedTelemetryPayload } from "@/types/telemetry";
-import { SCENARIO_REGISTRY, ScenarioItem, SCENARIOS_BY_ID } from "@/lib/scenarios";
-import { Zap, RotateCcw, FlaskConical } from "lucide-react";
+import { SCENARIOS_BY_ID } from "@/lib/scenarios";
+import { Zap } from "lucide-react";
 
 interface AiFaultDiagnosisCardProps {
   payload: UnifiedTelemetryPayload;
   activeScenario: string;
-  onInjectScenario: (scenario: string) => void;
+  onInjectScenario?: (scenario: string) => void;
+  onNavigate?: () => void;
 }
 
 export default function AiFaultDiagnosisCard({
   payload,
   activeScenario,
-  onInjectScenario,
+  onNavigate,
 }: AiFaultDiagnosisCardProps) {
   const isSimulationActive = Boolean(activeScenario && activeScenario !== "Normal");
   const diagnosis = payload.sensor_diagnosis;
@@ -207,7 +208,7 @@ export default function AiFaultDiagnosisCard({
         </div>
       </div>
 
-      {/* Small Fault Injection Control */}
+      {/* Card Footer Status & Diagnostics Link */}
       <div
         style={{
           borderTop: "1px solid var(--border)",
@@ -215,78 +216,44 @@ export default function AiFaultDiagnosisCard({
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          gap: "0.45rem",
-          minWidth: 0,
+          fontSize: "11px",
+          color: "var(--text-muted)",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: "0.35rem", flex: 1, minWidth: 0 }}>
+        <span style={{ fontFamily: "var(--font-mono), monospace" }}>
+          Mode: {isSimulationActive ? "Simulated Fault Active" : "Nominal Telemetry Baseline"}
+        </span>
+        {onNavigate ? (
+          <button
+            onClick={onNavigate}
+            style={{
+              background: "transparent",
+              border: "none",
+              color: "var(--accent)",
+              fontFamily: "var(--font-mono), monospace",
+              fontSize: "10.5px",
+              fontWeight: 600,
+              cursor: "pointer",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.2rem",
+              padding: 0,
+            }}
+            title="Open Subsystem Physics Diagnostics"
+          >
+            DIAGNOSTICS &rarr;
+          </button>
+        ) : (
           <span
             style={{
-              fontSize: "11px",
               fontFamily: "var(--font-mono), monospace",
-              fontWeight: 700,
-              color: isSimulationActive ? "var(--status-caution)" : "var(--text-faint)",
-              textTransform: "uppercase",
-              whiteSpace: "nowrap",
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "0.25rem",
-            }}
-          >
-            <FlaskConical size={12} style={{ color: isSimulationActive ? "var(--status-caution)" : "var(--accent)" }} />
-            SIM:
-          </span>
-          <select
-            value={activeScenario || "Normal"}
-            onChange={(e) => onInjectScenario(e.target.value)}
-            style={{
-              flex: 1,
-              minWidth: 0,
-              background: "var(--surface-2)",
-              border: `1px solid ${isSimulationActive ? "color-mix(in srgb, var(--status-caution) 50%, var(--border))" : "var(--border)"}`,
-              borderRadius: "4px",
-              color: "var(--text)",
-              fontSize: "11px",
-              fontFamily: "var(--font-sans), system-ui, sans-serif",
-              padding: "0.25rem 0.4rem",
-              cursor: "pointer",
-              outline: "none",
-              textOverflow: "ellipsis",
-              overflow: "hidden",
-              whiteSpace: "nowrap",
-            }}
-            title="Inject test failure scenario into digital twin"
-          >
-            {SCENARIO_REGISTRY.map((s: ScenarioItem) => (
-              <option key={s.id} value={s.id}>
-                {s.label} ({s.category})
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {isSimulationActive && (
-          <button
-            onClick={() => onInjectScenario("Normal")}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "0.25rem",
-              background: "var(--surface-2)",
-              border: "1px solid var(--status-caution)",
-              color: "var(--status-caution)",
-              fontSize: "11px",
+              fontSize: "10.5px",
+              color: "var(--accent)",
               fontWeight: 600,
-              padding: "0.25rem 0.5rem",
-              borderRadius: "4px",
-              cursor: "pointer",
-              whiteSpace: "nowrap",
-              flexShrink: 0,
             }}
-            title="Reset to nominal cruise"
           >
-            <RotateCcw size={11} /> Reset
-          </button>
+            VERIFIED &rarr;
+          </span>
         )}
       </div>
     </div>

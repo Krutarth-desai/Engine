@@ -140,7 +140,7 @@ export default function MainDashboardView({
           <AiFaultDiagnosisCard
             payload={payload}
             activeScenario={activeScenario}
-            onInjectScenario={onInjectScenario}
+            onNavigate={() => onNavigate("diagnostics")}
           />
           <SubsystemHealthCard payload={payload} />
         </div>

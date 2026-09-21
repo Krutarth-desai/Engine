@@ -9,13 +9,13 @@ import {
   Gauge,
   Compass,
   TrendingUp,
-  Zap,
   Wrench,
   BellRing,
   Settings,
   PanelLeftClose,
   PanelLeftOpen,
   Radio,
+  FlaskConical,
 } from "lucide-react";
 
 export type NavView =
@@ -149,13 +149,14 @@ export default function Sidebar({
       ],
     },
     {
-      heading: "FAULTS",
+      heading: "SIMULATION",
       items: [
         {
           id: "faults",
-          label: "Fault Injection",
-          icon: <Zap size={16} />,
+          label: "Simulation (SIM)",
+          icon: <FlaskConical size={16} />,
           shortcut: "7",
+          tag: "9 SCEN",
         },
       ],
     },

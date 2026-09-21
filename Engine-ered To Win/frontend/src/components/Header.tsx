@@ -4,13 +4,14 @@ import React, { useState } from "react";
 import { useTelemetry } from "@/context/TelemetryContext";
 import { fmtTimestamp, fmtRelativeTime, fmtRulCountdown } from "@/lib/format";
 import UserMenuDropdown from "./header/UserMenuDropdown";
+import { SCENARIO_REGISTRY } from "@/lib/scenarios";
 import {
   Clock,
   Radio,
   WifiOff,
   RotateCcw,
-  ShieldCheck,
   AlertTriangle,
+  FlaskConical,
 } from "lucide-react";
 
 interface HeaderProps {
@@ -42,6 +43,7 @@ export default function Header({
     timeDisplay,
     setTimeDisplay,
     activeScenario,
+    injectScenario,
     resetScenario,
   } = useTelemetry();
 
@@ -195,34 +197,75 @@ export default function Header({
           </span>
         </button>
 
-        {/* Active Scenario Warning / Nominal Pill */}
-        {isSimulationActive ? (
-          <div
+        {/* Dedicated Top Mission SIM Option */}
+        <div
+          style={{
+            height: "30px",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "0.3rem",
+            background: isSimulationActive
+              ? "color-mix(in srgb, var(--status-caution) 12%, var(--surface-1))"
+              : "var(--surface-2)",
+            border: `1px solid ${
+              isSimulationActive
+                ? "color-mix(in srgb, var(--status-caution) 35%, transparent)"
+                : "var(--border)"
+            }`,
+            borderRadius: "6px",
+            padding: "0 0.45rem",
+            fontSize: "11px",
+            fontFamily: "var(--font-mono), monospace",
+            fontWeight: 700,
+            boxSizing: "border-box",
+          }}
+        >
+          {isSimulationActive ? (
+            <AlertTriangle size={12} style={{ color: "var(--status-caution)", flexShrink: 0 }} />
+          ) : (
+            <FlaskConical size={12} style={{ color: "var(--accent)", flexShrink: 0 }} />
+          )}
+          <span
             style={{
-              height: "30px",
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "0.35rem",
-              background: "color-mix(in srgb, var(--status-caution) 12%, var(--surface-1))",
-              border: "1px solid color-mix(in srgb, var(--status-caution) 35%, transparent)",
-              color: "var(--status-caution)",
-              borderRadius: "6px",
-              padding: "0 0.55rem",
+              fontSize: "10.5px",
+              color: isSimulationActive ? "var(--status-caution)" : "var(--text-faint)",
+              textTransform: "uppercase",
+            }}
+          >
+            SIM:
+          </span>
+          <select
+            value={activeScenario || "Normal"}
+            onChange={(e) => injectScenario(e.target.value)}
+            style={{
+              background: "transparent",
+              border: "none",
+              color: isSimulationActive ? "var(--status-caution)" : "var(--text)",
               fontSize: "11px",
               fontFamily: "var(--font-mono), monospace",
               fontWeight: 700,
-              boxSizing: "border-box",
+              cursor: "pointer",
+              outline: "none",
+              padding: "0 0.15rem",
+              maxWidth: "155px",
             }}
+            title="Switch simulation scenario across ground station"
           >
-            <AlertTriangle size={12} />
-            <span>SIM: {activeScenario.replace(/_/g, " ").toUpperCase()}</span>
+            {SCENARIO_REGISTRY.map((s) => (
+              <option key={s.id} value={s.id} style={{ background: "var(--surface-1)", color: "var(--text)" }}>
+                {s.label} ({s.category})
+              </option>
+            ))}
+          </select>
+
+          {isSimulationActive && (
             <button
               onClick={resetScenario}
               title="Reset simulation to nominal baseline"
               style={{
                 background: "var(--surface-2)",
                 border: "1px solid var(--border)",
-                color: "var(--text)",
+                color: "var(--status-caution)",
                 borderRadius: "4px",
                 padding: "0.1rem 0.35rem",
                 cursor: "pointer",
@@ -237,29 +280,8 @@ export default function Header({
               <RotateCcw size={9} />
               RESET
             </button>
-          </div>
-        ) : (
-          <div
-            style={{
-              height: "30px",
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "0.3rem",
-              fontSize: "11px",
-              color: "var(--status-nominal)",
-              background: "var(--surface-2)",
-              border: "1px solid var(--border)",
-              borderRadius: "6px",
-              padding: "0 0.55rem",
-              boxSizing: "border-box",
-              fontFamily: "var(--font-mono), monospace",
-              fontWeight: 700,
-            }}
-          >
-            <ShieldCheck size={12} />
-            <span>NOMINAL</span>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Est. Engine Time Remaining */}
         <div

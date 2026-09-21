@@ -3,13 +3,13 @@
 import React, { useState } from "react";
 import AirframeSchematic from "./dashboard/AirframeSchematic";
 import { UnifiedTelemetryPayload } from "@/types/telemetry";
-import { SCENARIOS_BY_ID } from "@/lib/scenarios";
-import { Cpu, Info } from "lucide-react";
+import { SCENARIOS_BY_ID, SCENARIO_REGISTRY } from "@/lib/scenarios";
+import { Cpu, Info, FlaskConical, RotateCcw } from "lucide-react";
 
 interface DigitalTwinCenterpieceProps {
   telemetry: unknown;
   activeScenario: string;
-  onInjectScenario: (scenario: string) => void;
+  onInjectScenario?: (scenario: string) => void;
   focusedComponent?: string | null;
   onSelectComponent?: (componentKey: string) => void;
 }
@@ -17,11 +17,13 @@ interface DigitalTwinCenterpieceProps {
 export default function DigitalTwinCenterpiece({
   telemetry,
   activeScenario,
+  onInjectScenario,
   focusedComponent,
   onSelectComponent,
 }: DigitalTwinCenterpieceProps) {
   const [viewMode, setViewMode] = useState<"full" | "engine" | "thermal">("full");
   const [showLegend, setShowLegend] = useState<boolean>(true);
+  const isSimulationActive = Boolean(activeScenario && activeScenario !== "Normal");
 
   const payload = (telemetry as UnifiedTelemetryPayload) || {};
 
@@ -128,8 +130,89 @@ export default function DigitalTwinCenterpiece({
           )}
         </div>
 
-        {/* View Mode Tabs per Sketch: Full drone / Engine bay / Thermal */}
-        <div style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}>
+        {/* Toolbar: Dedicated SIM Scenario Option + View Mode Tabs */}
+        <div style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
+          {/* Dedicated SIM Scenario Selector */}
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.25rem",
+              background: "var(--surface-2)",
+              border: `1px solid ${isSimulationActive ? "var(--status-caution)" : "var(--border)"}`,
+              borderRadius: "4px",
+              padding: "0 0.35rem 0 0.45rem",
+              height: "26px",
+              boxSizing: "border-box",
+            }}
+          >
+            <FlaskConical
+              size={12}
+              style={{ color: isSimulationActive ? "var(--status-caution)" : "var(--accent)", flexShrink: 0 }}
+            />
+            <span
+              style={{
+                fontSize: "10.5px",
+                fontFamily: "var(--font-mono), monospace",
+                fontWeight: 700,
+                color: isSimulationActive ? "var(--status-caution)" : "var(--text-faint)",
+                textTransform: "uppercase",
+              }}
+            >
+              SIM:
+            </span>
+            <select
+              value={activeScenario || "Normal"}
+              onChange={(e) => onInjectScenario && onInjectScenario(e.target.value)}
+              style={{
+                background: "transparent",
+                border: "none",
+                color: isSimulationActive ? "var(--status-caution)" : "var(--text)",
+                fontSize: "11px",
+                fontFamily: "var(--font-sans), system-ui, sans-serif",
+                fontWeight: 600,
+                cursor: "pointer",
+                outline: "none",
+                padding: "0 0.2rem",
+                maxWidth: "185px",
+              }}
+              title="Inject test failure scenario into digital twin"
+            >
+              {SCENARIO_REGISTRY.map((s) => (
+                <option key={s.id} value={s.id} style={{ background: "var(--surface-1)", color: "var(--text)" }}>
+                  {s.label} ({s.category})
+                </option>
+              ))}
+            </select>
+
+            {isSimulationActive && (
+              <button
+                onClick={() => onInjectScenario && onInjectScenario("Normal")}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "0.2rem",
+                  background: "transparent",
+                  border: "none",
+                  borderLeft: "1px solid var(--border)",
+                  color: "var(--status-caution)",
+                  fontSize: "10px",
+                  fontWeight: 700,
+                  fontFamily: "var(--font-mono), monospace",
+                  padding: "0 0 0 0.35rem",
+                  marginLeft: "0.15rem",
+                  cursor: "pointer",
+                }}
+                title="Reset simulation to nominal cruise"
+              >
+                <RotateCcw size={10} /> RESET
+              </button>
+            )}
+          </div>
+
+          <div style={{ width: "1px", height: "18px", background: "var(--border)", margin: "0 0.15rem" }} />
+
+          {/* View Mode Tabs per Sketch: Full drone / Engine bay / Thermal */}
           <button
             onClick={() => setViewMode("full")}
             style={tabBtnStyle(viewMode === "full")}
