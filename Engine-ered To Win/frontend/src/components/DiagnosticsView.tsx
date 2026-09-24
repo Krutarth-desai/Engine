@@ -37,36 +37,62 @@ export default function DiagnosticsView({ payload }: DiagnosticsViewProps) {
     sensor_diagnosis: payload.sensor_diagnosis,
   };
 
+  const diagType = (payload.sensor_diagnosis?.diagnosis_type || "NORMAL").toUpperCase();
+  const isNormal = diagType === "NORMAL" || diagType === "NOMINAL";
+
   return (
-    <div className="view-container diagnostics-view">
-      <div className="view-header-strip">
-        <div>
-          <h2 className="view-title"><strong>SUBSYSTEM DIAGNOSTICS &amp; SENSOR FAULT ISOLATION</strong></h2>
-          <p className="view-subtitle">Cross-sensor regression modeling, physics health verification, and anomaly root-cause attribution</p>
+    <div className="gcs-view-container diagnostics-view">
+      {/* Standardized GCS View Header */}
+      <div className="gcs-view-header">
+        <div className="gcs-view-title-wrap">
+          <h2 className="gcs-view-title">
+            <span>🔬</span> SUBSYSTEM DIAGNOSTICS &amp; SENSOR FAULT ISOLATION
+          </h2>
+          <span className="gcs-view-tagline">
+            Cross-sensor regression modeling, physics health verification, and anomaly root-cause attribution
+          </span>
         </div>
-        <div className="diag-header-status">
-          <span className="status-label"><strong>CURRENT DIAGNOSIS:</strong></span>
-          <span className={`status-val status-${(payload.sensor_diagnosis?.diagnosis_type || "normal").toLowerCase()}`}>
-            <strong>{payload.sensor_diagnosis?.diagnosis_type || "NORMAL"}</strong>
+        <div className="gcs-view-actions">
+          <span
+            className="status-pill"
+            style={{
+              background: isNormal ? "rgba(16, 185, 129, 0.12)" : "rgba(245, 158, 11, 0.15)",
+              color: isNormal ? "#10b981" : "#f59e0b",
+              borderColor: isNormal ? "rgba(16, 185, 129, 0.35)" : "rgba(245, 158, 11, 0.35)",
+              fontSize: "0.65rem",
+              fontWeight: 800,
+            }}
+          >
+            <span
+              className="status-dot"
+              style={{ backgroundColor: isNormal ? "#10b981" : "#f59e0b" }}
+            ></span>
+            STATUS: {diagType}
           </span>
         </div>
       </div>
 
-      <div className="diagnostics-view-grid">
-        {/* Row 1: Left Sensor vs Engine Diagnosis | Right Subsystem Physics Health & PHM Matrix */}
-        <div className="diag-top-row">
-          <div className="diag-col">
-            <SensorDiagnosisPanel telemetry={flatTelemetry} />
-          </div>
-          <div className="diag-col">
-            <DiagnosisPanel telemetry={flatTelemetry} />
-          </div>
+      {/* Balanced 2-Column Responsive Layout for Diagnostic Matrix */}
+      <div
+        className="gcs-grid-2col"
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: "0.95rem",
+          alignItems: "stretch",
+        }}
+      >
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          <SensorDiagnosisPanel telemetry={flatTelemetry} />
         </div>
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          <DiagnosisPanel telemetry={flatTelemetry} />
+        </div>
+      </div>
 
-        {/* Row 2: Top Contributing Features (SHAP / Gradient Feature Attribution) */}
-        <div className="diag-bottom-row">
-          <FeatureContributionPanel features={payload.contributing_features || []} />
-        </div>
+      {/* Feature Attribution Bottom Layer */}
+      <div style={{ width: "100%" }}>
+        <FeatureContributionPanel features={payload.contributing_features || []} />
       </div>
     </div>
   );

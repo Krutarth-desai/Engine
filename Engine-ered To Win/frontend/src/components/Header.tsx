@@ -1,38 +1,56 @@
 "use client";
 
-import React from "react";
+import { ConnectionState, useTelemetry } from "@/context/TelemetryContext";
+import { useRole } from "@/context/RoleContext";
 
 interface HeaderProps {
   userEmail: string;
   isConnected: boolean;
+  connectionStatus?: ConnectionState;
   vehicleId?: string;
   missionId?: string;
   altitude?: number;
   throttle?: number;
   remainingTimeStr?: string;
+  mode?: "LIVE" | "REPLAY";
+  missionStatus?: string;
   onLogout: () => void;
 }
 
 export default function Header({
   userEmail,
   isConnected,
+  connectionStatus = isConnected ? "CONNECTED" : "CONNECTING",
   vehicleId = "UAV_ENG_001",
   missionId = "ISR_PATROL_27",
   altitude = 15000,
   throttle = 75,
   remainingTimeStr = "01:57:32",
+  mode = "LIVE",
+  missionStatus = "NOMINAL CRUISE",
   onLogout,
 }: HeaderProps) {
+  const { roleMeta } = useRole();
+  const { forceResumeLiveStream } = useTelemetry();
   return (
     <header id="app-header" className="gcs-mission-header">
-      {/* Left: Mission Brand */}
-      <div className="brand">
-        <div className="logo-badge"><span className="aerotwin-icon">▲</span> AEROTWIN</div>
-        <div>
-          <div className="brand-title"><strong>MALE UAV PISTON ENGINE DIGITAL TWIN</strong></div>
-          <div className="brand-subtitle">GROUND CONTROL STATION &amp; PHM SUITE</div>
+      {/* Top Banner Row: Centralized System Title across top with reduced, crisp typography */}
+      <div className="gcs-header-top-banner">
+        <div className="gcs-header-title-wrap">
+          <span className="gcs-header-accent-pip">◀</span>
+          <h1 className="gcs-header-system-title">MALE UAV PISTON ENGINE DIGITAL TWIN</h1>
+          <span className="gcs-header-divider">•</span>
+          <span className="gcs-header-suite-title">GROUND CONTROL STATION &amp; PHM SUITE</span>
+          <span className="gcs-header-accent-pip">▶</span>
         </div>
       </div>
+
+      {/* Main Operational Bar Row */}
+      <div className="gcs-header-main-row">
+        {/* Left: Mission Brand Identity */}
+        <div className="brand">
+          <div className="logo-badge"><span className="aerotwin-icon">▲</span> AEROTWIN</div>
+        </div>
 
       {/* Center: Mission Operational Telemetry */}
       <div className="mission-center-bar">
@@ -66,27 +84,123 @@ export default function Header({
           </div>
         </div>
 
+        {/* Mode Badge [ LIVE / REPLAY ] */}
+        <div
+          id="mode-badge"
+          className="status-pill"
+          style={{
+            borderColor: mode === "REPLAY" ? "rgba(56, 189, 248, 0.5)" : "rgba(16, 185, 129, 0.4)",
+            color: mode === "REPLAY" ? "#38bdf8" : "#10b981",
+            background: mode === "REPLAY" ? "rgba(56, 189, 248, 0.15)" : "rgba(16, 185, 129, 0.1)",
+            fontWeight: 800,
+          }}
+        >
+          <span
+            className="status-dot"
+            style={{ backgroundColor: mode === "REPLAY" ? "#38bdf8" : "#10b981" }}
+          ></span>
+          <span>{mode === "REPLAY" ? "REPLAY" : "LIVE"}</span>
+        </div>
+
+        {/* Role Badge */}
+        {roleMeta && (
+          <div
+            id="role-badge"
+            className="status-pill"
+            style={{
+              borderColor: `${roleMeta.accentColor}55`,
+              color: roleMeta.accentColor,
+              background: roleMeta.accentBg,
+              fontWeight: 800,
+              fontSize: "0.62rem",
+              letterSpacing: "0.8px",
+            }}
+          >
+            <span>{roleMeta.icon}</span>
+            <span>{roleMeta.shortLabel}</span>
+          </div>
+        )}
+
+        {/* Mission Status Badge */}
+        <div
+          id="mission-status-badge"
+          className="status-pill"
+          style={{
+            borderColor: "rgba(255, 255, 255, 0.12)",
+            color: "#e2e8f0",
+            fontSize: "0.68rem",
+          }}
+        >
+          <span>{missionStatus}</span>
+        </div>
+
         <div
           id="conn-badge"
           className="status-pill"
+          onClick={() => forceResumeLiveStream()}
+          title="Click to instantly resume live telemetry stream"
           style={{
-            borderColor: isConnected ? "rgba(16, 185, 129, 0.3)" : "rgba(239, 68, 68, 0.3)",
-            color: isConnected ? "#10b981" : "#ef4444",
+            cursor: "pointer",
+            borderColor:
+              connectionStatus === "CONNECTED"
+                ? "rgba(16, 185, 129, 0.4)"
+                : connectionStatus === "CONNECTING"
+                ? "rgba(56, 189, 248, 0.4)"
+                : connectionStatus === "RECONNECTING"
+                ? "rgba(245, 158, 11, 0.4)"
+                : "rgba(239, 68, 68, 0.4)",
+            color:
+              connectionStatus === "CONNECTED"
+                ? "#10b981"
+                : connectionStatus === "CONNECTING"
+                ? "#38bdf8"
+                : connectionStatus === "RECONNECTING"
+                ? "#f59e0b"
+                : "#ef4444",
+            background:
+              connectionStatus === "CONNECTED"
+                ? "rgba(16, 185, 129, 0.1)"
+                : connectionStatus === "CONNECTING"
+                ? "rgba(56, 189, 248, 0.1)"
+                : connectionStatus === "RECONNECTING"
+                ? "rgba(245, 158, 11, 0.1)"
+                : "rgba(239, 68, 68, 0.1)",
           }}
         >
-          <span className="status-dot"></span>
-          <span id="conn-text">{isConnected ? "LIVE 1 Hz" : "RECONNECTING"}</span>
+          <span
+            className="status-dot"
+            style={{
+              backgroundColor:
+                connectionStatus === "CONNECTED"
+                  ? "#10b981"
+                  : connectionStatus === "CONNECTING"
+                  ? "#38bdf8"
+                  : connectionStatus === "RECONNECTING"
+                  ? "#f59e0b"
+                  : "#ef4444",
+            }}
+          ></span>
+          <span id="conn-text">
+            {connectionStatus === "CONNECTED"
+              ? "LIVE 1 Hz"
+              : connectionStatus === "CONNECTING"
+              ? "CONNECTING..."
+              : connectionStatus === "RECONNECTING"
+              ? "PAUSED (RESUME)"
+              : "OFFLINE (RESUME)"}
+          </span>
         </div>
 
-        <div className="auth-user-info">
-          <span className="auth-user-email" id="auth-user-email">
+        <div className="auth-user-info" style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+          <span className="auth-user-email" id="auth-user-email" style={{ fontSize: "0.68rem", color: "#94a3b8", fontFamily: "var(--font-mono, monospace)" }}>
             {userEmail || "Operator"}
           </span>
-          <button className="auth-logout-btn" id="auth-logout-btn" onClick={onLogout}>
+          <button className="gcs-btn gcs-btn-danger gcs-btn-sm" id="auth-logout-btn" onClick={onLogout} title="Sign Out">
             LOGOUT
           </button>
         </div>
       </div>
-    </header>
+    </div>
+  </header>
   );
 }

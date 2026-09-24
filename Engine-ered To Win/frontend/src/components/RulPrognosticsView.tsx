@@ -16,44 +16,57 @@ export default function RulPrognosticsView({ payload }: RulPrognosticsViewProps)
   const [activeTab, setActiveTab] = useState<"piston" | "cmapss">("piston");
 
   return (
-    <div className="view-container rul-prognostics-view">
-      <div className="view-header-strip">
-        <div>
-          <h2 className="view-title"><strong>REMAINING USEFUL LIFE (RUL) &amp; PROGNOSTICS SUITE</strong></h2>
-          <p className="view-subtitle">Deep LSTM degradation modeling, 30-cycle temporal sequence memory, and cycle-to-failure forecasting</p>
+    <div className="gcs-view-container rul-prognostics-view">
+      {/* Standardized GCS View Header */}
+      <div className="gcs-view-header">
+        <div className="gcs-view-title-wrap">
+          <h2 className="gcs-view-title">
+            <span>⏳</span> REMAINING USEFUL LIFE (RUL) &amp; PROGNOSTICS SUITE
+          </h2>
+          <span className="gcs-view-tagline">
+            Deep LSTM degradation modeling, 30-cycle temporal sequence memory, and cycle-to-failure forecasting
+          </span>
         </div>
 
-        {/* Tab Toggle between Live Piston Engine Prognostics and NASA CMAPSS Fleet Explorer */}
-        <div className="rul-view-tabs">
+        {/* Tab Toggle with Standardized GCS Buttons */}
+        <div className="gcs-view-actions">
           <button
-            className={`rul-tab-btn ${activeTab === "piston" ? "active" : ""}`}
+            className={`gcs-btn gcs-btn-sm ${activeTab === "piston" ? "gcs-btn-primary" : "gcs-btn-secondary"}`}
             onClick={() => setActiveTab("piston")}
           >
-            <strong>UAV PISTON PROGNOSTICS</strong>
+            UAV PISTON PROGNOSTICS
           </button>
           <button
-            className={`rul-tab-btn ${activeTab === "cmapss" ? "active" : ""}`}
+            className={`gcs-btn gcs-btn-sm ${activeTab === "cmapss" ? "gcs-btn-primary" : "gcs-btn-secondary"}`}
             onClick={() => setActiveTab("cmapss")}
           >
-            <strong>NASA CMAPSS FLEET (E1–E100)</strong>
+            NASA CMAPSS FLEET (E1–E100)
           </button>
         </div>
       </div>
 
       {activeTab === "piston" ? (
-        <div className="rul-prognostics-grid">
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.95rem" }}>
           {/* Row 1: Left RUL Centerpiece Arc Gauge & Overview | Right LSTM Diagnostic Metrics */}
-          <div className="rul-deck-row">
-            <div className="rul-deck-col-left">
+          <div
+            className="gcs-grid-2col"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "minmax(360px, 42%) 1fr",
+              gap: "0.95rem",
+              alignItems: "stretch",
+            }}
+          >
+            <div style={{ display: "flex", flexDirection: "column" }}>
               <RulPrognosticsGauge prognostics={payload.prognostics} />
             </div>
-            <div className="rul-deck-col-right">
+            <div style={{ display: "flex", flexDirection: "column" }}>
               <LstmMetricsPanel prognostics={payload.prognostics} />
             </div>
           </div>
 
           {/* Row 2: Actual vs Predicted RUL Trajectory Graph with Degradation Zones */}
-          <div className="rul-trajectory-full-card">
+          <div className="gcs-card" style={{ padding: "0.85rem 1rem" }}>
             <RulTrajectoryChart
               trajectory={payload.trajectory || []}
               currentCycle={payload.cycle || 31}
@@ -63,7 +76,7 @@ export default function RulPrognosticsView({ payload }: RulPrognosticsViewProps)
           </div>
 
           {/* Row 3: Recent 30-Cycle Trend Cards */}
-          <div className="rul-trends-card-wrap">
+          <div style={{ width: "100%" }}>
             <RecentTrendsCard
               points={payload.recent_trends?.points || []}
               deltas={

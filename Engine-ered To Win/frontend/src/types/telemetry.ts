@@ -9,6 +9,93 @@ export interface SensorDiagnosis {
   evidence?: string;
 }
 
+export interface DigitalTwinResidualItem {
+  actual: number;
+  expected: number;
+  residual: number;
+  normalized_residual: number;
+  pct_deviation: number;
+}
+
+export interface DigitalTwinSubsystemHealth {
+  thermal: number;
+  combustion: number;
+  lubrication: number;
+  mechanical: number;
+  electrical: number;
+  sensor: number;
+}
+
+export interface DigitalTwinHealthBlock extends DigitalTwinSubsystemHealth {
+  overall: number;
+  status: "HEALTHY" | "NORMAL / MONITORED" | "DEGRADED" | "CRITICAL" | "SEVERE" | string;
+}
+
+export interface DigitalTwinTrend {
+  current_health: number;
+  previous_health: number;
+  overall_delta: number;
+  degradation_rate: number;
+  rapid_degradation: boolean;
+  warning?: string | null;
+}
+
+export interface DigitalTwinHistoryPoint {
+  tick: number;
+  timestamp: string;
+  overall: number;
+  status: string;
+  thermal: number;
+  combustion: number;
+  lubrication: number;
+  mechanical: number;
+  electrical: number;
+  sensor: number;
+}
+
+export interface EnvironmentEnduranceStress {
+  thermal_stress: number;
+  mechanical_stress: number;
+  lubrication_stress: number;
+}
+
+export interface EnvironmentPayload {
+  altitude_ft: number;
+  ambient_temp_c: number;
+  pressure_kpa: number;
+  air_density_kg_m3: number;
+  density_ratio: number;
+  relative_density_to_cruise: number;
+  isa_temp_c: number;
+  isa_temp_dev_c: number;
+  throttle_pct: number;
+  effective_throttle_pct: number;
+  throttle_rate: number;
+  is_transient: boolean;
+  operating_conditions: string[];
+  primary_condition: string;
+  operating_condition: string;
+  mission_profile: string;
+  mission_time_sec: number;
+  simulation_speed: number;
+  endurance_hours: number;
+  endurance_stress?: EnvironmentEnduranceStress;
+}
+
+export interface DigitalTwinPayload {
+  timestamp: string;
+  actual: Record<string, number>;
+  expected: Record<string, number>;
+  residuals: Record<string, DigitalTwinResidualItem>;
+  degradation: Record<string, number>;
+  subsystem_health: DigitalTwinSubsystemHealth;
+  health_index: number;
+  health?: DigitalTwinHealthBlock;
+  trend?: DigitalTwinTrend;
+  history?: DigitalTwinHistoryPoint[];
+  environment?: EnvironmentPayload;
+}
+
 export interface TelemetryData {
   timestamp: string;
   engine_id: string;
@@ -33,7 +120,12 @@ export interface TelemetryData {
   treatment?: string;
   prevention?: string;
   anomaly_score?: number;
+  mode?: "LIVE" | "REPLAY";
+  replay?: MissionReplayState;
+  recording?: MissionRecordingState;
   sensor_diagnosis?: SensorDiagnosis;
+  digital_twin?: DigitalTwinPayload;
+  environment?: EnvironmentPayload;
 }
 
 export interface RulTickData {
@@ -74,7 +166,7 @@ export interface PrognosticsData {
   max_useful_life: number;
   rul_unclipped: number;
   rul_clipped: number;
-  degradation_trend: "Increasing" | "Stable" | "Accelerating" | "Decreasing";
+  degradation_trend: "Increasing" | "Stable" | "Accelerating" | "Decelerating" | "Decreasing";
   confidence: number;
   abs_error: number;
   model_mae: number;
@@ -149,7 +241,20 @@ export interface UnifiedTelemetryPayload {
   alerts: PhmAlertItem[];
   fault_label: string;
   scenario: string;
+  mode?: "LIVE" | "REPLAY";
+  replay?: MissionReplayState;
+  recording?: MissionRecordingState;
   sensor_diagnosis?: SensorDiagnosis;
+  digital_twin?: DigitalTwinPayload;
+  environment?: EnvironmentPayload;
+  diagnosis?: FaultDiagnosisPayload;
+  active_faults?: string[];
+  engine_condition?: "NOMINAL" | "MINOR_DEGRADATION" | "DEGRADED" | "SEVERE" | "CRITICAL" | "FAILURE" | string;
+  accumulated_wear?: Record<string, number>;
+  cascaded_faults?: string[];
+  fault_timeline?: Array<{ tick: number; time_str: string; timestamp: string; event: string }>;
+  sensor_confidence?: number;
+  tick?: number;
   rpm?: number;
   cht_c?: number;
   egt_c?: number;
@@ -160,3 +265,137 @@ export interface UnifiedTelemetryPayload {
   battery_voltage_v?: number;
   injection_timing_deg?: number;
 }
+
+
+export interface AlternativeFault {
+  fault: string;
+  fault_code: string;
+  confidence: number;
+  severity: "INFO" | "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+  affected_subsystem: string;
+}
+
+export interface MaintenanceContext {
+  fault: string;
+  fault_code: string;
+  severity: "INFO" | "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+  confidence: number;
+  affected_subsystem: string;
+  health_score: number;
+  degradation_wear: number;
+  trend: string;
+  persistence_ticks: number;
+}
+
+export interface FaultDiagnosisPayload {
+  fault: string;
+  fault_code: string;
+  state: "NORMAL" | "ANOMALY" | "SUSPECTED" | "CONFIRMED" | "CRITICAL" | "RECOVERING";
+  confidence: number;
+  severity: "INFO" | "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+  affected_subsystem: string;
+  evidence: string[];
+  supporting_signals: Record<string, number>;
+  suspected_sensor: string | null;
+  alternative_faults: AlternativeFault[];
+  maintenance_context: MaintenanceContext;
+  persistence_ticks: number;
+  is_sensor_fault: boolean;
+}
+
+// ==========================================
+// Phase 5: Mission Recording & Replay Types
+// ==========================================
+
+export interface MissionMetadata {
+  mission_id: string;
+  mission_name: string;
+  uav_id: string;
+  start_time: string;
+  end_time?: string | null;
+  duration_sec: number;
+  initial_profile: string;
+  initial_scenario: string;
+  status: "RECORDING" | "COMPLETED" | "ABORTED" | string;
+  sample_count: number;
+  event_count: number;
+  notes?: string;
+  tags?: string[];
+  sample_rate_hz?: number;
+}
+
+export interface MissionEvent {
+  event_id: string;
+  tick: number;
+  timestamp: string;
+  event_type: "MISSION_START" | "MISSION_STOP" | "PROFILE_CHANGE" | "SCENARIO_INJECTED" | "FAULT_DETECTED" | "FAULT_CONFIRMED" | "FAULT_CLEARED" | "OPERATOR_COMMAND" | string;
+  description: string;
+  data?: Record<string, any>;
+}
+
+export interface MissionEnvelope {
+  min: number;
+  max: number;
+  avg: number;
+}
+
+export interface MissionFaultTimelineItem {
+  fault: string;
+  fault_code: string;
+  start_tick: number;
+  end_tick: number;
+  duration_ticks: number;
+  max_severity: string;
+}
+
+export interface MissionSummary {
+  mission_id: string;
+  start_time: string;
+  end_time: string;
+  duration_sec: number;
+  sample_count: number;
+  event_count: number;
+  initial_health: number;
+  final_health: number;
+  min_health: number;
+  max_health: number;
+  health_delta: number;
+  time_degraded_sec: number;
+  time_critical_sec: number;
+  rpm_envelope: MissionEnvelope;
+  cht_envelope: MissionEnvelope;
+  egt_envelope: MissionEnvelope;
+  oil_pressure_envelope: MissionEnvelope;
+  oil_temp_envelope: MissionEnvelope;
+  vibration_envelope: MissionEnvelope;
+  fuel_total_consumed_l: number;
+  fault_timeline: MissionFaultTimelineItem[];
+  subsystems_final: Record<string, number>;
+  health_trend_curve: Array<{ tick: number; health: number }>;
+}
+
+export interface MissionReplayState {
+  is_active: boolean;
+  is_paused: boolean;
+  is_complete: boolean;
+  mission_id: string | null;
+  mission_name?: string;
+  current_index: number;
+  total_samples: number;
+  progress_pct: number;
+  mission_time_sec: number;
+  total_duration_sec: number;
+  speed: number;
+}
+
+export interface MissionRecordingState {
+  is_recording: boolean;
+  mission_id: string | null;
+  sample_count: number;
+}
+
+export interface MissionListItem {
+  metadata: MissionMetadata;
+  summary?: MissionSummary | null;
+}
+

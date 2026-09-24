@@ -1,7 +1,14 @@
 import math
 import random
 from datetime import datetime, timedelta
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any, Optional, Set
+
+from src.digital_twin.fault_propagation import (
+    FaultPropagationEngine,
+    EngineConditionState,
+    FAULT_SENSOR_DRIFT,
+    FAULT_ALIAS_MAP
+)
 
 class TelemetryProcessor:
     """
@@ -13,6 +20,7 @@ class TelemetryProcessor:
         self.cycle = 31
         self.max_useful_life = 250
         self.avg_cycle_duration_seconds = 60 # 1 cycle = 60s of operational flight
+        self.fault_propagation_engine = FaultPropagationEngine()
         
         # Baselines
         self.base_sensors = {
@@ -23,6 +31,7 @@ class TelemetryProcessor:
             "oil_temperature": 92.0,
             "fuel_flow": 17.6,
             "vibration": 1.42,
+
             "bus_voltage": 27.6,
             "injection_timing": 23.4
         }
@@ -117,69 +126,68 @@ class TelemetryProcessor:
             
         prog = min(tick / 20.0, 1.0)
         
-        # 1. Generate core sensor values with noise
+        # 0. Environmental physical baseline shift
+        th_val = float(simulation_state.get("throttle", 75.0))
+        alt_val = float(simulation_state.get("altitude", 15000.0))
+        amb_val = float(simulation_state.get("ambient_temp", 15.0))
+
+        d_th = th_val - 75.0
+        d_amb = amb_val - 15.0
+
+        # Physical density ratio relative to nominal cruise (15,000 ft)
+        alt_m = max(0.0, min(40000.0, alt_val)) * 0.3048
+        current_dens = max(0.1, 1.0 - 2.25577e-5 * alt_m) ** 4.25588
+        cruise_dens = 0.6292
+        dens_deficit = max(0.0, 1.0 - (current_dens / cruise_dens))
+
+        env_base_rpm = self.base_sensors["rpm"] + 12.0 * d_th
+        env_base_cht = self.base_sensors["cht"] + 0.90 * d_th + 0.35 * d_amb + 18.0 * dens_deficit
+        env_base_egt = self.base_sensors["egt"] + 2.40 * d_th + 0.20 * d_amb + 8.0 * dens_deficit
+        env_base_oil_t = self.base_sensors["oil_temperature"] + 0.40 * d_th + 0.30 * d_amb + 10.0 * dens_deficit
+
+        d_rpm = env_base_rpm - self.base_sensors["rpm"]
+        d_oil_t = env_base_oil_t - self.base_sensors["oil_temperature"]
+        env_base_oil_p_bar = 4.69 + 0.0015 * d_rpm - 0.018 * d_oil_t
+        env_base_oil_p_psi = env_base_oil_p_bar * 14.5038
+
+        env_base_fuel = self.base_sensors["fuel_flow"] + 0.28 * d_th
+        rpm_ratio = max(0.5, env_base_rpm / self.base_sensors["rpm"])
+        env_base_vib = self.base_sensors["vibration"] * (rpm_ratio ** 1.80)
+        env_base_timing = self.base_sensors["injection_timing"] + 0.004 * d_rpm - 0.008 * d_th
+        env_base_volt = self.base_sensors["bus_voltage"]
+
+        # 1. Generate core sensor values with noise around environmental baseline
         curr_sensors = {
-            "rpm": self.base_sensors["rpm"] + random.gauss(0, 12),
-            "cht": self.base_sensors["cht"] + random.gauss(0, 1.2),
-            "egt": self.base_sensors["egt"] + random.gauss(0, 3.0),
-            "oil_pressure": self.base_sensors["oil_pressure"] + random.gauss(0, 0.5),
-            "oil_temperature": self.base_sensors["oil_temperature"] + random.gauss(0, 1.0),
-            "fuel_flow": self.base_sensors["fuel_flow"] + random.gauss(0, 0.2),
-            "vibration": self.base_sensors["vibration"] + random.gauss(0, 0.02),
-            "bus_voltage": self.base_sensors["bus_voltage"] + random.gauss(0, 0.1),
-            "injection_timing": self.base_sensors["injection_timing"] + random.gauss(0, 0.12)
+            "rpm": max(800.0, env_base_rpm + random.gauss(0, 12)),
+            "cht": env_base_cht + random.gauss(0, 1.2),
+            "egt": env_base_egt + random.gauss(0, 3.0),
+            "oil_pressure": max(10.0, env_base_oil_p_psi + random.gauss(0, 0.5)),
+            "oil_temperature": env_base_oil_t + random.gauss(0, 1.0),
+            "fuel_flow": max(2.0, env_base_fuel + random.gauss(0, 0.2)),
+            "vibration": max(0.2, env_base_vib + random.gauss(0, 0.02)),
+            "bus_voltage": env_base_volt + random.gauss(0, 0.1),
+            "injection_timing": env_base_timing + random.gauss(0, 0.12)
         }
         
-        # 2. Inject scenarios: modify sensor values with immediate impact + progressive compounding
-        #    Health is NOT set here — it is DERIVED from sensor deviations below (step 2b).
-        is_sensor_only_fault = False  # True for faults that only affect sensor readings, not engine
-        
-        if scenario == "Overheating":
-            curr_sensors["cht"] += 38.0 + prog * 28.0
-            curr_sensors["egt"] += 75.0 + prog * 45.0
-            curr_sensors["oil_temperature"] += 20.0 + prog * 16.0
-            
-        elif scenario in ["Oil_Pressure_Loss", "Lubrication"]:
-            curr_sensors["oil_pressure"] -= (35.0 + prog * 15.0)
-            curr_sensors["oil_temperature"] += 18.0 + prog * 14.0
-            curr_sensors["vibration"] += 0.40 + prog * 0.40
-            
-        elif scenario == "RPM_Drop":
-            curr_sensors["rpm"] -= (450.0 + prog * 250.0)
-            curr_sensors["fuel_flow"] -= (4.0 + prog * 2.0)
-            
-        elif scenario in ["High_Vibration", "Vibration_Fault"]:
-            curr_sensors["vibration"] += (1.05 + prog * 0.65)
-            
-        elif scenario in ["Sensor_Fault_CHT", "Sensor_Fault_Temp"]:
-            # Single sensor anomaly: CHT thermocouple spikes while engine is actually healthy.
-            # Only the CHT reading drifts — other engine parameters remain normal.
-            curr_sensors["cht"] = 228.0 + random.gauss(0, 3.0) + prog * 6.0
-            is_sensor_only_fault = True
-            
-        elif scenario == "Sensor_Drift":
-            # Gradual CHT calibration drift. Engine is healthy but sensor reading diverges.
-            curr_sensors["cht"] += (28.0 + prog * 32.0)
-            is_sensor_only_fault = True
-            
-        elif scenario == "Injector_Degradation":
-            curr_sensors["fuel_flow"] += (7.0 + prog * 4.0)
-            curr_sensors["egt"] += (68.0 + prog * 42.0)
-            curr_sensors["rpm"] += random.gauss(0, 45.0 + prog * 70.0)
-            
-        elif scenario == "Misfire":
-            curr_sensors["rpm"] -= (320.0 + random.uniform(-60.0, 60.0))
-            curr_sensors["vibration"] += (0.75 + prog * 0.45)
-            curr_sensors["egt"] -= (45.0 + prog * 30.0)
-            
-        elif scenario == "Engine_Failure_Multi":
-            curr_sensors["rpm"] -= (620.0 + prog * 250.0)
-            curr_sensors["cht"] += (55.0 + prog * 25.0)
-            curr_sensors["egt"] += (110.0 + prog * 45.0)
-            curr_sensors["oil_pressure"] -= (36.0 + prog * 15.0)
-            curr_sensors["oil_temperature"] += (26.0 + prog * 15.0)
-            curr_sensors["vibration"] += (1.10 + prog * 0.50)
-            curr_sensors["fuel_flow"] += (7.0 + prog * 3.0)
+        # 2. Physics-Informed Fault Propagation & Multi-Fault Synergies
+        active_faults_input = simulation_state.get("active_faults")
+        if active_faults_input is not None:
+            self.fault_propagation_engine.set_active_faults(active_faults_input)
+        elif scenario and scenario != "Normal":
+            self.fault_propagation_engine.set_active_faults([scenario])
+        else:
+            self.fault_propagation_engine.clear_active_faults()
+
+        curr_sensors, prop_metrics = self.fault_propagation_engine.update(
+            base_sensors=curr_sensors,
+            dt=1.0
+        )
+
+        is_sensor_only_fault = (
+            self.fault_propagation_engine.is_fault_active("sensor_drift")
+            and len(self.fault_propagation_engine.get_active_fault_ids()) == 1
+        )
+
 
         # 2b. Transparent Weighted Health Model
         # ──────────────────────────────────────
@@ -211,22 +219,38 @@ class TelemetryProcessor:
             return score
         
         # Thermal subsystem: CHT, EGT, Oil Temperature
-        cht_score = _deviation_score(curr_sensors["cht"], 142.0, 165.0, 195.0)
-        egt_score = _deviation_score(curr_sensors["egt"], 615.0, 680.0, 760.0)
-        oil_t_score = _deviation_score(curr_sensors["oil_temperature"], 92.0, 108.0, 125.0)
+        cht_caution = max(165.0, env_base_cht + 20.0)
+        cht_alert = max(195.0, env_base_cht + 45.0)
+        cht_score = _deviation_score(curr_sensors["cht"], env_base_cht, cht_caution, cht_alert)
+
+        egt_caution = max(680.0, env_base_egt + 50.0)
+        egt_alert = max(760.0, env_base_egt + 110.0)
+        egt_score = _deviation_score(curr_sensors["egt"], env_base_egt, egt_caution, egt_alert)
+
+        oil_t_caution = max(108.0, env_base_oil_t + 15.0)
+        oil_t_alert = max(125.0, env_base_oil_t + 30.0)
+        oil_t_score = _deviation_score(curr_sensors["oil_temperature"], env_base_oil_t, oil_t_caution, oil_t_alert)
         thermal_health = 0.40 * cht_score + 0.35 * egt_score + 0.25 * oil_t_score
         
         # Lubrication subsystem: Oil Pressure (low-is-bad), Oil Temperature
-        oil_p_score = _deviation_score(curr_sensors["oil_pressure"], 68.0, 50.0, 35.0)
+        oil_p_caution = min(50.0, env_base_oil_p_psi - 15.0)
+        oil_p_alert = min(35.0, env_base_oil_p_psi - 25.0)
+        oil_p_score = _deviation_score(curr_sensors["oil_pressure"], env_base_oil_p_psi, oil_p_caution, oil_p_alert)
         lub_health = 0.65 * oil_p_score + 0.35 * oil_t_score
         
         # Mechanical subsystem: Vibration
-        vib_score = _deviation_score(curr_sensors["vibration"], 1.42, 2.1, 2.9)
+        vib_caution = max(2.1, env_base_vib + 0.6)
+        vib_alert = max(2.9, env_base_vib + 1.2)
+        vib_score = _deviation_score(curr_sensors["vibration"], env_base_vib, vib_caution, vib_alert)
         mech_health = vib_score
         
         # Combustion subsystem: Fuel Flow, RPM
-        fuel_score = _deviation_score(curr_sensors["fuel_flow"], 17.6, 24.0, 28.0)
-        rpm_score = _deviation_score(curr_sensors["rpm"], 2450.0, 2100.0, 1800.0)
+        fuel_caution = max(24.0, env_base_fuel + 5.0)
+        fuel_alert = max(28.0, env_base_fuel + 9.0)
+        fuel_score = _deviation_score(curr_sensors["fuel_flow"], env_base_fuel, fuel_caution, fuel_alert)
+        rpm_caution = min(2100.0, env_base_rpm - 300.0)
+        rpm_alert = min(1800.0, env_base_rpm - 550.0)
+        rpm_score = _deviation_score(curr_sensors["rpm"], env_base_rpm, rpm_caution, rpm_alert)
         comb_health = 0.50 * fuel_score + 0.50 * rpm_score
         
         # Sensor confidence: for sensor-only faults, CHT diverges from what other
@@ -239,7 +263,7 @@ class TelemetryProcessor:
             # Override thermal scores to reflect true engine state (healthy).
             thermal_health = 95.0 + random.gauss(0, 1.0)
         else:
-            sensor_confidence = 100.0
+            sensor_confidence = self.fault_propagation_engine.get_sensor_confidence()
         
         # Weighted combination
         raw_health = (
@@ -250,11 +274,33 @@ class TelemetryProcessor:
             0.05 * sensor_confidence
         )
         
-        # Apply gentle age-based degradation (natural wear over mission cycles)
+        # Apply age-based degradation + progressive component wear penalty
         age_penalty = (self.cycle / self.max_useful_life) * 3.0
-        health_index = raw_health - age_penalty
+        wear_sum = sum(self.fault_propagation_engine.get_accumulated_wear().values())
+        wear_penalty = wear_sum * 22.0
         
-        health_index = max(8.0, min(99.0, health_index))
+        # If fault is active and severity is compounding, drive health smoothly toward 0.0
+        active_fault_count = len(self.fault_propagation_engine.get_active_fault_ids())
+        if active_fault_count > 0:
+            # Progressive time-based degradation multiplier
+            target_health = raw_health - age_penalty - wear_penalty
+            # If severe faults active (overheating, misfire, lube loss, multi failure), ensure it reaches 0
+            if any(f in ["overheating_trend", "misfire", "lubrication_issue", "engine_failure_multi"] for f in self.fault_propagation_engine.get_active_fault_ids()):
+                target_health -= (wear_sum * 30.0)
+            health_index = max(0.0, min(100.0, target_health))
+        else:
+            # Nominal operations: smoothly evolve health toward healthy state (96-98%)
+            target_nominal = max(0.0, min(98.5, raw_health - age_penalty))
+            if hasattr(self, "_prev_health_index") and self._prev_health_index is not None:
+                # Smooth recovery toward nominal
+                health_index = self._prev_health_index + (target_nominal - self._prev_health_index) * 0.15
+            else:
+                health_index = target_nominal
+            health_index = max(0.0, min(100.0, health_index))
+
+        self._prev_health_index = health_index
+
+
 
         # 3. Compute Sensor Items with Status (NORMAL, CAUTION, ALERT) and Trends (UP, DOWN, STABLE)
         sensor_list = []
@@ -557,6 +603,14 @@ class TelemetryProcessor:
         # Keep alerts to max 10
         self.alert_feed = self.alert_feed[:10]
 
+        active_f_ids = list(self.fault_propagation_engine.get_active_fault_ids())
+        condition_state_str = self.fault_propagation_engine.get_condition_state().value
+        accumulated_wear_dict = self.fault_propagation_engine.get_accumulated_wear()
+        cascaded_f_ids = list(self.fault_propagation_engine.get_cascaded_fault_ids())
+        fault_timeline_list = self.fault_propagation_engine.get_fault_timeline()
+
+        fault_display_label = ", ".join(active_f_ids) if active_f_ids else scenario
+
         return {
             "cycle": self.cycle,
             "timestamp": datetime.now().isoformat(),
@@ -576,6 +630,40 @@ class TelemetryProcessor:
             "recent_trends": recent_trends,
             "trajectory": self.trajectory_history[-60:], # send last 60 points for responsive rendering
             "alerts": self.alert_feed,
-            "fault_label": scenario,
-            "scenario": scenario
+            "fault_label": fault_display_label,
+            "scenario": scenario,
+            # Phase 6.2 Realistic Fault Propagation & Degradation Engine
+            "active_faults": active_f_ids,
+            "engine_condition": condition_state_str,
+            "accumulated_wear": accumulated_wear_dict,
+            "sensor_confidence": round(sensor_confidence, 1),
+            "cascaded_faults": cascaded_f_ids,
+            "fault_timeline": fault_timeline_list
         }
+
+    def inject_fault(self, fault_id: str, severity: str = "MODERATE") -> bool:
+        """Injects a fault into the fault propagation engine."""
+        return self.fault_propagation_engine.inject_fault(fault_id, severity)
+
+    def remove_fault(self, fault_id: str) -> bool:
+        """Removes a fault from the active set without clearing accumulated wear."""
+        return self.fault_propagation_engine.remove_fault(fault_id)
+
+    def clear_active_faults(self) -> None:
+        """Clears all active driving faults."""
+        self.fault_propagation_engine.clear_active_faults()
+
+    def reset_all(self) -> None:
+        """Full maintenance reset of alerts, telemetry, faults, and wear."""
+        self.fault_propagation_engine.reset_all()
+        self._init_alerts()
+        self.prev_sensors = dict(self.base_sensors)
+
+    def get_active_faults(self) -> List[str]:
+        """Returns currently active fault IDs."""
+        return list(self.fault_propagation_engine.get_active_fault_ids())
+
+    def get_engine_condition(self) -> str:
+        """Returns current condition state string."""
+        return self.fault_propagation_engine.get_condition_state().value
+

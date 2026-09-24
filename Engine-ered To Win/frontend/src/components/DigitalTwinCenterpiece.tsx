@@ -2,154 +2,162 @@
 
 import React, { useState } from "react";
 import { TelemetryData } from "@/types/telemetry";
+import { useTelemetry } from "@/context/TelemetryContext";
 
 interface DigitalTwinCenterpieceProps {
   telemetry: any;
   activeScenario: string;
   onInjectScenario: (scenario: string) => void;
+  showFaultMatrix?: boolean;
+  selectedHotspot?: string;
+  onSelectHotspot?: (subsystem: string) => void;
 }
 
 export default function DigitalTwinCenterpiece({
   telemetry,
   activeScenario,
   onInjectScenario,
+  showFaultMatrix = false,
+  selectedHotspot,
+  onSelectHotspot,
 }: DigitalTwinCenterpieceProps) {
+  const { connectionStatus } = useTelemetry();
   const [viewMode, setViewMode] = useState<"full" | "engine" | "thermal">("full");
   const [tooltip, setTooltip] = useState<{ title: string; desc: string } | null>(null);
 
   const rpm = telemetry?.rpm ?? telemetry?.sensors?.rpm?.value ?? 2450;
   const spinPeriod = Math.max(0.08, 60 / Math.max(rpm, 1000));
   const scenario = telemetry?.fault_label || telemetry?.scenario || activeScenario || "Normal";
-  const health = telemetry ? Math.max(Math.min(telemetry.health_index, 100), 0) : 100;
+  const health = telemetry?.health_index != null ? Math.max(Math.min(Math.round(telemetry.health_index), 100), 0) : 95;
 
-  // Compute SVG transform based on camera view mode
-  let svgTransform = "scale(1) translate(0, 0)";
+  // Subsystem health extraction from Phase 2 Digital Twin
+  const subHealth =
+    telemetry?.digital_twin?.subsystem_health ||
+    telemetry?.subsystem_health ||
+    {};
+  const thermalHealth = subHealth.thermal != null ? subHealth.thermal : (scenario === "Overheating" ? 48 : 95);
+  const combustionHealth = subHealth.combustion != null ? subHealth.combustion : (scenario === "Injector_Degradation" ? 54 : scenario === "Misfire" ? 52 : 94);
+  const lubricationHealth = subHealth.lubrication != null ? subHealth.lubrication : (scenario === "Lubrication" || scenario === "Oil_Pressure_Loss" ? 42 : 96);
+  const mechanicalHealth = subHealth.mechanical != null ? subHealth.mechanical : (scenario === "Vibration_Fault" || scenario === "High_Vibration" ? 58 : 92);
+  const electricalHealth = subHealth.electrical != null ? subHealth.electrical : 98;
+  const sensorHealth = subHealth.sensor != null ? subHealth.sensor : (scenario === "Sensor_Drift" ? 64 : scenario?.startsWith("Sensor_Fault") ? 45 : 99);
+
+  // Live telemetry channel values
+  const chtVal = (telemetry?.cht_c ?? telemetry?.sensors?.cht?.value ?? 142.0).toFixed(1);
+  const egtVal = (telemetry?.egt_c ?? telemetry?.sensors?.egt?.value ?? 615.0).toFixed(1);
+  const oilPVal = (telemetry?.oil_pressure_bar ?? (telemetry?.sensors?.oil_pressure?.value ? telemetry.sensors.oil_pressure.value / 14.5 : 4.7)).toFixed(2);
+  const oilTVal = (telemetry?.oil_temperature_c ?? telemetry?.sensors?.oil_temperature?.value ?? 92.0).toFixed(1);
+  const fuelVal = (telemetry?.fuel_flow_lh ?? telemetry?.sensors?.fuel_flow?.value ?? 17.6).toFixed(1);
+  const vibVal = (telemetry?.vibration_g ?? telemetry?.sensors?.vibration?.value ?? 1.42).toFixed(3);
+  const voltVal = (telemetry?.battery_voltage_v ?? 28.2).toFixed(1);
+
+  // Phase 3 AI Fault Diagnosis
+  const faultDiagnosis = telemetry?.fault_diagnosis || telemetry?.digital_twin?.fault_diagnosis;
+  const aiState = faultDiagnosis?.state || (health < 75 ? "CONFIRMED" : "NORMAL");
+  const aiFault = faultDiagnosis?.fault || (scenario !== "Normal" ? scenario.replace(/_/g, " ") : "Nominal");
+  const aiSeverity = faultDiagnosis?.severity || (health < 60 ? "HIGH" : health < 80 ? "MEDIUM" : "LOW");
+  const aiConfidence = faultDiagnosis?.confidence != null ? Math.round(faultDiagnosis.confidence * 100) : (scenario !== "Normal" ? 92 : 98);
+  const affectedSub = faultDiagnosis?.affected_subsystem || (scenario === "Overheating" ? "Thermal" : scenario === "Lubrication" ? "Lubrication" : scenario === "Injector_Degradation" ? "Combustion" : scenario === "Vibration_Fault" ? "Mechanical" : "Nominal");
+
+  // Compute SVG transform based on camera view mode (enlarged ~20% for prominent visual centerpiece)
+  let svgTransform = "scale(1.20) translate(-4px, 0)";
   if (viewMode === "engine") {
-    svgTransform = "scale(1.85) translate(-100px, 0)";
+    svgTransform = "scale(1.95) translate(-100px, 0)";
   } else if (viewMode === "thermal") {
-    svgTransform = "scale(1.35) translate(-40px, 0)";
+    svgTransform = "scale(1.45) translate(-40px, 0)";
   }
 
-  // Determine Subsystem classes and colors based on Scenario
-  let elAvionicsClass = "part-nominal";
-  let elRadiatorClass = "part-nominal";
-  let elEngineClass = "part-nominal";
-  let elCyl1Class = "part-nominal";
-  let elCyl2Class = "part-nominal";
-  let elCyl3Class = "part-nominal";
-  let elCyl4Class = "part-nominal";
-  let elFuelStroke = "#38bdf8";
-  let elOilClass = "part-nominal";
-  let elExhaustStroke = "#ef4444";
-  let elPropFill = "#38bdf8";
-  let mountFills = ["#64748b", "#64748b", "#64748b", "#64748b"];
+  // Dynamic Subsystem hotspot classes based on Phase 2 health scores + scenario
+  let elAvionicsClass = sensorHealth < 60 ? "part-critical" : sensorHealth < 80 ? "part-warning" : "part-nominal";
+  let elRadiatorClass = thermalHealth < 60 ? "part-thermal" : thermalHealth < 80 ? "part-warning" : "part-nominal";
+  let elEngineClass = thermalHealth < 60 ? "part-thermal" : (combustionHealth < 60 || mechanicalHealth < 60) ? "part-critical" : (thermalHealth < 80 || combustionHealth < 80) ? "part-warning" : "part-nominal";
+  let elCyl1Class = thermalHealth < 60 ? "part-thermal" : combustionHealth < 60 ? "part-critical" : "part-nominal";
+  let elCyl2Class = thermalHealth < 60 ? "part-thermal" : combustionHealth < 60 ? "part-critical" : "part-nominal";
+  let elCyl3Class = thermalHealth < 60 ? "part-thermal" : combustionHealth < 80 ? "part-warning" : "part-nominal";
+  let elCyl4Class = thermalHealth < 60 ? "part-thermal" : "part-nominal";
+  let elFuelStroke = combustionHealth < 60 ? "#ef4444" : combustionHealth < 80 ? "#f59e0b" : "#38bdf8";
+  let elOilClass = lubricationHealth < 60 ? "part-critical" : lubricationHealth < 80 ? "part-warning" : "part-nominal";
+  let elExhaustStroke = thermalHealth < 60 ? "#ff3d00" : "#ef4444";
+  let elPropFill = mechanicalHealth < 60 ? "#ef4444" : mechanicalHealth < 80 ? "#f59e0b" : "#38bdf8";
+  let mountFills = mechanicalHealth < 60
+    ? ["#ef4444", "#ef4444", "#ef4444", "#ef4444"]
+    : mechanicalHealth < 80
+    ? ["#f59e0b", "#f59e0b", "#f59e0b", "#f59e0b"]
+    : ["#64748b", "#64748b", "#64748b", "#64748b"];
 
+  // Selected hotspot highlight
+  if (selectedHotspot === "thermal") {
+    elRadiatorClass += " selected-hotspot";
+    elEngineClass += " selected-hotspot";
+  } else if (selectedHotspot === "combustion") {
+    elFuelStroke = "#ec4899";
+  } else if (selectedHotspot === "lubrication") {
+    elOilClass += " selected-hotspot";
+  } else if (selectedHotspot === "mechanical") {
+    elPropFill = "#a855f7";
+  } else if (selectedHotspot === "sensor" || selectedHotspot === "electrical") {
+    elAvionicsClass += " selected-hotspot";
+  }
+
+  // Anomaly reticle placement targeted at lowest subsystem
   let reticleVisible = false;
   let reticlePos = { cx: 315, cy: 135 };
-  let dotColor = "var(--accent-emerald)";
+  let dotColor = "#10b981";
   let anomalyTitle = "ALL PROPULSION SUBSYSTEMS NOMINAL";
   let anomalyTitleColor = "#10b981";
-  let anomalyPart = "PIN: PROPULSION BAY [OK]";
+  let anomalyPart = `PIN: PROPULSION BAY [OK] — OVERALL HEALTH: ${health}/100`;
 
-  if (scenario === "Normal" || health > 90) {
+  const minSubScore = Math.min(thermalHealth, combustionHealth, lubricationHealth, mechanicalHealth, sensorHealth);
+
+  if (minSubScore < 80 || scenario !== "Normal" || aiState !== "NORMAL") {
+    reticleVisible = true;
+    dotColor = aiSeverity === "CRITICAL" || minSubScore < 50 ? "#ef4444" : "#f59e0b";
+    anomalyTitleColor = dotColor;
+
+    if (thermalHealth <= minSubScore || scenario === "Overheating") {
+      reticlePos = { cx: 280, cy: 135 };
+      anomalyTitle = `THERMAL ANOMALY: CHT ${chtVal}°C / OIL ${oilTVal}°C (HEALTH ${Math.round(thermalHealth)}%)`;
+      anomalyPart = "HOTSPOT: CYLINDER HEADS & COOLING RADIATOR";
+    } else if (combustionHealth <= minSubScore || scenario === "Injector_Degradation" || scenario === "Misfire") {
+      reticlePos = { cx: 305, cy: 130 };
+      anomalyTitle = `COMBUSTION DEGRADATION: FUEL FLOW ${fuelVal} L/H (HEALTH ${Math.round(combustionHealth)}%)`;
+      anomalyPart = "HOTSPOT: HIGH-PRESSURE FUEL INJECTION RAIL";
+    } else if (lubricationHealth <= minSubScore || scenario === "Lubrication" || scenario === "Oil_Pressure_Loss") {
+      reticlePos = { cx: 373, cy: 135 };
+      anomalyTitle = `HYDRAULIC ANOMALY: OIL PRESSURE ${oilPVal} BAR (HEALTH ${Math.round(lubricationHealth)}%)`;
+      anomalyPart = "HOTSPOT: LUBRICATION SUMP & OIL SCAVENGE PUMP";
+    } else if (mechanicalHealth <= minSubScore || scenario === "Vibration_Fault" || scenario === "High_Vibration") {
+      reticlePos = { cx: 350, cy: 135 };
+      anomalyTitle = `MECHANICAL ANOMALY: VIBRATION ${vibVal} g RMS (HEALTH ${Math.round(mechanicalHealth)}%)`;
+      anomalyPart = "HOTSPOT: CRANKSHAFT & DYNAFOCAL ENGINE MOUNTS";
+    } else if (sensorHealth <= minSubScore || scenario.startsWith("Sensor_")) {
+      reticlePos = { cx: 85, cy: 135 };
+      anomalyTitle = `SENSOR INTEGRITY: TRANSDUCER DRIFT / ISOLATION (HEALTH ${Math.round(sensorHealth)}%)`;
+      anomalyPart = "HOTSPOT: NOSE AVIONICS & SENSOR HARNESS BUS";
+    } else {
+      reticlePos = { cx: 315, cy: 135 };
+      anomalyTitle = `PROPULSION DEGRADATION: ${aiFault.toUpperCase()}`;
+      anomalyPart = `AI DIAGNOSIS: ${aiState} (${aiConfidence}% CONFIDENCE)`;
+    }
+  }
+
+  // Handle centralized connection state in the status banner
+  if (connectionStatus === "CONNECTING") {
     reticleVisible = false;
-    dotColor = "#10b981";
-    anomalyTitle = "ALL PROPULSION SUBSYSTEMS NOMINAL";
-    anomalyTitleColor = "#10b981";
-    anomalyPart = "PIN: PROPULSION BAY [OK]";
-  } else if (scenario === "Overheating") {
-    elRadiatorClass = "part-thermal";
-    elEngineClass = "part-thermal";
-    elCyl1Class = "part-thermal";
-    elCyl2Class = "part-thermal";
-    elCyl3Class = "part-thermal";
-    elCyl4Class = "part-thermal";
-
-    reticleVisible = true;
-    reticlePos = { cx: 280, cy: 135 };
-    dotColor = "#ef4444";
-    anomalyTitle = `THERMAL ANOMALY: CHT ${(telemetry?.cht_c ?? 150).toFixed(1)}°C / OIL ${(telemetry?.oil_temperature_c ?? 95).toFixed(1)}°C`;
-    anomalyTitleColor = "#ff5722";
-    anomalyPart = "HOTSPOT: CYLINDER HEADS & COOLING RADIATOR";
-  } else if (scenario === "Injector_Degradation") {
-    elFuelStroke = "#f59e0b";
-    elEngineClass = "part-warning";
-
-    reticleVisible = true;
-    reticlePos = { cx: 305, cy: 130 };
-    dotColor = "#f59e0b";
-    anomalyTitle = `COMBUSTION DEGRADATION: FUEL FLOW ${(telemetry?.fuel_flow_lh ?? 18.5).toFixed(1)} L/H`;
-    anomalyTitleColor = "#f59e0b";
-    anomalyPart = "HOTSPOT: HIGH-PRESSURE FUEL INJECTION RAIL";
-  } else if (scenario === "Lubrication" || scenario === "Oil_Pressure_Loss") {
-    elOilClass = "part-critical";
-    elEngineClass = "part-warning";
-
-    reticleVisible = true;
-    reticlePos = { cx: 373, cy: 135 };
-    dotColor = "#ef4444";
-    const oilP = telemetry?.oil_pressure_bar ?? (telemetry?.sensors?.oil_pressure?.value ? (telemetry.sensors.oil_pressure.value / 14.5).toFixed(2) : "2.8");
-    anomalyTitle = `HYDRAULIC ANOMALY: OIL PRESSURE CRITICAL (${oilP} BAR)`;
-    anomalyTitleColor = "#ef4444";
-    anomalyPart = "HOTSPOT: LUBRICATION SUMP & OIL SCAVENGE PUMP";
-  } else if (scenario === "Vibration_Fault" || scenario === "High_Vibration") {
-    elPropFill = "#f59e0b";
-    elEngineClass = "part-warning";
-    mountFills = ["#ef4444", "#ef4444", "#ef4444", "#ef4444"];
-
-    reticleVisible = true;
-    reticlePos = { cx: 350, cy: 135 };
-    dotColor = "#f59e0b";
-    const vib = telemetry?.vibration_g ?? telemetry?.sensors?.vibration?.value ?? 2.4;
-    anomalyTitle = `MECHANICAL ANOMALY: VIBRATION SPIKE (${vib.toFixed(3)} g RMS)`;
-    anomalyTitleColor = "#f59e0b";
-    anomalyPart = "HOTSPOT: CRANKSHAFT & DYNAFOCAL ENGINE MOUNTS";
-  } else if (scenario === "Sensor_Drift") {
-    elAvionicsClass = "part-warning";
-
-    reticleVisible = true;
-    reticlePos = { cx: 85, cy: 135 };
-    dotColor = "#f59e0b";
-    anomalyTitle = `AVIONICS HARNESS: CHT SENSOR DRIFT DETECTED (${(telemetry?.cht_c ?? 150).toFixed(1)}°C)`;
-    anomalyTitleColor = "#38bdf8";
-    anomalyPart = "HOTSPOT: NOSE AVIONICS & CHT SENSOR HARNESS";
-  } else if (scenario === "Misfire") {
-    elCyl1Class = "part-critical";
-    elCyl3Class = "part-warning";
-    elExhaustStroke = "#ff3d00";
-
-    reticleVisible = true;
-    reticlePos = { cx: 310, cy: 120 };
-    dotColor = "#ef4444";
-    anomalyTitle = `IGNITION FAULT: INTERMITTENT CYLINDER MISFIRE`;
-    anomalyTitleColor = "#ef4444";
-    anomalyPart = "HOTSPOT: CYLINDER #1 SPARK & EXHAUST RUNNER";
-  } else if (scenario === "Sensor_Fault_Temp" || scenario === "Sensor_Fault_CHT") {
-    elAvionicsClass = "part-critical";
-
-    reticleVisible = true;
-    reticlePos = { cx: 85, cy: 135 };
-    dotColor = "#f59e0b";
-    anomalyTitle = `SENSOR ISOLATION: CHT SENSOR FAULT DETECTED (${(telemetry?.cht_c ?? 215).toFixed(1)}°C) — ENGINE HEALTHY`;
-    anomalyTitleColor = "#f59e0b";
-    anomalyPart = "DIAGNOSIS: ISOLATED SENSOR MALFUNCTION — NOT AN ENGINE FAULT";
-  } else if (scenario === "Engine_Failure_Multi") {
-    elEngineClass = "part-critical";
-    elCyl1Class = "part-critical";
-    elCyl2Class = "part-critical";
-    elCyl3Class = "part-thermal";
-    elCyl4Class = "part-thermal";
-    elRadiatorClass = "part-warning";
-    elOilClass = "part-critical";
-    elPropFill = "#ef4444";
-    mountFills = ["#ef4444", "#ef4444", "#ef4444", "#ef4444"];
-
-    reticleVisible = true;
-    reticlePos = { cx: 315, cy: 135 };
-    dotColor = "#ef4444";
-    anomalyTitle = `ENGINE FAILURE: MULTI-SENSOR CORRELATED ANOMALY DETECTED`;
-    anomalyTitleColor = "#ef4444";
-    anomalyPart = "DIAGNOSIS: SYSTEM-LEVEL ENGINE FAULT — MULTIPLE SUBSYSTEMS AFFECTED";
+    dotColor = "var(--accent-cyan, #38bdf8)";
+    anomalyTitle = "CONNECTING TO LIVE UAV PROPULSION SYSTEM...";
+    anomalyTitleColor = "var(--accent-cyan, #38bdf8)";
+    anomalyPart = "ESTABLISHING WEBSOCKET TELEMETRY UPLINK";
+  } else if (connectionStatus === "DISCONNECTED") {
+    reticleVisible = false;
+    dotColor = "var(--accent-rose, #ef4444)";
+    anomalyTitle = "TELEMETRY LINK OFFLINE (DISCONNECTED)";
+    anomalyTitleColor = "var(--accent-rose, #ef4444)";
+    anomalyPart = "UAV GROUND CONTROL STATION LINK STANDBY";
+  } else if (connectionStatus === "RECONNECTING") {
+    dotColor = "var(--accent-amber, #f59e0b)";
+    anomalyTitleColor = "var(--accent-amber, #f59e0b)";
+    anomalyPart = `RECONNECTING... [BUFFERED STALE DATA] — OVERALL HEALTH: ${health}/100`;
   }
 
   const scenariosList = [
@@ -297,10 +305,11 @@ export default function DigitalTwinCenterpiece({
             <g
               id="part-avionics"
               className="uav-subsystem"
+              onClick={() => onSelectHotspot?.("sensor")}
               onMouseEnter={() =>
                 setTooltip({
                   title: "Avionics & Sensor Bay (Nose)",
-                  desc: "Dual-redundant Flight Computer & CHT Sensor Bus",
+                  desc: `Sensor Health: ${Math.round(sensorHealth)}/100 | Bus: ${voltVal} V | Harness OK`,
                 })
               }
               onMouseLeave={() => setTooltip(null)}
@@ -340,10 +349,11 @@ export default function DigitalTwinCenterpiece({
             <g
               id="part-radiator"
               className="uav-subsystem"
+              onClick={() => onSelectHotspot?.("thermal")}
               onMouseEnter={() =>
                 setTooltip({
                   title: "Cooling System & Radiator",
-                  desc: "Ram-air cooling scoop, liquid coolant jacket & CHT heat sink",
+                  desc: `Thermal Health: ${Math.round(thermalHealth)}/100 | CHT: ${chtVal}°C | Heat Sink Nominal`,
                 })
               }
               onMouseLeave={() => setTooltip(null)}
@@ -377,10 +387,11 @@ export default function DigitalTwinCenterpiece({
             <g
               id="part-engine-block"
               className="uav-subsystem"
+              onClick={() => onSelectHotspot?.("thermal")}
               onMouseEnter={() =>
                 setTooltip({
                   title: "Aero Piston Engine Block",
-                  desc: "4-Cylinder 4-Stroke Turbocharged Boxer Engine (CHT/EGT core)",
+                  desc: `Thermal: ${Math.round(thermalHealth)}% | Combustion: ${Math.round(combustionHealth)}% | EGT: ${egtVal}°C`,
                 })
               }
               onMouseLeave={() => setTooltip(null)}
@@ -407,10 +418,11 @@ export default function DigitalTwinCenterpiece({
             <g
               id="part-fuel-system"
               className="uav-subsystem"
+              onClick={() => onSelectHotspot?.("combustion")}
               onMouseEnter={() =>
                 setTooltip({
-                  title: "Fuel Injection Rail",
-                  desc: "High-pressure electronic fuel rail & port injectors",
+                  title: "Fuel Injection Rail & Injectors",
+                  desc: `Combustion Health: ${Math.round(combustionHealth)}/100 | Flow: ${fuelVal} L/h | Rail Phasing Nominal`,
                 })
               }
               onMouseLeave={() => setTooltip(null)}
@@ -441,10 +453,11 @@ export default function DigitalTwinCenterpiece({
             <g
               id="part-oil-system"
               className="uav-subsystem"
+              onClick={() => onSelectHotspot?.("lubrication")}
               onMouseEnter={() =>
                 setTooltip({
-                  title: "Lubrication & Oil Circuit",
-                  desc: "Oil sump, mechanical scavenge pump & oil cooling lines",
+                  title: "Lubrication Circuit & Oil Sump",
+                  desc: `Lubrication Health: ${Math.round(lubricationHealth)}/100 | Press: ${oilPVal} bar | Temp: ${oilTVal}°C`,
                 })
               }
               onMouseLeave={() => setTooltip(null)}
@@ -468,10 +481,11 @@ export default function DigitalTwinCenterpiece({
             <g
               id="part-mounts"
               className="uav-subsystem"
+              onClick={() => onSelectHotspot?.("mechanical")}
               onMouseEnter={() =>
                 setTooltip({
                   title: "Engine Dynafocal Mounts",
-                  desc: "Vibration isolation dampers & airframe structural nacelle",
+                  desc: `Mechanical Health: ${Math.round(mechanicalHealth)}/100 | Vibration: ${vibVal} g RMS | Isolation OK`,
                 })
               }
               onMouseLeave={() => setTooltip(null)}
@@ -486,10 +500,11 @@ export default function DigitalTwinCenterpiece({
             <g
               id="part-exhaust"
               className="uav-subsystem"
+              onClick={() => onSelectHotspot?.("thermal")}
               onMouseEnter={() =>
                 setTooltip({
                   title: "Exhaust & Turbocharger",
-                  desc: "Inconel exhaust headers & variable geometry turbine (EGT sensor zone)",
+                  desc: `Turbine Core | EGT: ${egtVal}°C | Thermal Health: ${Math.round(thermalHealth)}/100`,
                 })
               }
               onMouseLeave={() => setTooltip(null)}
@@ -508,10 +523,11 @@ export default function DigitalTwinCenterpiece({
             <g
               id="part-propeller"
               className="uav-subsystem"
+              onClick={() => onSelectHotspot?.("mechanical")}
               onMouseEnter={() =>
                 setTooltip({
-                  title: "Pusher Propeller Hub",
-                  desc: "Variable-pitch composite pusher propeller assembly",
+                  title: "Pusher Propeller Hub & Governor",
+                  desc: `RPM: ${rpm.toLocaleString()} | Spin: ${(rpm / 60).toFixed(1)} Hz | Mechanical Health: ${Math.round(mechanicalHealth)}%`,
                 })
               }
               onMouseLeave={() => setTooltip(null)}
@@ -604,27 +620,29 @@ export default function DigitalTwinCenterpiece({
         </div>
       </div>
 
-      {/* Fault Injection Simulator (Interactive Demo) */}
-      <div className="panel">
-        <div className="panel-header">
-          <span className="panel-title"><strong>Fault Injection Matrix</strong></span>
-          <span className="scenario-tag" id="active-scenario-tag">
-            <strong>{scenario.toUpperCase()}</strong>
-          </span>
+      {/* Fault Injection Simulator (Interactive Demo - enabled if showFaultMatrix prop is true) */}
+      {showFaultMatrix && (
+        <div className="panel" style={{ marginTop: "1rem" }}>
+          <div className="panel-header">
+            <span className="panel-title"><strong>Fault Injection Matrix</strong></span>
+            <span className="scenario-tag" id="active-scenario-tag">
+              <strong>{scenario.toUpperCase()}</strong>
+            </span>
+          </div>
+          <div className="scenarios-container">
+            {scenariosList.map((sc) => (
+              <button
+                key={sc.id}
+                className={`scenario-btn ${activeScenario === sc.id ? `active ${sc.tagClass}` : ""}`}
+                onClick={() => onInjectScenario(sc.id)}
+              >
+                <span><strong>{sc.label}</strong></span>
+                <span className="scenario-tag">{sc.tag}</span>
+              </button>
+            ))}
+          </div>
         </div>
-        <div className="scenarios-container">
-          {scenariosList.map((sc) => (
-            <button
-              key={sc.id}
-              className={`scenario-btn ${activeScenario === sc.id ? `active ${sc.tagClass}` : ""}`}
-              onClick={() => onInjectScenario(sc.id)}
-            >
-              <span><strong>{sc.label}</strong></span>
-              <span className="scenario-tag">{sc.tag}</span>
-            </button>
-          ))}
-        </div>
-      </div>
+      )}
     </>
   );
 }

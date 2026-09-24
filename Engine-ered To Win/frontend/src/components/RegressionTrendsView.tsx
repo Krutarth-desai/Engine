@@ -79,136 +79,182 @@ export default function RegressionTrendsView({ payload }: RegressionTrendsViewPr
     };
   }, [activePlotType]);
 
-  const handleSelectTab = (typeId: string) => {
-    setActivePlotType(typeId);
-    fetchPlot(typeId);
-  };
-
-  // Safe image formatting — prevent duplicate data:image prefix
   const imgSrc = plotBase64
-    ? plotBase64.startsWith("data:")
+    ? plotBase64.startsWith("data:image")
       ? plotBase64
       : `data:image/png;base64,${plotBase64}`
     : null;
 
   return (
-    <div className="view-container regression-trends-view">
-      <div className="view-header-strip">
-        <div>
-          <h2 className="view-title">
-            <strong>REGRESSION MODELING &amp; MULTI-CYCLE TRENDS</strong>
+    <div className="gcs-view-container regression-trends-view">
+      {/* Standardized GCS View Header */}
+      <div className="gcs-view-header">
+        <div className="gcs-view-title-wrap">
+          <h2 className="gcs-view-title">
+            <span>📈</span> LIVE CROSS-CORRELATION &amp; REGRESSION ANALYTICS
           </h2>
-          <p className="view-subtitle">
-            Live empirical thermodynamic correlations, linear regression fits, and temporal degradation velocities
-          </p>
-        </div>
-        <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
-          {lastRefreshed && (
-            <span className="metric-tag" style={{ fontSize: "0.68rem" }}>
-              SYNC: {lastRefreshed}
-            </span>
-          )}
-          <span className="window-pill">
-            <strong>MATPLOTLIB HEADLESS ENGINE</strong>
+          <span className="gcs-view-tagline">
+            Real-time scatter plots, ordinary least squares (OLS) regression curves, and correlation coefficients
           </span>
         </div>
-      </div>
 
-      {/* Regression Type Pill Selector Bar */}
-      <div className="regression-type-selector">
-        {REGRESSION_TABS.map((tab) => (
+        {/* Dynamic Status / Refresh Stamp */}
+        <div className="gcs-view-actions">
+          {lastRefreshed && (
+            <span
+              className="status-pill"
+              style={{
+                fontSize: "0.62rem",
+                background: "rgba(56, 189, 248, 0.1)",
+                color: "#38bdf8",
+                borderColor: "rgba(56, 189, 248, 0.25)",
+              }}
+            >
+              UPDATED: {lastRefreshed}
+            </span>
+          )}
           <button
-            key={tab.id}
-            className={`regression-tab-btn ${activePlotType === tab.id ? "active" : ""}`}
-            onClick={() => handleSelectTab(tab.id)}
-            title={tab.desc}
+            className="gcs-btn gcs-btn-secondary gcs-btn-sm"
+            onClick={() => fetchPlot(activePlotType)}
+            title="Refresh regression calculation"
           >
-            <strong>{tab.label}</strong>
+            REFRESH ↻
           </button>
-        ))}
+        </div>
       </div>
 
-      <div className="regression-grid">
-        {/* Left Column: Live Matplotlib Regression Scatter & Fit */}
-        <div className="panel regression-plot-panel">
-          <div className="panel-header">
-            <div className="panel-title">
-              <strong>
-                {plotMeta?.title ||
-                  (activePlotType === "all"
-                    ? "4-GRID MULTI-CORRELATION REGRESSION MATRIX"
-                    : "FEATURE REGRESSION ANALYSIS")}
-              </strong>
-            </div>
-            <span className="model-chip">
-              <strong>OLS REGRESSION FIT</strong>
+      {/* Regression Domain Tab Selector */}
+      <div
+        className="gcs-card"
+        style={{
+          padding: "0.55rem 0.85rem",
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "0.45rem",
+        }}
+      >
+        {REGRESSION_TABS.map((tab) => {
+          const isSelected = activePlotType === tab.id;
+          return (
+            <button
+              key={tab.id}
+              className={`gcs-btn gcs-btn-sm ${isSelected ? "gcs-btn-primary" : "gcs-btn-ghost"}`}
+              onClick={() => setActivePlotType(tab.id)}
+              title={tab.desc}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Main 2-Column Balanced Grid: Left Plot Display | Right Statistical Insights */}
+      <div
+        className="gcs-grid-2col"
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1.35fr 1fr",
+          gap: "0.95rem",
+          alignItems: "stretch",
+        }}
+      >
+        {/* Left Column: Live Matplotlib / Seaborn Dynamic OLS Regression Plot */}
+        <div className="gcs-card" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+          <div className="gcs-card-header">
+            <span className="gcs-card-title">
+              <span>📊</span>
+              {plotMeta?.title ||
+                (activePlotType === "all"
+                  ? "4-GRID MULTI-CHANNEL REGRESSION FUSION"
+                  : "FEATURE REGRESSION ANALYSIS")}
+            </span>
+            <span className="model-chip" style={{ fontSize: "0.6rem" }}>
+              OLS REGRESSION FIT
             </span>
           </div>
 
-          <div className="plot-display-area">
+          <div
+            className="plot-display-area"
+            style={{
+              flex: 1,
+              minHeight: "360px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: "rgba(7, 11, 20, 0.6)",
+              borderRadius: "6px",
+              border: "1px solid rgba(255, 255, 255, 0.05)",
+              overflow: "hidden",
+              margin: "0.35rem 0",
+            }}
+          >
             {imgSrc ? (
               <img
                 src={imgSrc}
                 alt="AeroTwin Live Regression Plot"
-                className="regression-img"
+                style={{ width: "100%", height: "auto", maxHeight: "480px", objectFit: "contain" }}
               />
             ) : loadingPlot ? (
-              <div className="plot-placeholder">
-                <span className="loading-spinner"></span>
+              <div style={{ color: "#38bdf8", fontSize: "0.78rem", display: "flex", gap: "0.5rem", alignItems: "center" }}>
                 <span>Generating live regression fit from telemetry buffer...</span>
               </div>
             ) : (
-              <div className="plot-placeholder">
+              <div style={{ color: "#94a3b8", fontSize: "0.78rem" }}>
                 <span>Collecting rolling telemetry buffer (requires &gt;5 data points)...</span>
               </div>
             )}
           </div>
 
           {/* Dynamic Statistics Footer */}
-          <div className="plot-stats-footer">
+          <div
+            className="plot-stats-footer"
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "0.5rem",
+              paddingTop: "0.45rem",
+              borderTop: "1px solid rgba(255, 255, 255, 0.06)",
+            }}
+          >
             <div className="stat-pill">
-              <span className="pill-lbl"><strong>PEARSON CORRELATION:</strong></span>
+              <span className="pill-lbl">PEARSON:</span>
               <span className="pill-val text-cyan">
-                <strong>
-                  r = {plotMeta?.correlation_r !== undefined ? `${plotMeta.correlation_r >= 0 ? "+" : ""}${plotMeta.correlation_r.toFixed(2)}` : "+0.87"}
-                </strong>
+                {plotMeta?.correlation_r !== undefined
+                  ? `${plotMeta.correlation_r >= 0 ? "+" : ""}${plotMeta.correlation_r.toFixed(2)}`
+                  : "+0.87"}
               </span>
             </div>
             <div className="stat-pill">
-              <span className="pill-lbl"><strong>FIT SLOPE:</strong></span>
+              <span className="pill-lbl">FIT SLOPE:</span>
               <span className="pill-val text-amber">
-                <strong>
-                  {plotMeta?.slope !== undefined ? `${plotMeta.slope >= 0 ? "+" : ""}${plotMeta.slope.toFixed(4)}` : "0.038"}
-                </strong>
+                {plotMeta?.slope !== undefined
+                  ? `${plotMeta.slope >= 0 ? "+" : ""}${plotMeta.slope.toFixed(4)}`
+                  : "0.038"}
               </span>
             </div>
             <div className="stat-pill">
-              <span className="pill-lbl"><strong>DETERMINATION:</strong></span>
+              <span className="pill-lbl">R² SCORE:</span>
               <span className="pill-val text-green">
-                <strong>
-                  R² = {plotMeta?.r_squared !== undefined ? plotMeta.r_squared.toFixed(2) : "0.77"}
-                </strong>
+                {plotMeta?.r_squared !== undefined ? plotMeta.r_squared.toFixed(2) : "0.77"}
               </span>
             </div>
             <div className="stat-pill">
-              <span className="pill-lbl"><strong>RESIDUAL STD:</strong></span>
+              <span className="pill-lbl">RESIDUAL σ:</span>
               <span className="pill-val text-cyan">
-                <strong>
-                  σ = {plotMeta?.residual_std !== undefined ? plotMeta.residual_std.toFixed(2) : "1.42"}
-                </strong>
+                {plotMeta?.residual_std !== undefined ? plotMeta.residual_std.toFixed(2) : "1.42"}
               </span>
             </div>
             <div className="stat-pill">
-              <span className="pill-lbl"><strong>BUFFER:</strong></span>
+              <span className="pill-lbl">BUFFER:</span>
               <span className="pill-val text-green">
-                <strong>{plotMeta?.points_count || 40} PTS</strong>
+                {plotMeta?.points_count || 40} PTS
               </span>
             </div>
           </div>
         </div>
 
         {/* Right Column: 30-Cycle Temporal Sequence Memory & Dynamic Commentary */}
-        <div className="regression-trends-col">
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.95rem" }}>
           <RecentTrendsCard
             points={payload.recent_trends?.points || []}
             deltas={
@@ -221,13 +267,13 @@ export default function RegressionTrendsView({ payload }: RegressionTrendsViewPr
             }
           />
 
-          <div className="panel analytical-insights-card">
-            <div className="panel-header">
-              <div className="panel-title">
-                <strong>PHYSICAL REGIME COMMENTARY</strong>
-              </div>
+          <div className="gcs-card analytical-insights-card">
+            <div className="gcs-card-header">
+              <span className="gcs-card-title">
+                <span>🧠</span> PHYSICAL REGIME COMMENTARY
+              </span>
             </div>
-            <div className="insights-body">
+            <div className="insights-body" style={{ display: "flex", flexDirection: "column", gap: "0.45rem" }}>
               {activePlotType === "cht_rpm" && (
                 <>
                   <p className="insight-text">

@@ -2,8 +2,21 @@ import subprocess
 import sys
 import os
 import time
+import socket
 import webbrowser
-import signal
+
+def is_port_in_use(port: int, host: str = "127.0.0.1") -> bool:
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.settimeout(0.5)
+        return s.connect_ex((host, port)) == 0
+
+def wait_for_port(port: int, timeout_sec: int = 20, host: str = "127.0.0.1") -> bool:
+    start_time = time.time()
+    while time.time() - start_time < timeout_sec:
+        if is_port_in_use(port, host):
+            return True
+        time.sleep(0.5)
+    return False
 
 def main():
     if hasattr(sys.stdout, "reconfigure"):
@@ -22,6 +35,12 @@ def main():
     print("[AEROTWIN] Launching AeroTwin GCS (Backend + Frontend)")
     print("==================================================")
     
+    # Check for port collisions
+    if is_port_in_use(8000):
+        print("[WARNING] Port 8000 is already in use! Another instance may already be running.")
+    if is_port_in_use(3000):
+        print("[WARNING] Port 3000 is already in use! Another instance may already be running.")
+
     # 1. Start Backend
     print("[1/2] Starting Python FastAPI Telemetry & ML Backend on port 8000...")
     backend_proc = subprocess.Popen(
@@ -38,10 +57,19 @@ def main():
         shell=True
     )
     
-    # Wait for servers to initialize
-    time.sleep(3)
+    print("\nWaiting for services to become ready...")
+    backend_ready = wait_for_port(8000, timeout_sec=25)
+    frontend_ready = wait_for_port(3000, timeout_sec=25)
+    
     print("\n" + "=" * 50)
-    print("[OK] All services online!")
+    if backend_ready and frontend_ready:
+        print("[OK] All services online and ready!")
+    else:
+        if not backend_ready:
+            print("[WARN] Backend on port 8000 took longer than expected to initialize.")
+        if not frontend_ready:
+            print("[WARN] Frontend on port 3000 took longer than expected to initialize.")
+            
     print("-> Frontend Dashboard: http://localhost:3000")
     print("-> Backend Telemetry:  http://localhost:8000")
     print("=" * 50)
@@ -56,7 +84,13 @@ def main():
     try:
         while True:
             time.sleep(1)
-            if backend_proc.poll() is not None or frontend_proc.poll() is not None:
+            b_code = backend_proc.poll()
+            f_code = frontend_proc.poll()
+            if b_code is not None:
+                print(f"\n[ALERT] Backend process exited unexpectedly with exit code {b_code}.")
+                break
+            if f_code is not None:
+                print(f"\n[ALERT] Frontend process exited unexpectedly with exit code {f_code}.")
                 break
     except KeyboardInterrupt:
         print("\n\n[SHUTDOWN] Shutting down AeroTwin services...")
@@ -65,7 +99,10 @@ def main():
             backend_proc.terminate()
             backend_proc.wait(timeout=2)
         except Exception:
-            backend_proc.kill()
+            try:
+                backend_proc.kill()
+            except Exception:
+                pass
             
         try:
             # On Windows, killing npm task tree
@@ -76,3 +113,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

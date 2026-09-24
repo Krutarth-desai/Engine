@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRole } from "@/context/RoleContext";
+import { isViewAllowed, ROLE_META, UserRole } from "@/config/roleConfig";
 
 export type NavView =
   | "dashboard"
@@ -32,6 +34,12 @@ interface SidebarProps {
   activeAlertCount: number;
 }
 
+const AVAILABLE_ROLES: Array<{ id: Exclude<UserRole, "unset">; label: string; icon: string }> = [
+  { id: "gcs_operator", label: "GCS Operator", icon: "🎯" },
+  { id: "propulsion_engineer", label: "Propulsion", icon: "⚙️" },
+  { id: "maintenance_tech", label: "Maintenance", icon: "🔧" },
+];
+
 export default function Sidebar({
   currentView,
   onSelectView,
@@ -40,8 +48,10 @@ export default function Sidebar({
   activeAlertCount,
 }: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const { role, roleMeta, switchRole } = useRole();
 
-  const navSections: NavSection[] = [
+  // Full navigation structure — filtered per-role below
+  const allNavSections: NavSection[] = [
     {
       heading: "OVERVIEW",
       items: [
@@ -76,6 +86,14 @@ export default function Sidebar({
     },
   ];
 
+  // Filter nav sections by role permissions
+  const navSections = allNavSections
+    .map((sec) => ({
+      ...sec,
+      items: sec.items.filter((item) => isViewAllowed(role, item.id)),
+    }))
+    .filter((sec) => sec.items.length > 0);
+
   const engineOptions = ["UAV_ENG_001", "UAV_ENG_002", "TEST_BENCH_ROTAX"];
 
   return (
@@ -99,6 +117,117 @@ export default function Sidebar({
           {isCollapsed ? "▶" : "◀"}
         </button>
       </div>
+
+      {/* Role Switcher Section in Sidebar */}
+      {!isCollapsed ? (
+        <div
+          className="sidebar-role-selector-section"
+          style={{
+            margin: "0.2rem 0.55rem 0.65rem",
+            padding: "0.45rem",
+            borderRadius: "7px",
+            background: "rgba(255, 255, 255, 0.025)",
+            border: "1px solid rgba(255, 255, 255, 0.07)",
+          }}
+        >
+          <div
+            style={{
+              fontSize: "0.58rem",
+              fontWeight: 800,
+              letterSpacing: "0.6px",
+              color: "var(--text-muted, #94a3b8)",
+              marginBottom: "0.35rem",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <span>OPERATIONAL ROLE</span>
+            {roleMeta && (
+              <span
+                style={{
+                  fontSize: "0.52rem",
+                  padding: "0.05rem 0.3rem",
+                  borderRadius: "3px",
+                  background: roleMeta.accentBg,
+                  color: roleMeta.accentColor,
+                  fontWeight: 700,
+                }}
+              >
+                ACTIVE
+              </span>
+            )}
+          </div>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "0.22rem",
+            }}
+          >
+            {AVAILABLE_ROLES.map((r) => {
+              const isSelected = role === r.id;
+              const meta = ROLE_META[r.id];
+              return (
+                <button
+                  key={r.id}
+                  onClick={() => switchRole(r.id)}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.45rem",
+                    padding: "0.3rem 0.5rem",
+                    borderRadius: "5px",
+                    border: isSelected
+                      ? `1px solid ${meta.accentColor}66`
+                      : "1px solid rgba(255, 255, 255, 0.04)",
+                    background: isSelected ? meta.accentBg : "transparent",
+                    color: isSelected ? meta.accentColor : "#94a3b8",
+                    fontSize: "0.68rem",
+                    fontWeight: isSelected ? 800 : 500,
+                    cursor: "pointer",
+                    textAlign: "left",
+                    transition: "all 0.15s ease",
+                    boxShadow: isSelected ? `0 0 8px ${meta.accentColor}22` : "none",
+                  }}
+                  title={meta.description}
+                >
+                  <span style={{ fontSize: "0.78rem" }}>{r.icon}</span>
+                  <span style={{ flex: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    {r.label}
+                  </span>
+                  {isSelected && (
+                    <span
+                      style={{
+                        width: "5px",
+                        height: "5px",
+                        borderRadius: "50%",
+                        backgroundColor: meta.accentColor,
+                        boxShadow: `0 0 5px ${meta.accentColor}`,
+                      }}
+                    />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ) : (
+        /* Collapsed role icon */
+        roleMeta && (
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              padding: "0.4rem 0",
+              fontSize: "1rem",
+            }}
+            title={`Active Role: ${roleMeta.label}`}
+          >
+            {roleMeta.icon}
+          </div>
+        )
+      )}
 
       {/* Engine Selector Dropdown */}
       <div className="sidebar-engine-selector">

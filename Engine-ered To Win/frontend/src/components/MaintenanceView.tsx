@@ -38,79 +38,112 @@ export default function MaintenanceView({ payload }: MaintenanceViewProps) {
   ];
 
   return (
-    <div className="view-container maintenance-view">
-      <div className="view-header-strip">
-        <div>
-          <h2 className="view-title"><strong>PREDICTIVE MAINTENANCE &amp; ACTION PROTOCOL</strong></h2>
-          <p className="view-subtitle">Condition-based maintenance (CBM), component wear life thresholds, and field action procedures</p>
+    <div className="gcs-view-container maintenance-view">
+      {/* Standardized GCS View Header */}
+      <div className="gcs-view-header">
+        <div className="gcs-view-title-wrap">
+          <h2 className="gcs-view-title">
+            <span>🔧</span> PREDICTIVE MAINTENANCE &amp; ACTION PROTOCOL
+          </h2>
+          <span className="gcs-view-tagline">
+            Condition-based maintenance (CBM), component wear life thresholds, and field action procedures
+          </span>
         </div>
-        <div
-          className="priority-badge"
-          style={{ color: prio.color, backgroundColor: prio.bg, borderColor: prio.border }}
-        >
-          <strong>PRIORITY: {riskLevel}</strong>
+        <div className="gcs-view-actions">
+          <span
+            className="status-pill"
+            style={{
+              color: prio.color,
+              backgroundColor: prio.bg,
+              borderColor: prio.border,
+              fontSize: "0.68rem",
+              fontWeight: 800,
+            }}
+          >
+            PRIORITY: {riskLevel}
+          </span>
         </div>
       </div>
 
-      <div className="maintenance-grid">
-        {/* Left Column: Immediate Operational Action Card */}
-        <div className="maint-col-left">
-          <div className="panel maint-action-hero">
-            <div className="panel-header">
-              <div className="panel-title">
-                <strong>CURRENT PILOT / OPERATOR DIRECTIVE</strong>
-              </div>
-              <span className="status-pill"><strong>{riskLevel} RISK</strong></span>
+      {/* Balanced 2-Column Maintenance Grid */}
+      <div
+        className="gcs-grid-2col"
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1.1fr 1fr",
+          gap: "0.95rem",
+          alignItems: "stretch",
+        }}
+      >
+        {/* Left Column: Immediate Operational Action Card & Protocols */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.95rem" }}>
+          <div className="gcs-card maint-action-hero">
+            <div className="gcs-card-header">
+              <span className="gcs-card-title">
+                <span>⚠️</span> CURRENT PILOT / OPERATOR DIRECTIVE
+              </span>
+              <span className="status-pill" style={{ fontSize: "0.6rem" }}>
+                {riskLevel} RISK
+              </span>
             </div>
 
             <div className="maint-action-body">
               <div className="action-large-readout">
-                <span className="action-hero-text"><strong>{action}</strong></span>
+                <span className="action-hero-text">{action}</span>
               </div>
-              <p className="action-context">
-                {guidance || `Automated recommendation generated based on cross-correlated physical telemetry, remaining useful life estimates (${Math.round(payload.prognostics?.predicted_rul || 117)} cycles), and current health index (${health}/100).`}
+              <p className="action-context" style={{ marginTop: "0.5rem" }}>
+                {guidance ||
+                  `Automated recommendation generated based on cross-correlated physical telemetry, remaining useful life estimates (${Math.round(
+                    payload.prognostics?.predicted_rul || 117
+                  )} cycles), and current health index (${health}/100).`}
               </p>
             </div>
           </div>
 
-          <div className="panel maint-protocols-card">
-            <div className="panel-header">
-              <div className="panel-title">
-                <strong>PREVENTATIVE MAINTENANCE PROTOCOLS</strong>
-              </div>
+          <div className="gcs-card maint-protocols-card">
+            <div className="gcs-card-header">
+              <span className="gcs-card-title">
+                <span>📋</span> PREVENTATIVE MAINTENANCE PROTOCOLS
+              </span>
             </div>
-            <div className="protocols-list">
+            <div className="protocols-list" style={{ display: "flex", flexDirection: "column", gap: "0.55rem" }}>
               <div className="protocol-item">
                 <span className="protocol-tag tag-thermal">THERMAL MITIGATION</span>
-                <p className="protocol-desc">If CHT exceeds 165°C or EGT exceeds 680°C, enrich mixture to rich-of-peak and reduce continuous throttle below 70% to prevent detonation.</p>
+                <p className="protocol-desc">
+                  If CHT exceeds 165°C or EGT exceeds 680°C, enrich mixture to rich-of-peak and reduce continuous throttle below 70% to prevent detonation.
+                </p>
               </div>
               <div className="protocol-item">
                 <span className="protocol-tag tag-hydraulic">LUBRICATION PROTECT</span>
-                <p className="protocol-desc">If oil pressure drops below 50 psi during high-G maneuvers, execute immediate level flight recovery and throttle back to cruise idle.</p>
+                <p className="protocol-desc">
+                  If oil pressure drops below 50 psi during high-G maneuvers, execute immediate level flight recovery and throttle back to cruise idle.
+                </p>
               </div>
               <div className="protocol-item">
                 <span className="protocol-tag tag-mechanical">VIBRATION DAMPENING</span>
-                <p className="protocol-desc">Sustained vibration above 2.0 g indicates prop imbalance or bearing brinelling; schedule ground dynamic balance balancing within 5 flight hours.</p>
+                <p className="protocol-desc">
+                  Sustained vibration above 2.0 g indicates prop imbalance or bearing brinelling; schedule ground dynamic balancing within 5 flight hours.
+                </p>
               </div>
             </div>
           </div>
         </div>
 
         {/* Right Column: Subsystem Maintenance Inspection Checklist */}
-        <div className="maint-col-right">
-          <div className="panel maint-checklist-card">
-            <div className="panel-header">
-              <div className="panel-title">
-                <strong>SUBSYSTEM INSPECTION CHECKLIST</strong>
-              </div>
-              <span className="model-chip"><strong>5 CRITICAL NODES</strong></span>
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          <div className="gcs-card maint-checklist-card" style={{ height: "100%" }}>
+            <div className="gcs-card-header">
+              <span className="gcs-card-title">
+                <span>🔍</span> SUBSYSTEM INSPECTION CHECKLIST
+              </span>
+              <span className="model-chip">5 CRITICAL NODES</span>
             </div>
 
-            <div className="checklist-items-wrap">
+            <div className="checklist-items-wrap" style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
               {checklist.map((chk, i) => (
                 <div key={i} className={`checklist-item status-${chk.status.toLowerCase()}`}>
                   <div className="chk-top-line">
-                    <span className="chk-name"><strong>{chk.item}</strong></span>
+                    <span className="chk-name">{chk.item}</span>
                     <span className={`chk-badge status-${chk.status.toLowerCase()}`}>
                       {chk.status}
                     </span>

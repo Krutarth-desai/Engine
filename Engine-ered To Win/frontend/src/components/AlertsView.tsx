@@ -35,14 +35,14 @@ export default function AlertsView({
   const getAlertIcon = (level: string) => {
     switch (level) {
       case "ALERT":
-        return "[ALT]";
+        return "🚨";
       case "CAUTION":
-        return "[CAU]";
+        return "⚠️";
       case "INFO":
-        return "[INF]";
+        return "ℹ️";
       case "NORMAL":
       default:
-        return "[OK]";
+        return "✅";
     }
   };
 
@@ -58,29 +58,36 @@ export default function AlertsView({
   };
 
   return (
-    <div className="view-container alerts-view">
-      <div className="view-header-strip">
-        <div>
-          <h2 className="view-title"><strong>ACTIVE ALERTS &amp; CHRONOLOGICAL PHM LOG</strong></h2>
-          <p className="view-subtitle">Full operational incident record, timestamped threshold violations, and telemetry event logs</p>
+    <div className="gcs-view-container alerts-view">
+      {/* Standardized GCS View Header */}
+      <div className="gcs-view-header">
+        <div className="gcs-view-title-wrap">
+          <h2 className="gcs-view-title">
+            <span>🔔</span> ACTIVE ALERTS &amp; CHRONOLOGICAL PHM LOG
+          </h2>
+          <span className="gcs-view-tagline">
+            Full operational incident record, timestamped threshold violations, and telemetry event logs
+          </span>
         </div>
 
-        {/* Severity Filter Pills */}
-        <div className="alert-filters-row">
+        {/* Severity Filter Buttons */}
+        <div className="gcs-view-actions">
           {["ALL", "ALERT", "CAUTION", "INFO", "NORMAL"].map((f) => (
             <button
               key={f}
-              className={`filter-pill-btn ${filter === f ? "active" : ""}`}
+              className={`gcs-btn gcs-btn-sm ${
+                filter === f ? "gcs-btn-primary" : "gcs-btn-secondary"
+              }`}
               onClick={() => setFilter(f)}
             >
-              <strong>{f}</strong>
+              {f}
             </button>
           ))}
         </div>
       </div>
 
       {/* Interactive Scenario Injection Simulator */}
-      <div className="alerts-simulator-card">
+      <div className="gcs-card" style={{ padding: "0.65rem 0.9rem" }}>
         <ScenarioBar
           activeScenario={activeScenario}
           onSelectScenario={onInjectScenario}
@@ -88,10 +95,21 @@ export default function AlertsView({
       </div>
 
       {/* Alerts Feed List */}
-      <div className="alerts-full-list">
+      <div className="alerts-full-list" style={{ display: "flex", flexDirection: "column", gap: "0.55rem" }}>
         {filteredAlerts.length === 0 ? (
-          <div className="empty-alerts-box">
-            <span>[OK] No alerts found matching filter "{filter}". All telemetry nominal.</span>
+          <div
+            className="empty-alerts-box"
+            style={{
+              padding: "2rem",
+              textAlign: "center",
+              background: "rgba(14, 21, 38, 0.6)",
+              borderRadius: "8px",
+              border: "1px dashed rgba(255, 255, 255, 0.1)",
+              color: "#94a3b8",
+              fontSize: "0.82rem",
+            }}
+          >
+            <span>✅ No alerts found matching filter "{filter}". All telemetry nominal.</span>
           </div>
         ) : (
           filteredAlerts.map((alert) => {
@@ -104,8 +122,12 @@ export default function AlertsView({
 
                 <div className="alert-details-col">
                   <div className="alert-meta-line">
-                    <span className="alert-severity-pill"><strong>{alert.level}</strong></span>
-                    <span className="alert-headline"><strong>{alert.title}</strong></span>
+                    <span className="alert-severity-pill">
+                      <strong>{alert.level}</strong>
+                    </span>
+                    <span className="alert-headline">
+                      <strong>{alert.title}</strong>
+                    </span>
                     <span className="alert-timestamp-mono">
                       {new Date(alert.timestamp).toLocaleTimeString()} ({alert.time_ago})
                     </span>
@@ -115,7 +137,7 @@ export default function AlertsView({
 
                 <div className="alert-action-col">
                   <button
-                    className={`ack-btn ${isAck ? "acked" : ""}`}
+                    className={`gcs-btn gcs-btn-sm ${isAck ? "gcs-btn-secondary" : "gcs-btn-warning"}`}
                     onClick={() => handleToggleAck(alert.id)}
                   >
                     {isAck ? "ACKNOWLEDGED" : "ACKNOWLEDGE"}
