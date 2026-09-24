@@ -4498,3 +4498,136 @@ button.btn-destructive, .btn-destructive {
     color: var(--status-warning) !important;
     border: 1px solid var(--status-warning) !important;
 }
+
+/* ==========================================================================
+   AEROTWIN PRINT STYLESHEET
+   Standard A4 / Letter Print Configuration for Flight Audits
+   ========================================================================== */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 12mm 10mm 12mm 10mm;
+  }
+
+  /* 1. Hide non-printable application chrome */
+  #app-header,
+  .gcs-mission-header,
+  .gcs-sidebar,
+  aside,
+  .time-scrub-bar-container,
+  .alerts-controls-strip,
+  .page-header-strip,
+  .no-print,
+  button {
+    display: none !important;
+  }
+
+  /* 2. Show print-only header banner */
+  .alerts-print-header {
+    display: block !important;
+    margin-bottom: 12pt !important;
+  }
+
+  /* 3. Reset document canvas for clean light print */
+  html, body {
+    background: #ffffff !important;
+    color: #111827 !important;
+    font-size: 10pt !important;
+    overflow: visible !important;
+    height: auto !important;
+    min-height: auto !important;
+  }
+
+  .gcs-app-container,
+  .gcs-workspace-layout,
+  .gcs-main-column,
+  .gcs-view-area,
+  #app-main,
+  .page-layout-container,
+  .page-layout-body {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    position: static !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+  }
+
+  /* 4. Operational KPI Counters */
+  .alerts-kpi-bar {
+    display: grid !important;
+    grid-template-columns: repeat(5, 1fr) !important;
+    gap: 6pt !important;
+    margin-bottom: 12pt !important;
+    page-break-inside: avoid !important;
+  }
+
+  .alerts-kpi-bar > div {
+    border: 1px solid #d1d5db !important;
+    background: #f9fafb !important;
+    padding: 6pt 8pt !important;
+    border-radius: 4pt !important;
+    box-shadow: none !important;
+  }
+
+  .alerts-kpi-bar > div * {
+    color: #111827 !important;
+  }
+
+  /* 5. Powertrain Status Block */
+  .all-nominal-panel {
+    border: 1px solid #d1d5db !important;
+    background: #f9fafb !important;
+    padding: 12pt !important;
+    border-radius: 6pt !important;
+    page-break-inside: avoid !important;
+    box-shadow: none !important;
+  }
+
+  .all-nominal-panel h3 {
+    color: #059669 !important;
+  }
+
+  .all-nominal-panel p,
+  .all-nominal-panel span,
+  .all-nominal-panel div {
+    color: #374151 !important;
+  }
+
+  .all-nominal-panel > div:nth-child(3) > div {
+    border: 1px solid #e5e7eb !important;
+    background: #ffffff !important;
+    border-radius: 4pt !important;
+  }
+
+  /* 6. Alert Cards & Feed */
+  .alerts-full-list {
+    display: block !important;
+    page-break-inside: auto !important;
+  }
+
+  .alerts-full-list > div {
+    border: 1px solid #d1d5db !important;
+    background: #ffffff !important;
+    margin-bottom: 8pt !important;
+    page-break-inside: avoid !important;
+    box-shadow: none !important;
+  }
+
+  .alerts-full-list * {
+    color: #111827 !important;
+  }
+
+  /* Color accuracy */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+

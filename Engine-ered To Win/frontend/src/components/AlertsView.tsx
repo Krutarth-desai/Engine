@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { PhmAlertItem } from "../types/telemetry";
 import { supabase } from "@/lib/supabase";
-import FaultInjectionPanel from "./common/FaultInjectionPanel";
+import { generateAlertsAuditPdf } from "@/lib/alertsPdfGenerator";
 import AlertCard, { mapSeverity } from "./alerts/AlertCard";
 import PageLayout from "./common/PageLayout";
 import {
@@ -26,6 +26,7 @@ import {
   Zap,
   Radio,
   SlidersHorizontal,
+  Printer,
 } from "lucide-react";
 import { useTelemetry } from "@/context/TelemetryContext";
 
@@ -263,27 +264,46 @@ export default function AlertsView({
     }
   };
 
-  // Handle Export Audit Log
-  const handleExportLog = () => {
-    const exportData = {
-      vehicle_id: "UAV_ENG_001",
-      exported_at: new Date().toISOString(),
-      active_scenario: payload.scenario || "Normal",
-      total_active_alerts: alerts.length,
-      historical_records: BASELINE_INCIDENTS.concat(alerts as HistoricalLogItem[]),
-      acknowledgements: ackMap,
-      work_orders: woMap,
-    };
+  // Handle Export Audit Log as Certified PDF
+  const handleExportPdf = () => {
+    try {
+      const allIncidents: HistoricalLogItem[] = [
+        ...alerts.map((a) => ({
+          ...a,
+          ackBy: ackMap[a.id]?.by,
+          ackAt: ackMap[a.id]?.at,
+          woNumber: woMap[a.id],
+        })),
+        ...BASELINE_INCIDENTS.filter((b) => !alerts.some((a) => a.id === b.id)),
+      ];
 
-    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `AEROTWIN_INCIDENT_AUDIT_${Date.now()}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+      const incidentsToExport = displayedList.length > 0 ? displayedList : allIncidents;
+
+      const doc = generateAlertsAuditPdf({
+        vehicleId: payload.vehicle?.vehicle_id || "UAV_ENG_001",
+        missionId: payload.vehicle?.mission_id || "ISR_PATROL_27",
+        scenario: payload.scenario || "Nominal Cruise",
+        payload,
+        activeWarningCount,
+        activeCautionCount,
+        activeAdvisoryCount,
+        totalAckCount,
+        totalWoCount,
+        incidents: incidentsToExport,
+        ackMap,
+        woMap,
+      });
+
+      const dateStr = new Date().toISOString().slice(0, 10);
+      doc.save(`AeroTwin_Alerts_PHM_Audit_${payload.vehicle?.vehicle_id || "UAV_ENG_001"}_${dateStr}.pdf`);
+    } catch (err) {
+      console.error("Failed to generate PDF audit report:", err);
+    }
+  };
+
+  // Handle Direct Browser Print
+  const handlePrint = () => {
+    window.print();
   };
 
   // Subsystem matcher helper
@@ -457,6 +477,34 @@ export default function AlertsView({
       }
     >
 
+      {/* Print-Only Header Banner */}
+      <div className="alerts-print-header" style={{ display: "none" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", borderBottom: "2px solid #111827", paddingBottom: "8px", marginBottom: "12px" }}>
+          <div>
+            <h1 style={{ margin: 0, fontSize: "16pt", fontWeight: 800, color: "#111827" }}>
+              AEROTWIN UAV GROUND CONTROL STATION
+            </h1>
+            <div style={{ fontSize: "11pt", fontWeight: 700, color: "#374151", marginTop: "2px" }}>
+              ALERTS &amp; CHRONOLOGICAL PHM AUDIT REPORT
+            </div>
+            <div style={{ fontSize: "9pt", color: "#6B7280", marginTop: "2px" }}>
+              AIRFRAME: {payload.vehicle?.vehicle_id || "UAV_ENG_001"} • MISSION: {payload.vehicle?.mission_id || "ISR_PATROL_27"} • PROPULSION: ROTAX 914 F TURBO
+            </div>
+          </div>
+          <div style={{ textAlign: "right" }}>
+            <div style={{ fontSize: "9pt", fontWeight: 700, color: "#DC2626" }}>
+              UNCLASSIFIED // GCS PHM AUDIT
+            </div>
+            <div style={{ fontSize: "8.5pt", color: "#4B5563", marginTop: "2px" }}>
+              {new Date().toUTCString()}
+            </div>
+            <div style={{ fontSize: "8pt", color: "#059669", fontWeight: 700, marginTop: "2px" }}>
+              STATUS: AIRWORTHY // VERIFIED
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Operational KPI Counters & Quick Actions Bar */}
       <div
         className="alerts-kpi-bar"
@@ -592,11 +640,9 @@ export default function AlertsView({
         </div>
       </div>
 
-      {/* Fault Injection Simulation Matrix */}
-      <FaultInjectionPanel />
-
       {/* Controls Strip: Search, Severity Filter, Subsystem Filter & Export */}
       <div
+        className="alerts-controls-strip"
         style={{
           display: "flex",
           justifyContent: "space-between",
@@ -778,10 +824,11 @@ export default function AlertsView({
             </button>
           )}
 
-          {/* Export Audit Log Button */}
+          {/* Export Audit PDF Button */}
           <button
-            onClick={handleExportLog}
-            title="Download JSON incident audit report"
+            onClick={handleExportPdf}
+            title="Download certified PDF incident audit report"
+            className="alerts-export-btn"
             style={{
               display: "inline-flex",
               alignItems: "center",
@@ -800,6 +847,31 @@ export default function AlertsView({
           >
             <Download size={12} />
             <span>EXPORT AUDIT</span>
+          </button>
+
+          {/* Direct Print Button */}
+          <button
+            onClick={handlePrint}
+            title="Open browser print dialog"
+            className="alerts-print-btn"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.35rem",
+              background: "var(--border)",
+              border: "1px solid var(--border)",
+              color: "var(--text)",
+              borderRadius: "4px",
+              padding: "0.25rem 0.6rem",
+              fontSize: "0.68rem",
+              fontWeight: 700,
+              fontFamily: "var(--font-mono), monospace",
+              cursor: "pointer",
+              transition: "all 0.15s ease",
+            }}
+          >
+            <Printer size={12} />
+            <span>PRINT</span>
           </button>
         </div>
       </div>
@@ -996,23 +1068,6 @@ export default function AlertsView({
                     Alternator float current normal
                   </div>
                 </div>
-              </div>
-
-              {/* Injected Scenario Helper Hint */}
-              <div
-                style={{
-                  fontSize: "0.7rem",
-                  color: "var(--text-muted)",
-                  maxWidth: "520px",
-                  lineHeight: 1.4,
-                  background: "var(--border)",
-                  border: "1px dashed var(--border)",
-                  borderRadius: "6px",
-                  padding: "0.5rem 0.8rem",
-                }}
-              >
-                <span style={{ color: "var(--accent)", fontWeight: 600 }}>Tip: </span>
-                Click any scenario in the <strong>Fault Injection Simulation Matrix</strong> above (e.g., <em>Lubrication Starvation</em> or <em>Cooling / Overheating</em>) to test real-time alert generation, cross-sensor isolation, and work order creation.
               </div>
             </div>
           ) : (
