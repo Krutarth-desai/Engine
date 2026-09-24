@@ -1,12 +1,14 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useTelemetry } from "@/context/TelemetryContext";
 import PageLayout from "./common/PageLayout";
-import { Compass, Navigation, Clock, ShieldCheck, Fuel } from "lucide-react";
+import ExportAuditModal from "./mission/ExportAuditModal";
+import { Compass, Navigation, Clock, ShieldCheck, Fuel, FileDown, Download } from "lucide-react";
 
 export default function MissionView() {
   const { payload, linkState } = useTelemetry();
+  const [isAuditModalOpen, setIsAuditModalOpen] = useState(false);
 
   const waypoints = [
     { id: "WP-01", name: "AL-DHAFRA DEP", alt: "2,500 FT", speed: "95 KTAS", status: "PASSED", time: "20:15:00 Z" },
@@ -32,6 +34,33 @@ export default function MissionView() {
           <span className="nav-tag" style={{ color: linkState === "live" ? "var(--accent)" : "var(--status-caution)", borderColor: "var(--border)" }}>
             TAIL: UAV_ENG_001
           </span>
+        </div>
+      }
+      actions={
+        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+          <button
+            onClick={() => setIsAuditModalOpen(true)}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.4rem",
+              padding: "0.32rem 0.75rem",
+              borderRadius: "6px",
+              background: "var(--accent)",
+              border: "1px solid var(--accent)",
+              color: "#05070B",
+              fontSize: "11.5px",
+              fontWeight: 700,
+              fontFamily: "var(--font-mono), monospace",
+              cursor: "pointer",
+              boxShadow: "0 2px 10px color-mix(in srgb, var(--accent) 30%, transparent)",
+              transition: "all 0.15s ease",
+            }}
+            title="Export certified flight audit dossier & compliance records"
+          >
+            <FileDown size={13} />
+            <span>EXPORT AUDIT</span>
+          </button>
         </div>
       }
     >
@@ -93,7 +122,30 @@ export default function MissionView() {
         <div className="card" style={{ background: "var(--surface-1)", border: "1px solid var(--border)", borderRadius: "12px", padding: "1.25rem", display: "flex", flexDirection: "column" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
             <h3 className="card-title" style={{ margin: 0 }}>Mission Flight Plan Legs</h3>
-            <span className="text-caption" style={{ color: "var(--text-muted)" }}>8 WAYPOINTS</span>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+              <span className="text-caption" style={{ color: "var(--text-muted)" }}>8 WAYPOINTS</span>
+              <button
+                onClick={() => setIsAuditModalOpen(true)}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "0.3rem",
+                  padding: "0.2rem 0.5rem",
+                  borderRadius: "4px",
+                  background: "var(--surface-2)",
+                  border: "1px solid var(--border)",
+                  color: "var(--accent)",
+                  fontSize: "11px",
+                  fontFamily: "var(--font-mono), monospace",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+                title="View & Export Waypoint Audit Trail"
+              >
+                <Download size={11} />
+                <span>AUDIT TRAIL</span>
+              </button>
+            </div>
           </div>
 
           <div style={{ overflowX: "auto", flex: 1 }}>
@@ -226,6 +278,15 @@ export default function MissionView() {
           </div>
         </div>
       </div>
+
+      {/* Export Audit Modal */}
+      <ExportAuditModal
+        isOpen={isAuditModalOpen}
+        onClose={() => setIsAuditModalOpen(false)}
+        payload={payload}
+        linkState={linkState}
+        waypoints={waypoints}
+      />
     </PageLayout>
   );
 }
