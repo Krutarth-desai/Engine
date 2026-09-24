@@ -3795,6 +3795,24 @@ input, select, textarea {
             align-items: start;
         }
 
+        .maintenance-view-split-50 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.85rem;
+            flex: 1;
+            min-height: 0;
+            height: 100%;
+            align-items: stretch;
+        }
+
+        .maintenance-split-col {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            min-height: 0;
+            overflow: hidden;
+        }
+
         .maint-col-left,
         .maint-col-right {
             display: flex;
@@ -4105,8 +4123,14 @@ input, select, textarea {
             .regression-grid {
                 grid-template-columns: 1fr;
             }
-            .maintenance-grid {
+            .maintenance-grid,
+            .maintenance-view-split-50 {
                 grid-template-columns: 1fr;
+                height: auto;
+            }
+            .maintenance-split-col {
+                height: auto;
+                overflow: visible;
             }
         /* ==================================================== */
         /* PHASE 1: FAULT INJECTION PANEL & SIMULATION BANNER   */

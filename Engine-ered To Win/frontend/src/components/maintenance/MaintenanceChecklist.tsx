@@ -282,8 +282,8 @@ export default function MaintenanceChecklist() {
           gap: "0.45rem",
           overflowY: "auto",
           paddingRight: "0.25rem",
-          maxHeight: "340px",
           flex: 1,
+          minHeight: 0,
         }}
       >
         {currentItems.map((chk) => {

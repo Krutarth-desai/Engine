@@ -47,7 +47,7 @@ export default function MaintenanceHistoryTable() {
   };
 
   return (
-    <div className="panel maint-history-panel" style={{ marginTop: "0.85rem" }}>
+    <div className="panel maint-history-panel" style={{ height: "100%", display: "flex", flexDirection: "column", boxSizing: "border-box" }}>
       {/* Header with Export and Print Controls */}
       <div className="panel-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div className="panel-title" style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
@@ -126,7 +126,7 @@ export default function MaintenanceHistoryTable() {
       </div>
 
       {/* Historical Log Table */}
-      <div style={{ overflowX: "auto" }}>
+      <div style={{ overflowX: "auto", overflowY: "auto", flex: 1, minHeight: 0 }}>
         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.68rem", fontFamily: "var(--font-mono), monospace" }}>
           <thead>
             <tr style={{ borderBottom: "1px solid var(--border)", color: "var(--text-muted)", textAlign: "left" }}>
