@@ -4500,6 +4500,76 @@ button.btn-destructive, .btn-destructive {
 }
 
 /* ==========================================================================
+   ALL POWERTRAIN CHANNELS NOMINAL COMPACT LAYOUT
+   ========================================================================== */
+.all-nominal-panel {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  text-align: center;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.nominal-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.65rem;
+  width: 100%;
+  max-width: 960px;
+  box-sizing: border-box;
+}
+
+.nominal-subsystem-card {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.65rem 0.75rem;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  justifyContent: space-between;
+  min-height: 82px;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease;
+}
+
+.nominal-subsystem-card:hover {
+  border-color: var(--border-strong);
+}
+
+.nominal-subsystem-card-center {
+  grid-column: 1 / -1;
+  justify-self: center;
+  width: calc((100% - 3 * 0.65rem) / 4);
+}
+
+@media (max-width: 960px) {
+  .nominal-cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .nominal-subsystem-card-center {
+    grid-column: 1 / -1;
+    width: calc((100% - 0.65rem) / 2);
+  }
+}
+
+@media (max-width: 540px) {
+  .nominal-cards-grid {
+    grid-template-columns: 1fr;
+  }
+  .nominal-subsystem-card-center {
+    grid-column: auto;
+    width: 100%;
+  }
+}
+
+/* ==========================================================================
    AEROTWIN PRINT STYLESHEET
    Standard A4 / Letter Print Configuration for Flight Audits
    ========================================================================== */
@@ -4584,8 +4654,8 @@ button.btn-destructive, .btn-destructive {
   .all-nominal-panel {
     border: 1px solid #d1d5db !important;
     background: #f9fafb !important;
-    padding: 12pt !important;
-    border-radius: 6pt !important;
+    padding: 10pt !important;
+    border-radius: 4pt !important;
     page-break-inside: avoid !important;
     box-shadow: none !important;
   }
@@ -4600,10 +4670,26 @@ button.btn-destructive, .btn-destructive {
     color: #374151 !important;
   }
 
-  .all-nominal-panel > div:nth-child(3) > div {
+  .nominal-cards-grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 6pt !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .nominal-subsystem-card {
     border: 1px solid #e5e7eb !important;
     background: #ffffff !important;
     border-radius: 4pt !important;
+    padding: 6pt 8pt !important;
+    min-height: auto !important;
+  }
+
+  .nominal-subsystem-card-center {
+    grid-column: 1 / -1 !important;
+    justify-self: center !important;
+    width: calc((100% - 3 * 6pt) / 4) !important;
   }
 
   /* 6. Alert Cards & Feed */

@@ -888,27 +888,14 @@ export default function AlertsView({
         {displayedList.length === 0 ? (
           activeTab === "ACTIVE" ? (
             /* ALL SYSTEMS NOMINAL FLIGHT CLEARANCE PANEL */
-            <div
-              className="all-nominal-panel"
-              style={{
-                background: "var(--surface-1)",
-                border: "1px solid var(--border)",
-                borderRadius: "8px",
-                padding: "2rem 1.5rem",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: "1.25rem",
-                textAlign: "center",
-              }}
-            >
+            <div className="all-nominal-panel">
               <div
                 style={{
-                  width: "56px",
-                  height: "56px",
+                  width: "40px",
+                  height: "40px",
                   borderRadius: "50%",
                   background: "var(--border)",
-                  border: "2px solid var(--border)",
+                  border: "1px solid var(--border)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -916,39 +903,22 @@ export default function AlertsView({
                   boxShadow: "none",
                 }}
               >
-                <ShieldCheck size={32} />
+                <ShieldCheck size={22} />
               </div>
 
               <div>
-                <h3 style={{ margin: 0, fontSize: "1.1rem", color: "var(--status-nominal)", letterSpacing: "0.04em" }}>
+                <h3 style={{ margin: 0, fontSize: "0.98rem", fontWeight: 700, color: "var(--status-nominal)", letterSpacing: "0.03em" }}>
                   ALL POWERTRAIN CHANNELS NOMINAL
                 </h3>
-                <p style={{ margin: "0.35rem 0 0", fontSize: "0.76rem", color: "var(--text-muted)", maxWidth: "560px", lineHeight: 1.5 }}>
+                <p style={{ margin: "0.25rem 0 0", fontSize: "0.74rem", color: "var(--text-muted)", maxWidth: "580px", lineHeight: 1.45 }}>
                   Continuous digital twin residual monitoring confirms all Rotax 914 F powertrain parameters are operating within certified flight operational envelopes. Zero active cautions or warnings.
                 </p>
               </div>
 
-              {/* Subsystem Health Grid */}
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-                  gap: "0.75rem",
-                  width: "100%",
-                  maxWidth: "960px",
-                  marginTop: "0.5rem",
-                }}
-              >
+              {/* Subsystem Health Grid: 4 cards row 1, Electrical centered row 2 */}
+              <div className="nominal-cards-grid">
                 {/* 1. Thermal */}
-                <div
-                  style={{
-                    background: "var(--surface-1)",
-                    border: "1px solid var(--border)",
-                    borderRadius: "6px",
-                    padding: "0.75rem",
-                    textAlign: "left",
-                  }}
-                >
+                <div className="nominal-subsystem-card">
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.35rem" }}>
                     <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--accent)", display: "flex", alignItems: "center", gap: "0.3rem" }}>
                       <Flame size={13} style={{ color: "var(--status-caution)" }} /> THERMAL
@@ -966,15 +936,7 @@ export default function AlertsView({
                 </div>
 
                 {/* 2. Lubrication */}
-                <div
-                  style={{
-                    background: "var(--surface-1)",
-                    border: "1px solid var(--border)",
-                    borderRadius: "6px",
-                    padding: "0.75rem",
-                    textAlign: "left",
-                  }}
-                >
+                <div className="nominal-subsystem-card">
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.35rem" }}>
                     <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--accent)", display: "flex", alignItems: "center", gap: "0.3rem" }}>
                       <Droplets size={13} style={{ color: "var(--accent)" }} /> LUBRICATION
@@ -992,15 +954,7 @@ export default function AlertsView({
                 </div>
 
                 {/* 3. Combustion */}
-                <div
-                  style={{
-                    background: "var(--surface-1)",
-                    border: "1px solid var(--border)",
-                    borderRadius: "6px",
-                    padding: "0.75rem",
-                    textAlign: "left",
-                  }}
-                >
+                <div className="nominal-subsystem-card">
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.35rem" }}>
                     <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--accent)", display: "flex", alignItems: "center", gap: "0.3rem" }}>
                       <Zap size={13} style={{ color: "var(--status-caution)" }} /> COMBUSTION
@@ -1018,15 +972,7 @@ export default function AlertsView({
                 </div>
 
                 {/* 4. Dynamics */}
-                <div
-                  style={{
-                    background: "var(--surface-1)",
-                    border: "1px solid var(--border)",
-                    borderRadius: "6px",
-                    padding: "0.75rem",
-                    textAlign: "left",
-                  }}
-                >
+                <div className="nominal-subsystem-card">
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.35rem" }}>
                     <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--accent)", display: "flex", alignItems: "center", gap: "0.3rem" }}>
                       <Activity size={13} style={{ color: "var(--surface-3)" }} /> ROTOR BALANCE
@@ -1043,16 +989,8 @@ export default function AlertsView({
                   </div>
                 </div>
 
-                {/* 5. Avionics */}
-                <div
-                  style={{
-                    background: "var(--surface-1)",
-                    border: "1px solid var(--border)",
-                    borderRadius: "6px",
-                    padding: "0.75rem",
-                    textAlign: "left",
-                  }}
-                >
+                {/* 5. Avionics / Electrical */}
+                <div className="nominal-subsystem-card nominal-subsystem-card-center">
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.35rem" }}>
                     <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--accent)", display: "flex", alignItems: "center", gap: "0.3rem" }}>
                       <Radio size={13} style={{ color: "var(--accent)" }} /> ELECTRICAL
