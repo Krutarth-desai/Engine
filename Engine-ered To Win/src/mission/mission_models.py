@@ -50,6 +50,7 @@ class MissionMetadata:
     sample_rate_hz: float = 1.0
     total_samples: int = 0
     uav_id: str = "AEROTWIN-MALE-01"
+    owner_id: str = "usr_guest_operator"
     notes: str = ""
     tags: List[str] = field(default_factory=list)
 
@@ -88,6 +89,7 @@ class MissionMetadata:
             sample_rate_hz=float(data.get("sample_rate_hz", 1.0)),
             total_samples=int(data.get("total_samples") or data.get("sample_count", 0)),
             uav_id=data.get("uav_id", "AEROTWIN-MALE-01"),
+            owner_id=data.get("owner_id", "usr_guest_operator"),
             notes=data.get("notes", ""),
             tags=data.get("tags", [])
         )

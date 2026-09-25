@@ -14,8 +14,9 @@ try:
     import tensorflow as tf
 except ImportError:
     tf = None
+from typing import Optional, List, Dict, Any
 from datetime import datetime
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 import io
@@ -37,8 +38,40 @@ from src.mission import (
     MissionReplay,
 )
 
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import Response
+
+from src.security.auth import get_current_user, UserContext
+from src.security.rbac import require_permission, Permission
+from src.security.logger import security_logger
+from src.security.audit import audit_store, IncidentStatus, SecurityEvent, EventSeverity
+from src.security.alerting import alert_manager
+from src.security.detector import threat_detector
+from src.security.schemas import (
+    ScenarioPayload,
+    FaultInjectPayload,
+    EnvironmentPayload,
+    MissionProfilePayload,
+    EndurancePayload,
+    MissionStartPayload,
+    ReplaySpeedPayload,
+    ReplaySeekPayload,
+    RegressionPlotQuery,
+    IncidentStatusPayload,
+)
+from src.security.sanitizer import sanitizer
+from fastapi.responses import StreamingResponse
+from starlette.responses import JSONResponse
+import uuid
+
 # Load environment variables from .env file
 load_dotenv()
+
+# Rate Limiter setup
+limiter = Limiter(key_func=get_remote_address)
 
 # Initialize Supabase Client
 supabase_url = os.getenv("SUPABASE_URL")
@@ -82,13 +115,65 @@ except Exception as e:
     print(f"Error loading models/datasets at startup: {e}")
 
 app = FastAPI(title="MALE UAV Digital Twin Telemetry Server")
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-# Allow CORS for dashboard
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """Sanitize server errors to prevent exposing stack traces to clients."""
+    security_logger.log_event("INTERNAL_SERVER_ERROR", None, request.url.path, "ERROR", details=str(exc))
+    return JSONResponse(
+        status_code=500,
+        content={"status": "error", "message": "An internal server error occurred."}
+    )
+
+class MaxRequestBodySizeMiddleware(BaseHTTPMiddleware):
+    """Rejects request bodies exceeding 1MB (1,048,576 bytes)."""
+    def __init__(self, app, max_bytes: int = 1048576):
+        super().__init__(app)
+        self.max_bytes = max_bytes
+
+    async def dispatch(self, request: Request, call_next):
+        content_length = request.headers.get("content-length")
+        if content_length and int(content_length) > self.max_bytes:
+            return JSONResponse(
+                status_code=413,
+                content={"status": "error", "message": "Request payload exceeds maximum allowed size limit (1MB)."}
+            )
+        return await call_next(request)
+
+app.add_middleware(MaxRequestBodySizeMiddleware)
+
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        response: Response = await call_next(request)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';"
+        return response
+
+app.add_middleware(SecurityHeadersMiddleware)
+
+class RequestCorrelationMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        request_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
+        request.state.request_id = request_id
+        response: Response = await call_next(request)
+        response.headers["X-Request-ID"] = request_id
+        return response
+
+app.add_middleware(RequestCorrelationMiddleware)
+
+# Restricted CORS origins
+raw_cors = os.getenv("FRONTEND_URL", "http://localhost:3000")
+allowed_origins = [o.strip() for o in raw_cors.split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -666,42 +751,29 @@ async def websocket_telemetry(websocket: WebSocket):
 
 @app.post("/api/scenario")
 @app.post("/api/inject_scenario")
-async def api_inject_scenario(payload: dict):
+@limiter.limit("30/minute")
+async def api_inject_scenario(
+    request: Request,
+    payload: ScenarioPayload,
+    user: UserContext = Depends(require_permission(Permission.EDIT))
+):
     """HTTP POST to inject or toggle fault scenarios with immediate broadcast."""
-    raw_sc = payload.get("scenario", "Normal")
-    action = payload.get("action", "toggle" if payload.get("toggle") else "inject")
-
-    if raw_sc == "Normal" or action == "clear":
+    raw_sc = payload.scenario
+    if raw_sc == "Normal":
         simulation_state["active_faults"].clear()
         simulation_state["scenario"] = "Normal"
         digital_twin_core.clear_all_faults()
         telemetry_processor.clear_active_faults()
     else:
         sc = digital_twin_core.fault_propagation_engine.normalize_id(raw_sc)
-        if action == "remove":
-            simulation_state["active_faults"].discard(sc)
-            digital_twin_core.remove_fault(sc)
-            telemetry_processor.remove_fault(sc)
-            simulation_state["scenario"] = list(simulation_state["active_faults"])[-1] if simulation_state["active_faults"] else "Normal"
-        elif action == "toggle":
-            if sc in simulation_state["active_faults"]:
-                simulation_state["active_faults"].discard(sc)
-                digital_twin_core.remove_fault(sc)
-                telemetry_processor.remove_fault(sc)
-            else:
-                simulation_state["active_faults"].add(sc)
-                digital_twin_core.inject_fault(sc)
-                telemetry_processor.inject_fault(sc)
-            simulation_state["scenario"] = list(simulation_state["active_faults"])[-1] if simulation_state["active_faults"] else "Normal"
-        else:  # inject
-            simulation_state["active_faults"].add(sc)
-            simulation_state["scenario"] = sc
-            digital_twin_core.inject_fault(sc)
-            telemetry_processor.inject_fault(sc)
+        simulation_state["active_faults"].add(sc)
+        simulation_state["scenario"] = sc
+        digital_twin_core.inject_fault(sc)
+        telemetry_processor.inject_fault(sc)
 
     if mission_recorder.is_recording():
         mission_recorder.log_scenario_injection(raw_sc)
-    print(f"*** HTTP POST Injected scenario/fault: {raw_sc} (Active: {list(simulation_state['active_faults'])}) ***")
+    security_logger.log_event("FAULT_INJECTED", user.user_id, raw_sc, "SUCCESS")
     await tick_and_broadcast()
     return {
         "status": "ok",
@@ -711,7 +783,7 @@ async def api_inject_scenario(payload: dict):
     }
 
 @app.get("/api/faults")
-async def api_get_faults():
+async def api_get_faults(user: UserContext = Depends(require_permission(Permission.VIEW))):
     """Retrieve active faults, engine condition state, wear, and catalog."""
     from src.digital_twin.fault_propagation import FAULT_CATALOG
     return {
@@ -734,34 +806,50 @@ async def api_get_faults():
     }
 
 @app.post("/api/faults/inject")
-async def api_fault_inject(payload: dict):
-    raw_fid = payload.get("fault_id") or payload.get("scenario")
-    sev = payload.get("severity", "MODERATE")
+@limiter.limit("30/minute")
+async def api_fault_inject(
+    request: Request,
+    payload: FaultInjectPayload,
+    user: UserContext = Depends(require_permission(Permission.EDIT))
+):
+    raw_fid = payload.fault_id or payload.scenario
     if raw_fid:
         fault_id = digital_twin_core.fault_propagation_engine.normalize_id(raw_fid)
         if fault_id and fault_id != "normal":
             simulation_state["active_faults"].add(fault_id)
             simulation_state["scenario"] = fault_id
-            digital_twin_core.inject_fault(fault_id, sev)
-            telemetry_processor.inject_fault(fault_id, sev)
+            digital_twin_core.inject_fault(fault_id)
+            telemetry_processor.inject_fault(fault_id)
+            security_logger.log_event("FAULT_INJECTED", user.user_id, fault_id, "SUCCESS")
             await tick_and_broadcast()
     return {"status": "ok", "active_faults": list(simulation_state["active_faults"])}
 
 @app.post("/api/faults/remove")
-async def api_fault_remove(payload: dict):
-    raw_fid = payload.get("fault_id") or payload.get("scenario")
+@limiter.limit("30/minute")
+async def api_fault_remove(
+    request: Request,
+    payload: FaultInjectPayload,
+    user: UserContext = Depends(require_permission(Permission.EDIT))
+):
+    raw_fid = payload.fault_id or payload.scenario
     if raw_fid:
         fault_id = digital_twin_core.fault_propagation_engine.normalize_id(raw_fid)
         simulation_state["active_faults"].discard(fault_id)
         digital_twin_core.remove_fault(fault_id)
         telemetry_processor.remove_fault(fault_id)
         simulation_state["scenario"] = list(simulation_state["active_faults"])[-1] if simulation_state["active_faults"] else "Normal"
+        security_logger.log_event("FAULT_REMOVED", user.user_id, fault_id, "SUCCESS")
         await tick_and_broadcast()
     return {"status": "ok", "active_faults": list(simulation_state["active_faults"])}
 
 @app.post("/api/faults/toggle")
-async def api_fault_toggle(payload: dict):
-    raw_fid = payload.get("fault_id") or payload.get("scenario")
+@limiter.limit("30/minute")
+async def api_fault_toggle(
+    request: Request,
+    payload: FaultInjectPayload,
+    user: UserContext = Depends(require_permission(Permission.EDIT))
+):
+    raw_fid = payload.fault_id or payload.scenario
     if raw_fid:
         fault_id = digital_twin_core.fault_propagation_engine.normalize_id(raw_fid)
         if fault_id in simulation_state["active_faults"]:
@@ -773,25 +861,36 @@ async def api_fault_toggle(payload: dict):
             digital_twin_core.inject_fault(fault_id)
             telemetry_processor.inject_fault(fault_id)
         simulation_state["scenario"] = list(simulation_state["active_faults"])[-1] if simulation_state["active_faults"] else "Normal"
+        security_logger.log_event("FAULT_TOGGLED", user.user_id, fault_id, "SUCCESS")
         await tick_and_broadcast()
     return {"status": "ok", "active_faults": list(simulation_state["active_faults"])}
 
 @app.post("/api/faults/clear")
-async def api_fault_clear():
+@limiter.limit("20/minute")
+async def api_fault_clear(
+    request: Request,
+    user: UserContext = Depends(require_permission(Permission.EDIT))
+):
     simulation_state["active_faults"].clear()
     simulation_state["scenario"] = "Normal"
     digital_twin_core.clear_all_faults()
     telemetry_processor.clear_active_faults()
+    security_logger.log_event("FAULTS_CLEARED", user.user_id, "ALL", "SUCCESS")
     await tick_and_broadcast()
     return {"status": "ok", "active_faults": []}
 
 @app.post("/api/faults/overhaul")
-async def api_fault_overhaul():
+@limiter.limit("10/minute")
+async def api_fault_overhaul(
+    request: Request,
+    user: UserContext = Depends(require_permission(Permission.DELETE))
+):
     """Full maintenance overhaul: clears faults, zeroes accumulated wear, restores nominal."""
     simulation_state["active_faults"].clear()
     simulation_state["scenario"] = "Normal"
     digital_twin_core.reset_all_faults_and_wear()
     telemetry_processor.reset_all()
+    security_logger.log_event("ENGINE_OVERHAUL", user.user_id, "ENGINE_001", "SUCCESS")
     await tick_and_broadcast()
     return {"status": "ok", "message": "Engine overhaul completed. Pristine baseline restored."}
 
@@ -830,22 +929,26 @@ async def api_set_mission(payload: dict):
     return {"status": "ok", "profile": prof_data, "environment": digital_twin_core.get_environment()}
 
 @app.post("/api/endurance")
-async def api_set_endurance(payload: dict):
+@limiter.limit("30/minute")
+async def api_set_endurance(
+    request: Request,
+    payload: EndurancePayload,
+    user: UserContext = Depends(require_permission(Permission.EDIT))
+):
     """Set accelerated endurance simulation speed multiplier."""
-    speed = float(payload.get("simulation_speed") or payload.get("speed") or 1.0)
+    speed = float(payload.simulation_speed or payload.speed or 1.0)
     simulation_state["simulation_speed"] = speed
     digital_twin_core.set_simulation_speed(speed)
     return {"status": "ok", "simulation_speed": speed, "environment": digital_twin_core.get_environment()}
 
 @app.post("/api/simulation/resume")
 @app.get("/api/simulation/resume")
-async def api_resume_simulation():
+async def api_resume_simulation(user: UserContext = Depends(require_permission(Permission.EDIT))):
     """Forces simulation state to LIVE mode and unpauses live telemetry broadcast."""
     simulation_state["is_running"] = True
     simulation_state["simulation_mode"] = "LIVE"
     if mission_replay.is_active:
         mission_replay.stop_replay()
-    print("[TelemetryServer] Simulation explicitly unpaused and resumed to LIVE mode.")
     await tick_and_broadcast()
     return {
         "status": "ok",
@@ -856,7 +959,7 @@ async def api_resume_simulation():
     }
 
 @app.get("/api/simulation/status")
-async def api_simulation_status():
+async def api_simulation_status(user: UserContext = Depends(require_permission(Permission.VIEW))):
     """Returns current live simulation execution status."""
     return {
         "status": "ok",
@@ -869,25 +972,27 @@ async def api_simulation_status():
     }
 
 # ==========================================
-# Phase 5: Mission Recording & Replay REST APIs
+# Mission Recording & Replay REST APIs (IDOR Protected)
 # ==========================================
 
 @app.post("/api/missions/start")
-async def api_start_mission(payload: dict = None):
+@limiter.limit("20/minute")
+async def api_start_mission(
+    request: Request,
+    payload: MissionStartPayload = MissionStartPayload(),
+    user: UserContext = Depends(require_permission(Permission.CREATE))
+):
     """Start recording a new mission."""
-    payload = payload or {}
-    mission_name = payload.get("mission_name", "Autonomous Patrol")
-    uav_id = payload.get("uav_id", "AEROTWIN-MALE-01")
-    notes = payload.get("notes", "")
-    tags = payload.get("tags", [])
     mission = mission_recorder.start_mission(
-        mission_name=mission_name,
-        uav_id=uav_id,
-        notes=notes,
-        tags=tags,
+        mission_name=payload.mission_name,
+        uav_id=payload.uav_id,
+        notes=payload.notes,
+        tags=payload.tags,
         initial_profile=simulation_state.get("mission_profile", "CRUISE"),
         initial_scenario=simulation_state.get("scenario", "Normal"),
     )
+    mission.metadata.owner_id = user.user_id
+    security_logger.log_event("MISSION_STARTED", user.user_id, mission.metadata.mission_id, "SUCCESS")
     return {
         "status": "ok",
         "mission_id": mission.metadata.mission_id,
@@ -895,12 +1000,18 @@ async def api_start_mission(payload: dict = None):
     }
 
 @app.post("/api/missions/stop")
-async def api_stop_mission():
+@limiter.limit("20/minute")
+async def api_stop_mission(
+    request: Request,
+    user: UserContext = Depends(require_permission(Permission.EDIT))
+):
     """Stop active mission recording and persist to store."""
     mission = mission_recorder.stop_mission()
     if not mission:
         return {"status": "error", "message": "No active mission recording to stop."}
+    mission.metadata.owner_id = user.user_id
     mission_store.save_mission(mission)
+    security_logger.log_event("MISSION_STOPPED", user.user_id, mission.metadata.mission_id, "SUCCESS")
     return {
         "status": "ok",
         "mission_id": mission.metadata.mission_id,
@@ -910,13 +1021,14 @@ async def api_stop_mission():
     }
 
 @app.get("/api/missions")
-async def api_list_missions():
-    """List all stored missions with metadata and summaries."""
+async def api_list_missions(user: UserContext = Depends(require_permission(Permission.VIEW))):
+    """List all stored missions accessible by current user."""
     missions = mission_store.list_missions()
+    accessible = [m for m in missions if mission_store.can_user_access(m["mission_id"], user.user_id, user.role)]
     return {
         "status": "ok",
-        "count": len(missions),
-        "missions": missions,
+        "count": len(accessible),
+        "missions": accessible,
         "active_recording": {
             "is_recording": mission_recorder.is_recording(),
             "mission_id": mission_recorder.current_mission.metadata.mission_id if mission_recorder.current_mission else None,
@@ -927,58 +1039,128 @@ async def api_list_missions():
     }
 
 @app.get("/api/missions/{mission_id}")
-async def api_get_mission(mission_id: str):
-    """Retrieve full mission document including samples, events, and summary."""
+async def api_get_mission(
+    mission_id: str,
+    user: UserContext = Depends(require_permission(Permission.VIEW))
+):
+    """Retrieve full mission document (IDOR protected)."""
+    if not mission_store.can_user_access(mission_id, user.user_id, user.role):
+        security_logger.log_event("IDOR_VIEW_DENIED", user.user_id, mission_id, "DENIED")
+        raise HTTPException(status_code=403, detail="Access denied: IDOR protection prevented accessing this mission resource.")
     mission = mission_store.load_mission(mission_id)
     if not mission:
         return {"status": "error", "message": f"Mission '{mission_id}' not found."}
     return {"status": "ok", "mission": mission.to_dict()}
 
 @app.delete("/api/missions/{mission_id}")
-async def api_delete_mission(mission_id: str):
-    """Delete a mission file from the mission store."""
+@limiter.limit("10/minute")
+async def api_delete_mission(
+    request: Request,
+    mission_id: str,
+    user: UserContext = Depends(require_permission(Permission.DELETE))
+):
+    """Delete a mission file from the store (IDOR protected)."""
+    if not mission_store.can_user_access(mission_id, user.user_id, user.role):
+        security_logger.log_event("IDOR_DELETE_DENIED", user.user_id, mission_id, "DENIED")
+        raise HTTPException(status_code=403, detail="Access denied: IDOR protection prevented deleting this mission resource.")
     if mission_replay.is_active and mission_replay.current_mission and mission_replay.current_mission.metadata.mission_id == mission_id:
         mission_replay.stop_replay()
         simulation_state["simulation_mode"] = "LIVE"
     deleted = mission_store.delete_mission(mission_id)
     if not deleted:
         return {"status": "error", "message": f"Mission '{mission_id}' could not be deleted or was not found."}
+    security_logger.log_event("MISSION_DELETED", user.user_id, mission_id, "SUCCESS")
     return {"status": "ok", "deleted_id": mission_id}
 
 @app.post("/api/missions/{mission_id}/replay")
-async def api_start_replay(mission_id: str, payload: dict = None):
-    """Load and begin replaying a historical mission."""
-    payload = payload or {}
-    speed = float(payload.get("speed", 1.0))
+@limiter.limit("20/minute")
+async def api_start_replay(
+    request: Request,
+    mission_id: str,
+    payload: ReplaySpeedPayload = ReplaySpeedPayload(),
+    user: UserContext = Depends(require_permission(Permission.VIEW))
+):
+    """Load and begin replaying a historical mission (IDOR protected)."""
+    if not mission_store.can_user_access(mission_id, user.user_id, user.role):
+        security_logger.log_event("IDOR_REPLAY_DENIED", user.user_id, mission_id, "DENIED")
+        raise HTTPException(status_code=403, detail="Access denied: IDOR protection prevented replaying this mission resource.")
     mission = mission_store.load_mission(mission_id)
     if not mission:
         return {"status": "error", "message": f"Mission '{mission_id}' not found."}
     mission_replay.load_mission(mission)
-    mission_replay.start_replay(speed=speed)
+    mission_replay.start_replay(speed=payload.speed)
     simulation_state["simulation_mode"] = "REPLAY"
     frame = mission_replay.get_current_sample()
     if frame and len(manager.active_connections) > 0:
         await manager.broadcast(json.dumps(frame))
+    security_logger.log_event("MISSION_REPLAY_STARTED", user.user_id, mission_id, "SUCCESS")
     return {
         "status": "ok",
         "mission_id": mission_id,
         "replay_state": mission_replay.get_state()
     }
 
+@app.get("/api/missions/{mission_id}/export")
+@limiter.limit("5/minute")
+async def api_export_mission_csv(
+    request: Request,
+    mission_id: str,
+    user: UserContext = Depends(require_permission(Permission.VIEW))
+):
+    """Secure CSV Data Export with CSV Formula Injection Protection and IDOR checks."""
+    if not mission_store.can_user_access(mission_id, user.user_id, user.role):
+        security_logger.log_event("IDOR_EXPORT_DENIED", user.user_id, mission_id, "DENIED")
+        req_id = getattr(request.state, "request_id", "N/A") if hasattr(request, "state") else "N/A"
+        threat_detector.record_access_denied(user_id=user.user_id, user_role=user.role, resource_id=mission_id, ip_address="127.0.0.1", request_id=req_id, details="IDOR export denied")
+        raise HTTPException(status_code=403, detail="Access denied: IDOR protection prevented exporting this mission resource.")
+    mission = mission_store.load_mission(mission_id)
+    if not mission:
+        return {"status": "error", "message": f"Mission '{mission_id}' not found."}
+
+    import csv
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    # Headers
+    writer.writerow(["Timestamp", "Tick", "Scenario", "RPM", "CHT_C", "EGT_C", "Oil_Pressure_Bar", "Oil_Temp_C", "Health_Index"])
+
+    for s in mission.samples:
+        writer.writerow([
+            sanitizer.sanitize_csv_cell(s.get("timestamp")),
+            sanitizer.sanitize_csv_cell(s.get("tick")),
+            sanitizer.sanitize_csv_cell(s.get("scenario")),
+            sanitizer.sanitize_csv_cell(s.get("rpm")),
+            sanitizer.sanitize_csv_cell(s.get("cht_c")),
+            sanitizer.sanitize_csv_cell(s.get("egt_c")),
+            sanitizer.sanitize_csv_cell(s.get("oil_pressure_bar")),
+            sanitizer.sanitize_csv_cell(s.get("oil_temperature_c")),
+            sanitizer.sanitize_csv_cell(s.get("health_index"))
+        ])
+
+    output.seek(0)
+    security_logger.log_event("DATA_EXPORT", user.user_id, mission_id, "SUCCESS")
+    req_id = getattr(request.state, "request_id", "N/A") if hasattr(request, "state") else "N/A"
+    threat_detector.record_data_export(user_id=user.user_id, user_role=user.role, resource_id=mission_id, ip_address="127.0.0.1", request_id=req_id)
+    return StreamingResponse(
+        io.BytesIO(output.getvalue().encode("utf-8")),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename=mission_export_{sanitizer.sanitize_path(mission_id)}.csv"}
+    )
+
 @app.post("/api/missions/replay/pause")
-async def api_pause_replay():
+async def api_pause_replay(user: UserContext = Depends(require_permission(Permission.VIEW))):
     """Pause mission replay."""
     mission_replay.pause_replay()
     return {"status": "ok", "replay_state": mission_replay.get_state()}
 
 @app.post("/api/missions/replay/resume")
-async def api_resume_replay():
+async def api_resume_replay(user: UserContext = Depends(require_permission(Permission.VIEW))):
     """Resume mission replay."""
     mission_replay.resume_replay()
     return {"status": "ok", "replay_state": mission_replay.get_state()}
 
 @app.post("/api/missions/replay/stop")
-async def api_stop_replay():
+async def api_stop_replay(user: UserContext = Depends(require_permission(Permission.VIEW))):
     """Stop mission replay and restore LIVE simulation mode."""
     mission_replay.stop_replay()
     simulation_state["simulation_mode"] = "LIVE"
@@ -986,25 +1168,100 @@ async def api_stop_replay():
     return {"status": "ok", "simulation_mode": "LIVE", "replay_state": mission_replay.get_state()}
 
 @app.post("/api/missions/replay/seek")
-async def api_seek_replay(payload: dict):
+async def api_seek_replay(
+    payload: ReplaySeekPayload,
+    user: UserContext = Depends(require_permission(Permission.VIEW))
+):
     """Seek mission replay by seconds, percent (0-100), or index."""
-    if "seconds" in payload:
-        mission_replay.seek_to_time(float(payload["seconds"]))
-    elif "percent" in payload:
-        mission_replay.seek_to_percentage(float(payload["percent"]))
-    elif "index" in payload:
-        mission_replay.seek_to_index(int(payload["index"]))
+    if payload.seconds is not None:
+        mission_replay.seek_to_time(float(payload.seconds))
+    elif payload.percent is not None:
+        mission_replay.seek_to_percentage(float(payload.percent))
+    elif payload.index is not None:
+        mission_replay.seek_to_index(int(payload.index))
     frame = mission_replay.get_current_sample()
     if frame and len(manager.active_connections) > 0:
         await manager.broadcast(json.dumps(frame))
     return {"status": "ok", "replay_state": mission_replay.get_state()}
 
 @app.post("/api/missions/replay/speed")
-async def api_set_replay_speed(payload: dict):
+async def api_set_replay_speed(
+    payload: ReplaySpeedPayload,
+    user: UserContext = Depends(require_permission(Permission.VIEW))
+):
     """Adjust replay playback speed multiplier."""
-    speed = float(payload.get("speed", 1.0))
-    mission_replay.set_speed(speed)
+    mission_replay.set_speed(payload.speed)
     return {"status": "ok", "speed": mission_replay.speed, "replay_state": mission_replay.get_state()}
+
+# ==============================================================================
+# Phase 3 Security Monitoring & Threat Detection Admin API Endpoints
+# ==============================================================================
+
+@app.get("/api/security/events")
+async def get_security_events(
+    page: int = 1,
+    limit: int = 50,
+    severity: Optional[str] = None,
+    event_type: Optional[str] = None,
+    user_id: Optional[str] = None,
+    result: Optional[str] = None,
+    status: Optional[str] = None,
+    user: UserContext = Depends(require_permission(Permission.MANAGE_USERS))
+):
+    """Retrieve paginated and filtered security audit events."""
+    offset = max(0, (page - 1) * limit)
+    res = audit_store.query_events(
+        severity=severity,
+        event_type=event_type,
+        user_id=user_id,
+        result=result,
+        status=status,
+        limit=limit,
+        offset=offset
+    )
+    res["page"] = page
+    return res
+
+@app.get("/api/security/overview")
+async def get_security_overview(
+    user: UserContext = Depends(require_permission(Permission.MANAGE_USERS))
+):
+    """Retrieve security monitoring overview and metric statistics."""
+    metrics = audit_store.get_overview_metrics()
+    active_alerts = alert_manager.get_active_alerts()
+    metrics["active_alerts_count"] = len(active_alerts)
+    return {"status": "ok", "metrics": metrics, "active_alerts": active_alerts}
+
+@app.get("/api/security/alerts")
+async def get_security_alerts(
+    user: UserContext = Depends(require_permission(Permission.MANAGE_USERS))
+):
+    """Retrieve all active security threat alerts."""
+    alerts = alert_manager.get_active_alerts()
+    return {"status": "ok", "count": len(alerts), "alerts": alerts}
+
+@app.post("/api/security/alerts/{alert_id}/dismiss")
+async def dismiss_security_alert(
+    alert_id: str,
+    user: UserContext = Depends(require_permission(Permission.MANAGE_USERS))
+):
+    """Dismiss an active security threat alert."""
+    success = alert_manager.dismiss_alert(alert_id)
+    if not success:
+        raise HTTPException(status_code=404, detail=f"Alert '{alert_id}' not found or already dismissed.")
+    return {"status": "ok", "message": f"Alert '{alert_id}' dismissed by {user.user_id}."}
+
+@app.post("/api/security/incidents/{event_id}/status")
+async def update_incident_status(
+    event_id: str,
+    payload: IncidentStatusPayload,
+    user: UserContext = Depends(require_permission(Permission.MANAGE_USERS))
+):
+    """Update incident investigation status for a logged security event."""
+    updated = audit_store.update_incident_status(event_id, payload.status, user.user_id)
+    if not updated:
+        raise HTTPException(status_code=404, detail=f"Security event '{event_id}' not found.")
+    return {"status": "ok", "event": updated.model_dump()}
 
 async def simulation_loop():
     """Background task that ticks the simulation or advances replay and broadcasts data."""

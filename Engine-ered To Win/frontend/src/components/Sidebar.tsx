@@ -11,7 +11,8 @@ export type NavView =
   | "rul"
   | "regression"
   | "maintenance"
-  | "alerts";
+  | "alerts"
+  | "security";
 
 interface NavItem {
   id: NavView;
@@ -82,6 +83,7 @@ export default function Sidebar({
           icon: "ALR",
           badge: activeAlertCount > 0 ? activeAlertCount : undefined,
         },
+        { id: "security" as NavView, label: "Security & Audit", icon: "SEC", tag: "ADM" },
       ],
     },
   ];

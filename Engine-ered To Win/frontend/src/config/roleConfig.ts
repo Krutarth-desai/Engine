@@ -66,7 +66,7 @@ export const ROLE_META: Record<Exclude<UserRole, "unset">, RoleMeta> = {
 
 export const ROLE_DASHBOARD_CONFIG: Record<Exclude<UserRole, "unset">, RoleDashboardConfig> = {
   gcs_operator: {
-    allowedViews: ["dashboard", "telemetry", "alerts"],
+    allowedViews: ["dashboard", "telemetry", "alerts", "security"],
     dashboardPanels: [
       "replay_controls",
       "digital_twin_centerpiece",

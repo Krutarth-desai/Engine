@@ -1,0 +1,15 @@
+[
+  {
+    "alert_id": "ALT-D57D58C3",
+    "timestamp": "2026-09-25T14:13:04.522209+00:00",
+    "title": "Dismiss Test",
+    "severity": "MEDIUM",
+    "category": "FAILED_LOGINS",
+    "description": "Testing API dismissal",
+    "source_ip": "127.0.0.1",
+    "user_id": "test_user",
+    "event_count": 1,
+    "is_active": false,
+    "metadata": {}
+  }
+]

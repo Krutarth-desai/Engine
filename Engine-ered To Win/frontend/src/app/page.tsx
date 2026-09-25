@@ -18,6 +18,7 @@ import RulPrognosticsView from "@/components/RulPrognosticsView";
 import RegressionTrendsView from "@/components/RegressionTrendsView";
 import MaintenanceView from "@/components/MaintenanceView";
 import AlertsView from "@/components/AlertsView";
+import SecurityDashboardView from "@/components/SecurityDashboardView";
 
 // ──────────────────────────────────────────────────────────────
 // Inner Workspace: Role-gated GCS dashboard
@@ -65,6 +66,7 @@ function GcsWorkspace({
         "regression",
         "maintenance",
         "alerts",
+        "security",
       ];
       if (validViews.includes(hash) && isViewAllowed(role, hash)) {
         setCurrentView(hash);
@@ -159,6 +161,10 @@ function GcsWorkspace({
               activeScenario={activeScenario}
               onInjectScenario={injectScenario}
             />
+          )}
+
+          {currentView === "security" && (
+            <SecurityDashboardView />
           )}
         </main>
       </div>

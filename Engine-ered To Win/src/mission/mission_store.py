@@ -144,6 +144,7 @@ class LocalMissionStore(MissionStore):
                     "fault_count": summary.get("total_faults", 0) if summary else 0,
                     "fault_types": summary.get("fault_types", []) if summary else [],
                     "highest_severity": summary.get("highest_severity", "INFO") if summary else "INFO",
+                    "owner_id": meta.get("owner_id", "usr_guest_operator"),
                     "file_size_bytes": os.path.getsize(file_path),
                     "metadata": meta,
                     "summary": summary
@@ -169,3 +170,21 @@ class LocalMissionStore(MissionStore):
     def mission_exists(self, mission_id: str) -> bool:
         file_path = self._get_file_path(mission_id)
         return os.path.exists(file_path)
+
+    def can_user_access(self, mission_id: str, user_id: str, user_role: str) -> bool:
+        """Check if user can view/read mission (IDOR protection)."""
+        if user_role.lower() in ("admin", "gcs_operator"):
+            return True
+        file_path = self._get_file_path(mission_id)
+        if not os.path.exists(file_path):
+            return True
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            owner = data.get("metadata", {}).get("owner_id")
+            if not owner or owner == "usr_guest_operator" or owner == user_id:
+                return True
+            return False
+        except Exception:
+            return True
+
