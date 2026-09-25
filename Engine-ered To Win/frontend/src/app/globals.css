@@ -4148,7 +4148,8 @@ input, select, textarea {
             .rul-deck-row {
                 grid-template-columns: 1fr;
             }
-            .regression-grid {
+            .regression-grid,
+            .physics-model-grid {
                 grid-template-columns: 1fr;
             }
             .maintenance-grid,

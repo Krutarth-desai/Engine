@@ -4,7 +4,6 @@ import React, { useEffect, useState } from "react";
 import { TelemetryData } from "@/types/telemetry";
 import { useTelemetry } from "@/context/TelemetryContext";
 import DiagnosisAdvisory from "./diagnostics/DiagnosisAdvisory";
-import SubsystemHealthList from "./diagnostics/SubsystemHealthList";
 import RegressionScatterChart from "./diagnostics/RegressionScatterChart";
 import { Activity } from "lucide-react";
 
@@ -75,9 +74,6 @@ export default function DiagnosisPanel({ telemetry }: DiagnosisPanelProps) {
         minPoints={5}
         backendImage={backendImage}
       />
-
-      {/* 3. Subsystem Degradation & Physics Deviations */}
-      <SubsystemHealthList telemetry={telemetry} />
     </div>
   );
 }

@@ -708,10 +708,10 @@ export default function FeatureContributionPanel({
           })}
         </div>
 
-        {/* Right: Physics Domain Root-Cause Guide & Scenario Diagnostics */}
+        {/* Right: Active Fault Attribution & Diagnostic Directive */}
         <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
           {/* Active Scenario Isolation Diagnostic Card */}
-          {currentScenario !== "Normal" && (
+          {currentScenario !== "Normal" ? (
             <div
               style={{
                 padding: "0.75rem",
@@ -734,9 +734,29 @@ export default function FeatureContributionPanel({
                   : "Continuous telemetry anomaly vectors are being isolated across the cooperative game theory feature matrix."}
               </p>
             </div>
+          ) : (
+            <div
+              style={{
+                background: "var(--surface-1)",
+                border: "1px solid var(--border)",
+                borderRadius: "6px",
+                padding: "0.75rem 0.85rem",
+                display: "flex",
+                flexDirection: "column",
+                gap: "0.45rem",
+              }}
+            >
+              <div style={{ fontSize: "0.74rem", fontWeight: 800, color: "var(--status-nominal)", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                <CheckCircle2 size={14} />
+                <span>BASELINE FLIGHT ENVELOPE</span>
+              </div>
+              <p style={{ fontSize: "0.66rem", color: "var(--text-muted)", lineHeight: 1.4 }}>
+                All 9 engine telemetry channels operate strictly within certified baseline envelopes. Negative SHAP attributions confirm system-wide stabilizing health margins with zero degradation precursors detected.
+              </p>
+            </div>
           )}
 
-          {/* Physics Domain Root-Cause Guide */}
+          {/* Operational Explainability Directive */}
           <div
             style={{
               background: "var(--surface-1)",
@@ -745,74 +765,16 @@ export default function FeatureContributionPanel({
               padding: "0.75rem 0.85rem",
               display: "flex",
               flexDirection: "column",
-              gap: "0.5rem",
+              gap: "0.45rem",
             }}
           >
             <div style={{ fontSize: "0.74rem", fontWeight: 800, color: "var(--text)", display: "flex", alignItems: "center", gap: "0.4rem" }}>
               <Activity size={14} style={{ color: "var(--accent)" }} />
-              <span>PHYSICS DOMAIN ATTRIBUTION GUIDE</span>
+              <span>COOPERATIVE GAME ATTRIBUTION</span>
             </div>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem", fontSize: "0.66rem" }}>
-              <div>
-                <span style={{ color: "var(--status-warning)", fontWeight: 700, fontFamily: "var(--font-mono), monospace" }}>
-                  ↑ EGT / CHT (Thermal):
-                </span>
-                <span style={{ color: "var(--text-muted)", marginLeft: "0.3rem" }}>
-                  Excessive combustion flame temps and cylinder head saturation induce valve guide micro-cracking and thermal fatigue.
-                </span>
-              </div>
-
-              <div>
-                <span style={{ color: "var(--accent)", fontWeight: 700, fontFamily: "var(--font-mono), monospace" }}>
-                  ↓ Oil Pressure (Lubrication):
-                </span>
-                <span style={{ color: "var(--text-muted)", marginLeft: "0.3rem" }}>
-                  Loss of hydrodynamic wedge thickness in crankshaft journal bearings; primary indicator of pump failure or line rupture.
-                </span>
-              </div>
-
-              <div>
-                <span style={{ color: "var(--status-caution)", fontWeight: 700, fontFamily: "var(--font-mono), monospace" }}>
-                  ↑ Vibration RMS (Mechanical):
-                </span>
-                <span style={{ color: "var(--text-muted)", marginLeft: "0.3rem" }}>
-                  Detects high-frequency mechanical shock, shaft unbalance, dynamic propeller governor hunting, and bearing spalling.
-                </span>
-              </div>
-
-              <div>
-                <span style={{ color: "var(--status-nominal)", fontWeight: 700, fontFamily: "var(--font-mono), monospace" }}>
-                  Stoichiometry (Fuel &amp; Timing):
-                </span>
-                <span style={{ color: "var(--text-muted)", marginLeft: "0.3rem" }}>
-                  Monitors injector mass flow and ECU ignition advance timing curves to ensure detonation-free peak efficiency.
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Mathematical XAI Axioms Card */}
-          <div
-            style={{
-              background: "var(--surface-1)",
-              border: "1px solid var(--border)",
-              borderRadius: "6px",
-              padding: "0.65rem 0.85rem",
-              fontSize: "0.64rem",
-              fontFamily: "var(--font-mono), monospace",
-              color: "var(--text-muted)",
-            }}
-          >
-            <div style={{ color: "var(--accent)", fontWeight: 800, marginBottom: "0.3rem" }}>
-              SHAPLEY AXIOM INTEGRITY
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.3rem" }}>
-              <div>• Efficiency: ∑φᵢ = f(x) - E[f(x)]</div>
-              <div>• Symmetry: Equal impact = equal φ</div>
-              <div>• Null Player: Inactive = 0 φ</div>
-              <div>• Additivity: Linear across layers</div>
-            </div>
+            <p style={{ fontSize: "0.66rem", color: "var(--text-muted)", lineHeight: 1.4 }}>
+              SHAP attributions quantify the marginal contribution of each powertrain channel to overall flight risk: ∑φᵢ = f(x) - E[f(x)]. Negative values reflect stabilizing operations, while positive excursions isolate primary degradation precursors before threshold alarms trigger.
+            </p>
           </div>
         </div>
       </div>

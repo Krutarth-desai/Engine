@@ -8,7 +8,6 @@ import {
   Cpu,
   Gauge,
   Compass,
-  TrendingUp,
   Wrench,
   BellRing,
   Settings,
@@ -16,6 +15,7 @@ import {
   PanelLeftOpen,
   Radio,
   FlaskConical,
+  Atom,
 } from "lucide-react";
 
 export type NavView =
@@ -24,6 +24,7 @@ export type NavView =
   | "diagnostics"
   | "rul"
   | "mission"
+  | "physics-model"
   | "regression"
   | "faults"
   | "maintenance"
@@ -141,9 +142,9 @@ export default function Sidebar({
           shortcut: "5",
         },
         {
-          id: "regression",
-          label: "Regression & Trends",
-          icon: <TrendingUp size={16} />,
+          id: "physics-model",
+          label: "Physics Model",
+          icon: <Atom size={16} />,
           shortcut: "6",
         },
       ],
@@ -198,7 +199,7 @@ export default function Sidebar({
         "3": "diagnostics",
         "4": "rul",
         "5": "mission",
-        "6": "regression",
+        "6": "physics-model",
         "7": "faults",
         "8": "maintenance",
         "9": "alerts",

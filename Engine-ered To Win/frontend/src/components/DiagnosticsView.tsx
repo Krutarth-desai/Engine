@@ -3,10 +3,12 @@
 import React from "react";
 import { UnifiedTelemetryPayload } from "../types/telemetry";
 import SensorDiagnosisPanel from "./SensorDiagnosisPanel";
-import DiagnosisPanel from "./DiagnosisPanel";
 import FeatureContributionPanel from "./FeatureContributionPanel";
+import RegressionMatrixPanel from "./diagnostics/RegressionMatrixPanel";
+import RecentTrendsCard from "./RecentTrendsCard";
+import DiagnosisAdvisory from "./diagnostics/DiagnosisAdvisory";
 import PageLayout from "./common/PageLayout";
-import { Cpu } from "lucide-react";
+import { Cpu, Activity } from "lucide-react";
 
 interface DiagnosticsViewProps {
   payload: UnifiedTelemetryPayload;
@@ -44,7 +46,7 @@ export default function DiagnosticsView({ payload }: DiagnosticsViewProps) {
   return (
     <PageLayout
       title="Subsystem Diagnostics & Sensor Fault Isolation"
-      subtitle="Cross-sensor regression modeling, physics health verification, and anomaly root-cause attribution"
+      subtitle="Cross-sensor regression modeling, 4-grid correlation analysis, and anomaly root-cause attribution"
       icon={<Cpu size={18} />}
       tags={
         <span
@@ -62,24 +64,63 @@ export default function DiagnosticsView({ payload }: DiagnosticsViewProps) {
       {/* 1. TOP HORIZONTAL FULL-WIDTH SECTION: SENSOR VS ENGINE DIAGNOSIS */}
       <SensorDiagnosisPanel telemetry={flatTelemetry} />
 
-      {/* 2. BOTTOM 2-COLUMN BALANCED SPLIT: Physics Health & SHAP Explainability */}
-      <div
-        className="diagnostics-two-col-grid"
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1.05fr 1fr",
-          gap: "0.85rem",
-          flex: 1,
-          minHeight: 0,
-          alignItems: "stretch",
-        }}
-      >
-        <DiagnosisPanel telemetry={flatTelemetry} />
+      {/* 2. EXPLAINABLE PHM FEATURE ATTRIBUTION MATRIX */}
+      <div style={{ marginTop: "1rem" }}>
         <FeatureContributionPanel
           features={payload.contributing_features || []}
           telemetry={flatTelemetry}
           activeScenario={payload.scenario}
         />
+      </div>
+
+      {/* 3. MULTI-CORRELATION REGRESSION MATRIX & 30-CYCLE TEMPORAL SEQUENCE MEMORY */}
+      <div
+        className="regression-grid"
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1.15fr 1fr",
+          gap: "1.25rem",
+          alignItems: "start",
+          marginTop: "1.25rem",
+        }}
+      >
+        {/* Left Column: 4-Grid Multi-Correlation Regression Matrix */}
+        <RegressionMatrixPanel />
+
+        {/* Right Column: 30-Cycle Temporal Trends Card & Propulsion Advisory */}
+        <div className="regression-trends-col" style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+          <RecentTrendsCard
+            points={payload.recent_trends?.points || []}
+            deltas={
+              payload.recent_trends?.deltas || {
+                egt_delta: 0,
+                oil_pressure_delta: 0,
+                vibration_delta: 0,
+                health_delta: 0,
+              }
+            }
+          />
+
+          <div
+            className="panel"
+            style={{
+              background: "var(--surface-1)",
+              border: "1px solid var(--border)",
+              borderRadius: "10px",
+              padding: "1rem 1.15rem",
+            }}
+          >
+            <div className="panel-header" style={{ marginBottom: "0.6rem", paddingBottom: "0.5rem", borderBottom: "1px solid var(--border)" }}>
+              <div className="panel-title flex items-center gap-2">
+                <Activity className="w-4 h-4" style={{ color: "var(--accent)" }} />
+                <span style={{ fontWeight: 800, fontSize: "0.85rem", letterSpacing: "0.5px" }}>
+                  PROPULSION HEALTH DIRECTIVE &amp; ADVISORY
+                </span>
+              </div>
+            </div>
+            <DiagnosisAdvisory telemetry={flatTelemetry} />
+          </div>
+        </div>
       </div>
     </PageLayout>
   );

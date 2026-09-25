@@ -13,7 +13,7 @@ import MainDashboardView from "@/components/MainDashboardView";
 import LiveTelemetryView from "@/components/LiveTelemetryView";
 import DiagnosticsView from "@/components/DiagnosticsView";
 import RulPrognosticsView from "@/components/RulPrognosticsView";
-import RegressionTrendsView from "@/components/RegressionTrendsView";
+import PhysicsModelView from "@/components/PhysicsModelView";
 import MaintenanceView from "@/components/MaintenanceView";
 import AlertsView from "@/components/AlertsView";
 import MissionView from "@/components/MissionView";
@@ -49,7 +49,9 @@ export default function AeroTwinApp({ initialView = "dashboard" }: AeroTwinAppPr
         prognostics: "rul",
         rul: "rul",
         mission: "mission",
-        regression: "regression",
+        "physics-model": "physics-model",
+        physics: "physics-model",
+        regression: "physics-model",
         faults: "faults",
         maintenance: "maintenance",
         alerts: "alerts",
@@ -62,7 +64,14 @@ export default function AeroTwinApp({ initialView = "dashboard" }: AeroTwinAppPr
 
       // Automatically redirect legacy hash URLs to proper App Router routes
       if (hash && validViews[hash]) {
-        const canonicalPath = hash === "dashboard" ? "/" : hash === "rul" ? "/prognostics" : `/${hash}`;
+        const canonicalPath =
+          hash === "dashboard"
+            ? "/"
+            : hash === "rul"
+            ? "/prognostics"
+            : hash === "regression" || hash === "physics"
+            ? "/physics-model"
+            : `/${hash}`;
         window.history.replaceState({}, "", canonicalPath);
       }
     };
@@ -247,8 +256,8 @@ export default function AeroTwinApp({ initialView = "dashboard" }: AeroTwinAppPr
                   <MissionView />
                 )}
 
-                {currentView === "regression" && (
-                  <RegressionTrendsView payload={payload} />
+                {(currentView === "physics-model" || currentView === "regression") && (
+                  <PhysicsModelView payload={payload} />
                 )}
 
                 {currentView === "faults" && (
