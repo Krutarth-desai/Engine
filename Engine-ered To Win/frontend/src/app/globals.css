@@ -3685,6 +3685,34 @@ input, select, textarea {
             border-radius: 4px;
         }
 
+        .regression-4grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.6rem;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .regression-compact-card {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.5rem 0.6rem;
+            box-sizing: border-box;
+            transition: all 0.2s ease;
+        }
+
+        .regression-compact-card:hover {
+            border-color: var(--border-strong) !important;
+            background: var(--surface-1) !important;
+        }
+
+        @media (max-width: 900px) {
+            .regression-4grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
         .plot-placeholder {
             display: flex;
             flex-direction: column;
