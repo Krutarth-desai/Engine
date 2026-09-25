@@ -48,7 +48,7 @@ export default function MissionView() {
               borderRadius: "6px",
               background: "var(--accent)",
               border: "1px solid var(--accent)",
-              color: "#05070B",
+              color: "var(--accent-contrast)",
               fontSize: "11.5px",
               fontWeight: 700,
               fontFamily: "var(--font-mono), monospace",

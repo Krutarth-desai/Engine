@@ -144,26 +144,26 @@ export default function SubsystemHealthList({ telemetry }: SubsystemHealthListPr
   return (
     <div className="subsystem-health-panel mt-4">
       <div className="diag-section-header flex justify-between items-center mb-2">
-        <span className="font-bold text-xs tracking-wider uppercase text-slate-300">
+        <span className="font-bold text-xs tracking-wider uppercase" style={{ color: "var(--text)" }}>
           Subsystem Physics Health &amp; Integrity
         </span>
-        <span className="font-mono text-xs text-cyan-400">TOLERANCE: ±5%</span>
+        <span className="font-mono text-xs" style={{ color: "var(--accent)" }}>TOLERANCE: ±5%</span>
       </div>
 
       <div className="diag-subsystems-list flex flex-col gap-2">
         {subsystems.map((sub) => {
           const color = getColor(sub.status);
           return (
-            <div key={sub.id} className="diag-subsystem-item bg-slate-900/60 p-2.5 rounded border border-white/5">
+            <div key={sub.id} className="diag-subsystem-item p-2.5 rounded" style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
               <div className="diag-subsystem-header flex justify-between items-center mb-1 text-xs">
-                <span className="diag-subsystem-name font-medium text-slate-300">
+                <span className="diag-subsystem-name font-medium" style={{ color: "var(--text)" }}>
                   {sub.name}
                 </span>
                 <span className="diag-subsystem-val font-mono font-bold" style={{ color }}>
                   {sub.label}
                 </span>
               </div>
-              <div className="diag-progress-bar h-1.5 bg-slate-800 rounded overflow-hidden">
+              <div className="diag-progress-bar h-1.5 rounded overflow-hidden" style={{ background: "var(--surface-3)" }}>
                 <div
                   className="diag-progress-fill h-full transition-all duration-500 rounded"
                   style={{

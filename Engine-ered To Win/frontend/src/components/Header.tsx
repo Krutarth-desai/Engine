@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useTelemetry } from "@/context/TelemetryContext";
+import { useTheme } from "@/context/ThemeContext";
 import { fmtTimestamp, fmtRelativeTime, fmtRulCountdown } from "@/lib/format";
 import UserMenuDropdown from "./header/UserMenuDropdown";
 import { SCENARIO_REGISTRY } from "@/lib/scenarios";
@@ -12,6 +13,8 @@ import {
   RotateCcw,
   AlertTriangle,
   FlaskConical,
+  Sun,
+  Moon,
 } from "lucide-react";
 
 interface HeaderProps {
@@ -48,6 +51,7 @@ export default function Header({
   } = useTelemetry();
 
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
 
   const isZulu = timeDisplay === "zulu";
   const clockFormatted = fmtTimestamp(new Date(currentTime), isZulu);
@@ -355,6 +359,43 @@ export default function Header({
           )}
           <span style={{ fontWeight: 700 }}>{getLinkLabel()}</span>
         </div>
+
+        {/* Tactical / Light Theme Toggle */}
+        <button
+          id="theme-toggle-btn"
+          className="window-pill"
+          onClick={toggleTheme}
+          title={theme === "light" ? "Switch to Tactical Dark Theme" : "Switch to Aero Light Blue Theme"}
+          style={{
+            height: "30px",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "0.4rem",
+            background: "var(--surface-2)",
+            border: "1px solid var(--border)",
+            borderRadius: "6px",
+            padding: "0 0.6rem",
+            boxSizing: "border-box",
+            cursor: "pointer",
+            color: "var(--text)",
+            fontFamily: "var(--font-mono), monospace",
+            fontSize: "11px",
+            fontWeight: 700,
+            transition: "all 0.15s ease",
+          }}
+        >
+          {theme === "light" ? (
+            <>
+              <Moon size={12} style={{ color: "var(--accent)" }} />
+              <span>DARK</span>
+            </>
+          ) : (
+            <>
+              <Sun size={12} style={{ color: "var(--status-caution)" }} />
+              <span>LIGHT</span>
+            </>
+          )}
+        </button>
 
         {/* Modular Operator Profile Dropdown */}
         <UserMenuDropdown

@@ -2,11 +2,13 @@
 
 import React, { useState } from "react";
 import { useTelemetry } from "@/context/TelemetryContext";
+import { useTheme } from "@/context/ThemeContext";
 import PageLayout from "./common/PageLayout";
-import { Settings, Sliders, Monitor, Bell, HardDrive } from "lucide-react";
+import { Settings, Sliders, Monitor, Bell, HardDrive, Sun, Moon } from "lucide-react";
 
 export default function SettingsView() {
   const { unitPreference, setUnitPreference } = useTelemetry();
+  const { theme, setTheme } = useTheme();
   const [timeFormat, setTimeFormat] = useState<"zulu" | "local">("zulu");
   const [streamRate, setStreamRate] = useState<string>("10");
   const [audioAlerts, setAudioAlerts] = useState<boolean>(true);
@@ -112,6 +114,44 @@ export default function SettingsView() {
                       style={{ padding: "0.4rem 1rem", borderRadius: "6px", fontSize: "13px", cursor: "pointer" }}
                     >
                       Local Station Time (IST)
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-caption" style={{ display: "block", color: "var(--text-muted)", marginBottom: "0.4rem", fontWeight: 600 }}>
+                    WORKSTATION INTERFACE THEME
+                  </label>
+                  <div style={{ display: "flex", gap: "0.5rem" }}>
+                    <button
+                      className={theme === "dark" ? "btn-primary" : "btn-secondary"}
+                      onClick={() => setTheme("dark")}
+                      style={{
+                        padding: "0.4rem 1rem",
+                        borderRadius: "6px",
+                        fontSize: "13px",
+                        cursor: "pointer",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "0.4rem",
+                      }}
+                    >
+                      <Moon size={14} /> Tactical Dark
+                    </button>
+                    <button
+                      className={theme === "light" ? "btn-primary" : "btn-secondary"}
+                      onClick={() => setTheme("light")}
+                      style={{
+                        padding: "0.4rem 1rem",
+                        borderRadius: "6px",
+                        fontSize: "13px",
+                        cursor: "pointer",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "0.4rem",
+                      }}
+                    >
+                      <Sun size={14} /> Aero Light Blue
                     </button>
                   </div>
                 </div>

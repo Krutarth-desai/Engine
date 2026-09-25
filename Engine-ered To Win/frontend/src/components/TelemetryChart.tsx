@@ -5,6 +5,7 @@ import { Chart, registerables } from "chart.js";
 import annotationPlugin from "chartjs-plugin-annotation";
 import { TelemetryData } from "@/types/telemetry";
 import { useTelemetry } from "@/context/TelemetryContext";
+import { useTheme } from "@/context/ThemeContext";
 import { fmtTimestamp } from "@/lib/format";
 
 Chart.register(...registerables, annotationPlugin);
@@ -13,26 +14,27 @@ interface TelemetryChartProps {
   telemetry?: TelemetryData | null;
 }
 
-// Fixed high-contrast canvas-safe color constants
-const COLORS = {
-  egtLine: "#F87171", // vibrant coral/orange-red
-  egtFill: "rgba(248, 113, 113, 0.15)",
-  egtTrigger: "#EF4444",
-  chtLine: "#38BDF8", // electric cyan
-  chtFill: "rgba(56, 189, 248, 0.15)",
-  chtTrigger: "#F59E0B",
-  oilTempLine: "#FBBF24", // vibrant amber
-  gridColor: "rgba(255, 255, 255, 0.08)",
-  tickColor: "#94A3B8",
-  textColor: "#E2E8F0",
-  tooltipBg: "#1E2026",
-  borderGlow: "#3F4350",
-  triggerBg: "rgba(30, 32, 38, 0.85)",
-};
-
 export default function TelemetryChart({ telemetry: propTelemetry }: TelemetryChartProps) {
   const { historyBuffer, payload, linkState, lastUpdateAt, timeDisplay } = useTelemetry();
+  const { theme } = useTheme();
+  const isLight = theme === "light";
   const [windowSeconds, setWindowSeconds] = useState<30 | 60 | 120>(30);
+
+  const chartColors = React.useMemo(() => ({
+    egtLine: isLight ? "#DC2626" : "#F87171",
+    egtFill: isLight ? "rgba(220, 38, 38, 0.12)" : "rgba(248, 113, 113, 0.15)",
+    egtTrigger: isLight ? "#B91C1C" : "#EF4444",
+    chtLine: isLight ? "#0284C7" : "#38BDF8",
+    chtFill: isLight ? "rgba(2, 132, 199, 0.12)" : "rgba(56, 189, 248, 0.15)",
+    chtTrigger: isLight ? "#B45309" : "#F59E0B",
+    oilTempLine: isLight ? "#D97706" : "#FBBF24",
+    gridColor: isLight ? "rgba(11, 25, 44, 0.08)" : "rgba(255, 255, 255, 0.08)",
+    tickColor: isLight ? "#3B536E" : "#94A3B8",
+    textColor: isLight ? "#0B192C" : "#E2E8F0",
+    tooltipBg: isLight ? "#FFFFFF" : "#1E2026",
+    borderGlow: isLight ? "#C8DCF0" : "#3F4350",
+    triggerBg: isLight ? "rgba(255, 255, 255, 0.95)" : "rgba(30, 32, 38, 0.85)",
+  }), [isLight]);
 
   const canvasEgtRef = useRef<HTMLCanvasElement | null>(null);
   const canvasChtRef = useRef<HTMLCanvasElement | null>(null);
@@ -54,8 +56,8 @@ export default function TelemetryChart({ telemetry: propTelemetry }: TelemetryCh
           {
             label: "EGT — Exhaust Gas Temp (°C)",
             data: [],
-            borderColor: COLORS.egtLine,
-            backgroundColor: COLORS.egtFill,
+            borderColor: chartColors.egtLine,
+            backgroundColor: chartColors.egtFill,
             borderWidth: 2.2,
             tension: 0.3,
             pointRadius: 0,
@@ -72,7 +74,7 @@ export default function TelemetryChart({ telemetry: propTelemetry }: TelemetryCh
           legend: {
             display: true,
             labels: {
-              color: COLORS.textColor,
+              color: chartColors.textColor,
               font: { family: "'JetBrains Mono', monospace", size: 10 },
               boxWidth: 12,
             },
@@ -83,15 +85,15 @@ export default function TelemetryChart({ telemetry: propTelemetry }: TelemetryCh
                 type: "line",
                 yMin: 680,
                 yMax: 680,
-                borderColor: COLORS.egtTrigger,
+                borderColor: chartColors.egtTrigger,
                 borderWidth: 1.5,
                 borderDash: [5, 4],
                 label: {
                   display: true,
                   content: "TRIGGER 680 °C",
                   position: "end",
-                  color: COLORS.egtTrigger,
-                  backgroundColor: COLORS.triggerBg,
+                  color: chartColors.egtTrigger,
+                  backgroundColor: chartColors.triggerBg,
                   font: { family: "'JetBrains Mono', monospace", size: 9, weight: "bold" },
                   padding: { top: 2, bottom: 2, left: 4, right: 4 },
                 },
@@ -101,20 +103,20 @@ export default function TelemetryChart({ telemetry: propTelemetry }: TelemetryCh
           tooltip: {
             mode: "index",
             intersect: false,
-            backgroundColor: COLORS.tooltipBg,
-            borderColor: COLORS.borderGlow,
+            backgroundColor: chartColors.tooltipBg,
+            borderColor: chartColors.borderGlow,
             borderWidth: 1,
-            titleColor: COLORS.textColor,
-            bodyColor: COLORS.tickColor,
+            titleColor: chartColors.textColor,
+            bodyColor: chartColors.tickColor,
             titleFont: { family: "'JetBrains Mono', monospace", size: 11 },
             bodyFont: { family: "'JetBrains Mono', monospace", size: 10 },
           },
         },
         scales: {
           x: {
-            grid: { color: COLORS.gridColor },
+            grid: { color: chartColors.gridColor },
             ticks: {
-              color: COLORS.tickColor,
+              color: chartColors.tickColor,
               font: { family: "'JetBrains Mono', monospace", size: 9 },
               maxRotation: 0,
               autoSkip: true,
@@ -124,9 +126,9 @@ export default function TelemetryChart({ telemetry: propTelemetry }: TelemetryCh
           y: {
             min: 520,
             max: 750,
-            grid: { color: COLORS.gridColor },
+            grid: { color: chartColors.gridColor },
             ticks: {
-              color: COLORS.tickColor,
+              color: chartColors.tickColor,
               font: { family: "'JetBrains Mono', monospace", size: 9 },
               stepSize: 50,
             },
@@ -140,7 +142,7 @@ export default function TelemetryChart({ telemetry: propTelemetry }: TelemetryCh
       chart.destroy();
       chartEgtInstance.current = null;
     };
-  }, []);
+  }, [chartColors]);
 
   // 2. Initialize CHT & Oil Temp Stacked Chart
   useEffect(() => {
@@ -156,8 +158,8 @@ export default function TelemetryChart({ telemetry: propTelemetry }: TelemetryCh
           {
             label: "CHT — Cylinder Head (°C)",
             data: [],
-            borderColor: COLORS.chtLine,
-            backgroundColor: COLORS.chtFill,
+            borderColor: chartColors.chtLine,
+            backgroundColor: chartColors.chtFill,
             borderWidth: 2.2,
             tension: 0.3,
             pointRadius: 0,
@@ -167,7 +169,7 @@ export default function TelemetryChart({ telemetry: propTelemetry }: TelemetryCh
           {
             label: "Oil Temp (°C)",
             data: [],
-            borderColor: COLORS.oilTempLine,
+            borderColor: chartColors.oilTempLine,
             backgroundColor: "transparent",
             borderWidth: 1.8,
             tension: 0.3,
@@ -185,7 +187,7 @@ export default function TelemetryChart({ telemetry: propTelemetry }: TelemetryCh
           legend: {
             display: true,
             labels: {
-              color: COLORS.textColor,
+              color: chartColors.textColor,
               font: { family: "'JetBrains Mono', monospace", size: 10 },
               boxWidth: 12,
             },
@@ -196,15 +198,15 @@ export default function TelemetryChart({ telemetry: propTelemetry }: TelemetryCh
                 type: "line",
                 yMin: 165,
                 yMax: 165,
-                borderColor: COLORS.chtTrigger,
+                borderColor: chartColors.chtTrigger,
                 borderWidth: 1.5,
                 borderDash: [5, 4],
                 label: {
                   display: true,
                   content: "TRIGGER CHT 165 °C",
                   position: "end",
-                  color: COLORS.chtTrigger,
-                  backgroundColor: COLORS.triggerBg,
+                  color: chartColors.chtTrigger,
+                  backgroundColor: chartColors.triggerBg,
                   font: { family: "'JetBrains Mono', monospace", size: 9, weight: "bold" },
                   padding: { top: 2, bottom: 2, left: 4, right: 4 },
                 },
@@ -214,20 +216,20 @@ export default function TelemetryChart({ telemetry: propTelemetry }: TelemetryCh
           tooltip: {
             mode: "index",
             intersect: false,
-            backgroundColor: COLORS.tooltipBg,
-            borderColor: COLORS.borderGlow,
+            backgroundColor: chartColors.tooltipBg,
+            borderColor: chartColors.borderGlow,
             borderWidth: 1,
-            titleColor: COLORS.textColor,
-            bodyColor: COLORS.tickColor,
+            titleColor: chartColors.textColor,
+            bodyColor: chartColors.tickColor,
             titleFont: { family: "'JetBrains Mono', monospace", size: 11 },
             bodyFont: { family: "'JetBrains Mono', monospace", size: 10 },
           },
         },
         scales: {
           x: {
-            grid: { color: COLORS.gridColor },
+            grid: { color: chartColors.gridColor },
             ticks: {
-              color: COLORS.tickColor,
+              color: chartColors.tickColor,
               font: { family: "'JetBrains Mono', monospace", size: 9 },
               maxRotation: 0,
               autoSkip: true,
@@ -237,9 +239,9 @@ export default function TelemetryChart({ telemetry: propTelemetry }: TelemetryCh
           y: {
             min: 60,
             max: 190,
-            grid: { color: COLORS.gridColor },
+            grid: { color: chartColors.gridColor },
             ticks: {
-              color: COLORS.tickColor,
+              color: chartColors.tickColor,
               font: { family: "'JetBrains Mono', monospace", size: 9 },
               stepSize: 30,
             },
@@ -253,7 +255,7 @@ export default function TelemetryChart({ telemetry: propTelemetry }: TelemetryCh
       chart.destroy();
       chartChtInstance.current = null;
     };
-  }, []);
+  }, [chartColors]);
 
   // 3. Continuously generate/feed populated waveform data with realistic live fluctuations
   useEffect(() => {
@@ -368,10 +370,10 @@ export default function TelemetryChart({ telemetry: propTelemetry }: TelemetryCh
       {/* Stacked Chart Top: EGT Combustion */}
       <div style={{ display: "flex", flexDirection: "column", gap: "0.2rem", flex: 1, minHeight: 0 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 0.25rem", flexShrink: 0 }}>
-          <span style={{ fontSize: "0.68rem", fontWeight: 700, color: COLORS.egtLine, fontFamily: "var(--font-mono), monospace" }}>
+          <span style={{ fontSize: "0.68rem", fontWeight: 700, color: chartColors.egtLine, fontFamily: "var(--font-mono), monospace" }}>
             EXHAUST GAS TEMPERATURE (EGT) — °C
           </span>
-          <span style={{ fontSize: "0.62rem", color: COLORS.egtTrigger, fontWeight: 700, fontFamily: "var(--font-mono), monospace" }}>
+          <span style={{ fontSize: "0.62rem", color: chartColors.egtTrigger, fontWeight: 700, fontFamily: "var(--font-mono), monospace" }}>
             TRIGGER: 680 °C
           </span>
         </div>
@@ -386,10 +388,10 @@ export default function TelemetryChart({ telemetry: propTelemetry }: TelemetryCh
       {/* Stacked Chart Bottom: CHT & Oil Temp */}
       <div style={{ display: "flex", flexDirection: "column", gap: "0.2rem", flex: 1, minHeight: 0 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 0.25rem", flexShrink: 0 }}>
-          <span style={{ fontSize: "0.68rem", fontWeight: 700, color: COLORS.chtLine, fontFamily: "var(--font-mono), monospace" }}>
+          <span style={{ fontSize: "0.68rem", fontWeight: 700, color: chartColors.chtLine, fontFamily: "var(--font-mono), monospace" }}>
             CYLINDER HEAD TEMP (CHT) &amp; OIL TEMP — °C
           </span>
-          <span style={{ fontSize: "0.62rem", color: COLORS.chtTrigger, fontWeight: 700, fontFamily: "var(--font-mono), monospace" }}>
+          <span style={{ fontSize: "0.62rem", color: chartColors.chtTrigger, fontWeight: 700, fontFamily: "var(--font-mono), monospace" }}>
             TRIGGER: CHT 165 °C
           </span>
         </div>

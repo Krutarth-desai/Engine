@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
+import { ThemeProvider } from "@/context/ThemeContext";
 import { TelemetryProvider } from "@/context/TelemetryContext";
 import "./globals.css";
 
@@ -34,11 +35,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${ibmPlexSans.variable} ${ibmPlexMono.variable}`}>
+    <html lang="en" suppressHydrationWarning className={`${ibmPlexSans.variable} ${ibmPlexMono.variable}`}>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem("aerotwin_theme");if(t==="light"||t==="dark"){document.documentElement.setAttribute("data-theme",t);document.documentElement.style.colorScheme=t;}}catch(e){}})();`,
+          }}
+        />
+      </head>
       <body>
-        <TelemetryProvider>
-          {children}
-        </TelemetryProvider>
+        <ThemeProvider>
+          <TelemetryProvider>
+            {children}
+          </TelemetryProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

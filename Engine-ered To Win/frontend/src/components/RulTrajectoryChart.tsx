@@ -6,6 +6,7 @@ import annotationPlugin from "chartjs-plugin-annotation";
 import { TrajectoryPoint } from "../types/telemetry";
 import { RUL_ZONES } from "@/lib/limits";
 import { getThemeColors } from "@/lib/chartTheme";
+import { useTheme } from "@/context/ThemeContext";
 
 Chart.register(...registerables, annotationPlugin);
 
@@ -24,8 +25,10 @@ export default function RulTrajectoryChart({
   currentPredictedRul,
   modelMae = 10.08,
 }: RulTrajectoryChartProps) {
+  const { theme } = useTheme();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const chartInstanceRef = useRef<Chart | null>(null);
+  const currentThemeRef = useRef<string>(theme);
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -42,8 +45,7 @@ export default function RulTrajectoryChart({
     const upperMae = predictedData.map((v) => (v !== null ? v + modelMae : null));
     const lowerMae = predictedData.map((v) => (v !== null ? Math.max(0, v - modelMae) : null));
 
-
-    if (chartInstanceRef.current) {
+    if (chartInstanceRef.current && currentThemeRef.current === theme) {
       chartInstanceRef.current.data.labels = labels;
       chartInstanceRef.current.data.datasets[0].data = actualData;
       chartInstanceRef.current.data.datasets[1].data = predictedData;
@@ -53,10 +55,16 @@ export default function RulTrajectoryChart({
       return;
     }
 
+    currentThemeRef.current = theme;
+    if (chartInstanceRef.current) {
+      chartInstanceRef.current.destroy();
+      chartInstanceRef.current = null;
+    }
+
     const ctx = canvasRef.current.getContext("2d");
     if (!ctx) return;
 
-    const theme = getThemeColors();
+    const themeColors = getThemeColors();
 
     chartInstanceRef.current = new Chart(ctx, {
       type: "line",
@@ -118,7 +126,7 @@ export default function RulTrajectoryChart({
             display: true,
             position: "top",
             labels: {
-              color: theme.textSecondary,
+              color: themeColors.textSecondary,
               font: { family: "'JetBrains Mono', monospace", size: 10 },
               boxWidth: 14,
               filter: (item) => item.text !== "Lower MAE Bound",
@@ -171,17 +179,17 @@ export default function RulTrajectoryChart({
                   content: "FAILURE THRESHOLD (15 CYCLES)",
                   position: "start",
                   color: "var(--status-warning)",
-                  backgroundColor: theme.tooltipBg,
+                  backgroundColor: themeColors.tooltipBg,
                   font: { family: "'JetBrains Mono', monospace", size: 8 },
                 },
               },
             },
           },
           tooltip: {
-            backgroundColor: theme.tooltipBg,
+            backgroundColor: themeColors.tooltipBg,
             titleColor: "var(--accent)",
             bodyColor: "var(--text)",
-            borderColor: theme.borderGlow,
+            borderColor: themeColors.borderGlow,
             borderWidth: 1,
             padding: 8,
             titleFont: { family: "'JetBrains Mono', monospace", weight: "bold" },
@@ -190,32 +198,32 @@ export default function RulTrajectoryChart({
         },
         scales: {
           x: {
-            grid: { color: theme.gridColor },
+            grid: { color: themeColors.gridColor },
             ticks: {
-              color: theme.textMuted,
+              color: themeColors.textMuted,
               font: { family: "'JetBrains Mono', monospace", size: 9 },
               maxTicksLimit: 12,
             },
             title: {
               display: true,
               text: "OPERATING FLIGHT CYCLES (30-CYCLE LSTM SLIDING WINDOW)",
-              color: theme.textMuted,
+              color: themeColors.textMuted,
               font: { size: 9, family: "'JetBrains Mono', monospace" },
             },
           },
           y: {
             min: 0,
             max: 250,
-            grid: { color: theme.gridColor },
+            grid: { color: themeColors.gridColor },
             ticks: {
-              color: theme.textMuted,
+              color: themeColors.textMuted,
               font: { family: "'JetBrains Mono', monospace", size: 9 },
               stepSize: 50,
             },
             title: {
               display: true,
               text: "REMAINING USEFUL LIFE (CYCLES)",
-              color: theme.textMuted,
+              color: themeColors.textMuted,
               font: { size: 9, family: "'JetBrains Mono', monospace" },
             },
           },
@@ -229,7 +237,7 @@ export default function RulTrajectoryChart({
         chartInstanceRef.current = null;
       }
     };
-  }, [trajectory, currentActualRul, currentPredictedRul, modelMae, currentCycle]);
+  }, [trajectory, currentActualRul, currentPredictedRul, modelMae, currentCycle, theme]);
 
   return (
     <div className="panel rul-trajectory-panel" style={{ height: "100%", display: "flex", flexDirection: "column" }}>

@@ -117,10 +117,10 @@ export default function DiagnosisAdvisory({ telemetry }: DiagnosisAdvisoryProps)
 
   return (
     <div className={`advisory-box ${severity.toLowerCase()}`}>
-      <div className="flex items-center justify-between gap-2 mb-2 pb-2 border-b border-white/10">
+      <div className="flex items-center justify-between gap-2 mb-2 pb-2" style={{ borderBottom: "1px solid var(--border)" }}>
         <div className="flex items-center gap-2">
           {getSeverityIcon()}
-          <span className="advisory-title font-bold text-sm tracking-wide text-white">
+          <span className="advisory-title font-bold text-sm tracking-wide" style={{ color: "var(--text)" }}>
             {title}
           </span>
         </div>
@@ -136,26 +136,26 @@ export default function DiagnosisAdvisory({ telemetry }: DiagnosisAdvisoryProps)
         </span>
       </div>
 
-      <p className="advisory-desc text-slate-300 text-xs leading-relaxed mb-3">
+      <p className="advisory-desc text-xs leading-relaxed mb-3" style={{ color: "var(--text-muted)" }}>
         {desc}
       </p>
 
-      <div className="advisory-actions-box bg-black/40 border border-white/5 rounded p-2.5 mb-3">
-        <span className="text-cyan-400 font-mono text-xs font-semibold">
+      <div className="advisory-actions-box rounded p-2.5 mb-3" style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
+        <span className="font-mono text-xs font-semibold" style={{ color: "var(--accent)" }}>
           {action}
         </span>
       </div>
 
       <div className="grid grid-cols-2 gap-2 text-xs font-mono">
-        <div className="bg-slate-900/60 p-2 rounded border border-white/5 flex justify-between">
-          <span className="text-slate-400">PRIORITY:</span>
+        <div className="p-2 rounded flex justify-between" style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
+          <span style={{ color: "var(--text-muted)" }}>PRIORITY:</span>
           <span style={{ color: statusColor }} className="font-bold">
             {statPriority}
           </span>
         </div>
-        <div className="bg-slate-900/60 p-2 rounded border border-white/5 flex justify-between">
-          <span className="text-slate-400">RESIDUAL:</span>
-          <span className="text-cyan-400 font-bold">{statResidual}</span>
+        <div className="p-2 rounded flex justify-between" style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
+          <span style={{ color: "var(--text-muted)" }}>RESIDUAL:</span>
+          <span className="font-bold" style={{ color: "var(--accent)" }}>{statResidual}</span>
         </div>
       </div>
     </div>

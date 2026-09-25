@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useMemo } from "react";
 import { Chart as ChartJS, registerables } from "chart.js";
 import { UnifiedTelemetryPayload } from "@/types/telemetry";
+import { useTheme } from "@/context/ThemeContext";
 import { fmt } from "@/lib/format";
 
 ChartJS.register(...registerables);
@@ -92,6 +93,8 @@ export default function RegressionScatterChart({
   compact = false,
   onSelect,
 }: RegressionScatterChartProps) {
+  const { theme } = useTheme();
+  const isLight = theme === "light";
   const config = CONFIGS[plotType] || CONFIGS.cht_rpm;
 
   // Compute OLS Linear Regression from telemetry buffer
@@ -205,7 +208,7 @@ export default function RegressionScatterChart({
             label: "Telemetry Points",
             data: dataPoints,
             backgroundColor: primaryColor,
-            borderColor: "#0A0A0D",
+            borderColor: isLight ? "#FFFFFF" : "#0A0A0D",
             borderWidth: compact ? 1.0 : 1.5,
             pointRadius: compact ? 3.5 : 4.5,
             pointHoverRadius: compact ? 5.5 : 6.5,
@@ -233,7 +236,7 @@ export default function RegressionScatterChart({
             position: "top",
             align: "end",
             labels: {
-              color: "#94A3B8",
+              color: isLight ? "#3B536E" : "#94A3B8",
               font: { family: "'JetBrains Mono', monospace", size: 9 },
               boxWidth: 8,
               boxHeight: 8,
@@ -241,10 +244,10 @@ export default function RegressionScatterChart({
             },
           },
           tooltip: {
-            backgroundColor: "#1E2026",
-            titleColor: "#F0EFF4",
-            bodyColor: "#94A3B8",
-            borderColor: "#3F4350",
+            backgroundColor: isLight ? "#FFFFFF" : "#1E2026",
+            titleColor: isLight ? "#0B192C" : "#F0EFF4",
+            bodyColor: isLight ? "#3B536E" : "#94A3B8",
+            borderColor: isLight ? "#C8DCF0" : "#3F4350",
             borderWidth: 1,
             padding: 7,
             titleFont: { family: "'JetBrains Mono', monospace", size: 10, weight: 600 },
@@ -261,34 +264,34 @@ export default function RegressionScatterChart({
             title: {
               display: true,
               text: config.xLabel,
-              color: "#94A3B8",
+              color: isLight ? "#3B536E" : "#94A3B8",
               font: { size: compact ? 8 : 10, family: "'JetBrains Mono', monospace" },
               padding: { top: 2 },
             },
-            grid: { color: "rgba(255, 255, 255, 0.06)" },
+            grid: { color: isLight ? "rgba(11, 25, 44, 0.08)" : "rgba(255, 255, 255, 0.06)" },
             ticks: {
-              color: "#94A3B8",
+              color: isLight ? "#3B536E" : "#94A3B8",
               font: { family: "'JetBrains Mono', monospace", size: compact ? 8 : 9 },
               maxTicksLimit: compact ? 4 : 6,
             },
-            border: { color: "rgba(255, 255, 255, 0.12)" },
+            border: { color: isLight ? "rgba(11, 25, 44, 0.15)" : "rgba(255, 255, 255, 0.12)" },
           },
           y: {
             type: "linear",
             title: {
               display: true,
               text: config.yLabel,
-              color: "#94A3B8",
+              color: isLight ? "#3B536E" : "#94A3B8",
               font: { size: compact ? 8 : 10, family: "'JetBrains Mono', monospace" },
               padding: { bottom: 2 },
             },
-            grid: { color: "rgba(255, 255, 255, 0.06)" },
+            grid: { color: isLight ? "rgba(11, 25, 44, 0.08)" : "rgba(255, 255, 255, 0.06)" },
             ticks: {
-              color: "#94A3B8",
+              color: isLight ? "#3B536E" : "#94A3B8",
               font: { family: "'JetBrains Mono', monospace", size: compact ? 8 : 9 },
               maxTicksLimit: compact ? 4 : 6,
             },
-            border: { color: "rgba(255, 255, 255, 0.12)" },
+            border: { color: isLight ? "rgba(11, 25, 44, 0.15)" : "rgba(255, 255, 255, 0.12)" },
           },
         },
       },
@@ -300,7 +303,7 @@ export default function RegressionScatterChart({
       chart.destroy();
       chartInstanceRef.current = null;
     };
-  }, [isReady, dataPoints, regressionLine, config, stats.slope, stats.intercept, compact]);
+  }, [isReady, dataPoints, regressionLine, config, stats.slope, stats.intercept, compact, isLight]);
 
   if (!isReady) {
     if (backendImage) {
@@ -409,7 +412,7 @@ export default function RegressionScatterChart({
             justifyContent: "space-between",
             marginBottom: "0.3rem",
             paddingBottom: "0.25rem",
-            borderBottom: "1px solid rgba(255, 255, 255, 0.05)",
+            borderBottom: "1px solid var(--border)",
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
@@ -478,7 +481,7 @@ export default function RegressionScatterChart({
             gap: "0.3rem",
             marginTop: "0.35rem",
             paddingTop: "0.25rem",
-            borderTop: "1px solid rgba(255, 255, 255, 0.05)",
+            borderTop: "1px solid var(--border)",
           }}
         >
           <div style={{ textAlign: "center", background: "var(--surface-1)", padding: "0.15rem 0.2rem", borderRadius: "4px" }}>

@@ -53,6 +53,104 @@
     --font-jetbrains-mono: var(--font-mono);
 }
 
+/* ==========================================================================
+   AEROTWIN LIGHT THEME (AERO BLUE PALETTE)
+   ========================================================================== */
+
+[data-theme="light"],
+html[data-theme="light"],
+body[data-theme="light"] {
+    color-scheme: light;
+    --bg: #F0F4F8;
+    --surface-1: #FFFFFF;
+    --surface-2: #E8F1F8;
+    --surface-3: #D9E8F5;
+    --border: #C8DCF0;
+    --border-strong: #96C0E6;
+    --text: #0B192C;
+    --text-muted: #3B536E;
+    --text-faint: #5D7A99;
+    --accent: #0284C7;
+    --accent-contrast: #FFFFFF;
+    --status-nominal: #15803D;
+    --status-advisory: #0284C7;
+    --status-caution: #B45309;
+    --status-warning: #B91C1C;
+
+    /* Backward compatibility aliases */
+    --bg-base: var(--bg);
+    --bg-surface: var(--surface-1);
+    --bg-card: var(--surface-1);
+    --border-glow: var(--border-strong);
+    --border-subtle: var(--border);
+    --accent-cyan: #0284C7;
+    --accent-blue: #0369A1;
+    --accent-emerald: var(--status-nominal);
+    --accent-amber: var(--status-caution);
+    --accent-rose: var(--status-warning);
+    --accent-purple: #7C3AED;
+    --text-primary: var(--text);
+    --text-secondary: var(--text-muted);
+
+    /* Soft badge/band backgrounds */
+    --badge-nominal-bg: #DCFCE7;
+    --badge-advisory-bg: #E0F2FE;
+    --badge-caution-bg: #FEF3C7;
+    --badge-warning-bg: #FEE2E2;
+
+    /* Chart series */
+    --chart-1: #0284C7;
+    --chart-2: #0369A1;
+    --chart-3: #3B536E;
+    --chart-4: #94A3B8;
+
+    /* Schematic light stroke tokens */
+    --schematic-stroke: rgba(2, 132, 199, 0.65);
+    --schematic-stroke-subtle: rgba(2, 132, 199, 0.3);
+}
+
+/* Light Theme Scrollbars */
+[data-theme="light"] * {
+    scrollbar-color: var(--border-strong) var(--bg);
+}
+[data-theme="light"] *::-webkit-scrollbar-track {
+    background: var(--bg);
+}
+[data-theme="light"] *::-webkit-scrollbar-thumb {
+    background: var(--border-strong);
+}
+[data-theme="light"] *::-webkit-scrollbar-thumb:hover {
+    background: var(--accent);
+}
+
+/* Light Theme Form Controls */
+[data-theme="light"] input,
+[data-theme="light"] select,
+[data-theme="light"] textarea {
+    color-scheme: light;
+    background-color: var(--surface-1);
+    color: var(--text);
+    border: 1px solid var(--border);
+}
+[data-theme="light"] input:focus,
+[data-theme="light"] select:focus,
+[data-theme="light"] textarea:focus {
+    border-color: var(--accent);
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.2);
+}
+
+/* Light Theme Card Shadows & Surface Polish */
+[data-theme="light"] .panel,
+[data-theme="light"] .card,
+[data-theme="light"] .gcs-header-strip {
+    box-shadow: 0 1px 3px rgba(11, 25, 44, 0.05), 0 1px 2px rgba(11, 25, 44, 0.03);
+}
+
+[data-theme="light"] .user-dropdown-menu {
+    box-shadow: 0 10px 25px -5px rgba(11, 25, 44, 0.12), 0 8px 10px -6px rgba(11, 25, 44, 0.08);
+}
+
 
         * {
     box-sizing: border-box;
@@ -1247,6 +1345,7 @@ input, select, textarea {
 
         .auth-card {
             background: var(--surface-1);
+            border: 1px solid var(--border);
             border-radius: 16px;
             padding: 2.5rem 2.75rem;
             width: 100%;

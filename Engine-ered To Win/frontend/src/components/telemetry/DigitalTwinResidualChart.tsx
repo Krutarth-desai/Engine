@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState, useMemo } from "react";
 import { Chart, registerables } from "chart.js";
 import annotationPlugin from "chartjs-plugin-annotation";
 import { useTelemetry } from "@/context/TelemetryContext";
+import { useTheme } from "@/context/ThemeContext";
 import { getThemeColors, prefersReducedMotion } from "@/lib/chartTheme";
 import { fmt } from "@/lib/format";
 import { Cpu, CheckCircle2, AlertTriangle } from "lucide-react";
@@ -14,6 +15,7 @@ type ResidualChannel = "cht" | "egt" | "oil_pressure";
 
 export default function DigitalTwinResidualChart() {
   const { historyBuffer, payload, activeScenario, unitPreference } = useTelemetry();
+  const { theme } = useTheme();
   const [selectedChannel, setSelectedChannel] = useState<ResidualChannel>("cht");
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const chartRef = useRef<Chart | null>(null);
@@ -271,7 +273,7 @@ export default function DigitalTwinResidualChart() {
       newChart.destroy();
       chartRef.current = null;
     };
-  }, [historyBuffer, selectedChannel, unitPreference, activeScenario, channelConfig, payload.alerts]);
+  }, [historyBuffer, selectedChannel, unitPreference, activeScenario, channelConfig, payload.alerts, theme]);
 
   const isExceeded = Math.abs(channelConfig.residualVal) > channelConfig.tolerance;
 

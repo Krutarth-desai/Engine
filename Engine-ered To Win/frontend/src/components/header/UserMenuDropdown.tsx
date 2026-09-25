@@ -2,12 +2,15 @@
 
 import React, { useRef, useEffect } from "react";
 import { useTelemetry } from "@/context/TelemetryContext";
+import { useTheme } from "@/context/ThemeContext";
 import {
   ChevronDown,
   User,
   LogOut,
   Sliders,
   Clock,
+  Sun,
+  Moon,
 } from "lucide-react";
 
 interface UserMenuDropdownProps {
@@ -39,6 +42,7 @@ export default function UserMenuDropdown({
     unitPreference,
     setUnitPreference,
   } = useTelemetry();
+  const { theme, toggleTheme } = useTheme();
 
   const menuRef = useRef<HTMLDivElement>(null);
   const isZulu = timeDisplay === "zulu";
@@ -188,6 +192,34 @@ export default function UserMenuDropdown({
                 <Sliders size={12} /> Oil Pressure Unit
               </span>
               <span className="text-cyan font-mono">{unitPreference.toUpperCase()}</span>
+            </button>
+
+            <button
+              onClick={toggleTheme}
+              style={{
+                background: "var(--border)",
+                border: "1px solid var(--border)",
+                borderRadius: "4px",
+                padding: "0.3rem 0.5rem",
+                color: "var(--text)",
+                fontSize: "0.7rem",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                cursor: "pointer",
+              }}
+            >
+              <span style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                {theme === "light" ? (
+                  <Sun size={12} style={{ color: "var(--status-caution)" }} />
+                ) : (
+                  <Moon size={12} style={{ color: "var(--accent)" }} />
+                )}
+                UI Theme Mode
+              </span>
+              <span className="text-cyan font-mono">
+                {theme === "light" ? "LIGHT BLUE" : "TACTICAL DARK"}
+              </span>
             </button>
 
             {/* Neutral logout button - NOT red warning */}
