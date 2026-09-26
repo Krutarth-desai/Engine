@@ -4,12 +4,13 @@ import React from "react";
 import { UnifiedTelemetryPayload } from "@/types/telemetry";
 import { NavView } from "./Sidebar";
 import { useTelemetry } from "@/context/TelemetryContext";
+import { useProfile } from "@/context/ProfileContext";
 import DashboardKpiCards from "./dashboard/DashboardKpiCards";
 import DigitalTwinCenterpiece from "./DigitalTwinCenterpiece";
 import AiFaultDiagnosisCard from "./dashboard/AiFaultDiagnosisCard";
 import SubsystemHealthCard from "./dashboard/SubsystemHealthCard";
 import LiveTelemetryCompactRow from "./dashboard/LiveTelemetryCompactRow";
-import { BellRing, ChevronRight } from "lucide-react";
+import { BellRing, ChevronRight, Shield, Sliders } from "lucide-react";
 
 interface MainDashboardViewProps {
   payload: UnifiedTelemetryPayload;
@@ -25,6 +26,7 @@ export default function MainDashboardView({
   onNavigate,
 }: MainDashboardViewProps) {
   const { focusedComponent, setFocusedComponent } = useTelemetry();
+  const { profileDef } = useProfile();
 
   // Active alerts only (warning / caution)
   const activeAlerts = (payload.alerts || []).filter((a) => {
@@ -36,6 +38,112 @@ export default function MainDashboardView({
 
   return (
     <div className="main-dashboard-container">
+      {/* Top Banner: Current Active Workstation Role */}
+      <div
+        className="dashboard-role-banner"
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          padding: "0.4rem 0.85rem",
+          borderRadius: "8px",
+          background: "var(--surface-1)",
+          border: `1px solid ${profileDef.badgeBorder}`,
+          flexShrink: 0,
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "0.65rem", minWidth: 0 }}>
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.35rem",
+              background: "var(--surface-2)",
+              border: `1px solid ${profileDef.badgeBorder}`,
+              borderRadius: "4px",
+              padding: "0.2rem 0.5rem",
+              fontSize: "11px",
+              fontFamily: "var(--font-mono), monospace",
+              fontWeight: 700,
+              color: profileDef.badgeColor,
+              letterSpacing: "0.04em",
+            }}
+          >
+            <Shield size={12} />
+            <span>{profileDef.roleTag}</span>
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: "0.45rem", minWidth: 0 }}>
+            <span
+              style={{
+                fontSize: "13px",
+                fontWeight: 600,
+                color: "var(--text)",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {profileDef.title}
+            </span>
+            <span style={{ color: "var(--text-faint)", fontSize: "12px" }}>•</span>
+            <span
+              style={{
+                fontSize: "12px",
+                color: "var(--text-muted)",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}
+            >
+              {profileDef.targetPersona} — &quot;{profileDef.mainQuestion}&quot;
+            </span>
+          </div>
+        </div>
+
+        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexShrink: 0 }}>
+          <span
+            style={{
+              fontSize: "10.5px",
+              fontFamily: "var(--font-mono), monospace",
+              color: "var(--text-faint)",
+              textTransform: "uppercase",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.3rem",
+            }}
+          >
+            <span
+              style={{
+                width: "6px",
+                height: "6px",
+                borderRadius: "50%",
+                background: profileDef.badgeColor,
+              }}
+            />
+            {profileDef.hierarchyLevel}
+          </span>
+
+          <button
+            onClick={() => onNavigate("settings")}
+            className="btn-secondary"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.3rem",
+              padding: "0.2rem 0.6rem",
+              borderRadius: "5px",
+              fontSize: "11px",
+              fontFamily: "var(--font-mono), monospace",
+              fontWeight: 600,
+              cursor: "pointer",
+            }}
+            title="Configure Workstation Profiles and Access Control in Settings"
+          >
+            <Sliders size={11} />
+            <span>CONFIGURE RBAC</span>
+          </button>
+        </div>
+      </div>
+
       {/* Active Alert Banner (renders only when an active caution/warning exists, otherwise 0px) */}
       {topActiveAlert && (
         <div
