@@ -3,7 +3,6 @@
 import React from "react";
 import { UnifiedTelemetryPayload } from "../types/telemetry";
 import SensorDiagnosisPanel from "./SensorDiagnosisPanel";
-import FeatureContributionPanel from "./FeatureContributionPanel";
 import RegressionMatrixPanel from "./diagnostics/RegressionMatrixPanel";
 import RecentTrendsCard from "./RecentTrendsCard";
 import DiagnosisAdvisory from "./diagnostics/DiagnosisAdvisory";
@@ -64,16 +63,7 @@ export default function DiagnosticsView({ payload }: DiagnosticsViewProps) {
       {/* 1. TOP HORIZONTAL FULL-WIDTH SECTION: SENSOR VS ENGINE DIAGNOSIS */}
       <SensorDiagnosisPanel telemetry={flatTelemetry} />
 
-      {/* 2. EXPLAINABLE PHM FEATURE ATTRIBUTION MATRIX */}
-      <div style={{ marginTop: "1rem" }}>
-        <FeatureContributionPanel
-          features={payload.contributing_features || []}
-          telemetry={flatTelemetry}
-          activeScenario={payload.scenario}
-        />
-      </div>
-
-      {/* 3. MULTI-CORRELATION REGRESSION MATRIX & 30-CYCLE TEMPORAL SEQUENCE MEMORY */}
+      {/* 2. MULTI-CORRELATION REGRESSION MATRIX & 30-CYCLE TEMPORAL SEQUENCE MEMORY */}
       <div
         className="regression-grid"
         style={{
