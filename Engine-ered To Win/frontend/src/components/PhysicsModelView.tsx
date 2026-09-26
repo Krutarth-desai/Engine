@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { UnifiedTelemetryPayload } from "../types/telemetry";
 import PageLayout from "./common/PageLayout";
 import SubsystemHealthList from "./diagnostics/SubsystemHealthList";
+import { NavView } from "./Sidebar";
 import {
   Atom,
   Activity,
@@ -11,13 +12,15 @@ import {
   Zap,
   Info,
   Sliders,
+  Cpu,
 } from "lucide-react";
 
 interface PhysicsModelViewProps {
   payload: UnifiedTelemetryPayload;
+  onNavigate?: (view: NavView) => void;
 }
 
-export default function PhysicsModelView({ payload }: PhysicsModelViewProps) {
+export default function PhysicsModelView({ payload, onNavigate }: PhysicsModelViewProps) {
   const [showModelDetails, setShowModelDetails] = useState(false);
 
   const flatTelemetry = {
@@ -88,28 +91,54 @@ export default function PhysicsModelView({ payload }: PhysicsModelViewProps) {
         </div>
       }
       actions={
-        <button
-          className="window-pill"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "0.35rem",
-            padding: "0.25rem 0.6rem",
-            borderRadius: "5px",
-            background: showModelDetails ? "var(--surface-2)" : "var(--border)",
-            border: "1px solid var(--border)",
-            color: showModelDetails ? "var(--accent)" : "var(--text)",
-            fontSize: "0.68rem",
-            fontFamily: "var(--font-mono), monospace",
-            fontWeight: 700,
-            cursor: "pointer",
-          }}
-          onClick={() => setShowModelDetails(!showModelDetails)}
-          title="Toggle physics engine configuration details"
-        >
-          <Info size={12} />
-          <span>MODEL SPECS</span>
-        </button>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+          {onNavigate && (
+            <button
+              className="window-pill"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.35rem",
+                padding: "0.25rem 0.6rem",
+                borderRadius: "5px",
+                background: "var(--surface-2)",
+                border: "1px solid var(--status-nominal)",
+                color: "var(--status-nominal)",
+                fontSize: "0.68rem",
+                fontFamily: "var(--font-mono), monospace",
+                fontWeight: 700,
+                cursor: "pointer",
+              }}
+              onClick={() => onNavigate("dashboard")}
+              title="Open the Propulsion Engineer Dashboard with Digital Twin & FFT Spectrum"
+            >
+              <Cpu size={12} />
+              <span>PROPULSION DASHBOARD &rarr;</span>
+            </button>
+          )}
+          <button
+            className="window-pill"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.35rem",
+              padding: "0.25rem 0.6rem",
+              borderRadius: "5px",
+              background: showModelDetails ? "var(--surface-2)" : "var(--border)",
+              border: "1px solid var(--border)",
+              color: showModelDetails ? "var(--accent)" : "var(--text)",
+              fontSize: "0.68rem",
+              fontFamily: "var(--font-mono), monospace",
+              fontWeight: 700,
+              cursor: "pointer",
+            }}
+            onClick={() => setShowModelDetails(!showModelDetails)}
+            title="Toggle physics engine configuration details"
+          >
+            <Info size={12} />
+            <span>MODEL SPECS</span>
+          </button>
+        </div>
       }
     >
       {/* Optional Top Explanatory Banner */}

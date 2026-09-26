@@ -33,6 +33,7 @@ export default function PageLayout({
         padding: "0.75rem 1.15rem",
         height: noScroll ? "100%" : "auto",
         minHeight: "100%",
+        flexShrink: 0,
         boxSizing: "border-box",
         overflow: noScroll ? "hidden" : "visible",
         ...style,

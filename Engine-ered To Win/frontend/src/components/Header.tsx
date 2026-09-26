@@ -17,7 +17,6 @@ import {
   FlaskConical,
   Sun,
   Moon,
-  Shield,
   Lock,
 } from "lucide-react";
 
@@ -56,7 +55,7 @@ export default function Header({
     resetScenario,
   } = useTelemetry();
 
-  const { profile, profileDef } = useProfile();
+  const { profile } = useProfile();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
 
@@ -406,33 +405,7 @@ export default function Header({
           <span style={{ fontWeight: 700 }}>{getLinkLabel()}</span>
         </div>
 
-        {/* Workstation Profile Badge Button */}
-        <button
-          id="header-profile-btn"
-          className="window-pill"
-          onClick={() => onSelectView?.("settings")}
-          title={`Active Workstation: ${profileDef.title} (${profileDef.hierarchyLevel}). Click to switch profiles in Settings.`}
-          style={{
-            height: "30px",
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "0.35rem",
-            background: "var(--surface-2)",
-            border: `1px solid ${profileDef.badgeBorder}`,
-            borderRadius: "6px",
-            padding: "0 0.55rem",
-            boxSizing: "border-box",
-            cursor: "pointer",
-            fontFamily: "var(--font-mono), monospace",
-            fontSize: "11px",
-            fontWeight: 700,
-            color: profileDef.badgeColor,
-            transition: "all 0.15s ease",
-          }}
-        >
-          <Shield size={11} />
-          <span>{profileDef.roleTag}</span>
-        </button>
+
 
         {/* Tactical / Light Theme Toggle */}
         <button

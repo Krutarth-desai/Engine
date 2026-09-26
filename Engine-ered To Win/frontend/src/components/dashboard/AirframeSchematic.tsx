@@ -139,8 +139,8 @@ export default function AirframeSchematic({
         style={{
           width: "100%",
           height: "100%",
-          maxHeight: "360px",
-          overflow: "hidden",
+          minHeight: "360px",
+          overflow: "visible",
         }}
         aria-label="MALE UAV Digital Twin Propulsion Schematic"
       >

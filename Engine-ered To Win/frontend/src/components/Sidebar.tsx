@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useTelemetry } from "@/context/TelemetryContext";
-import { useProfile } from "@/context/ProfileContext";
+import { useProfile, WorkstationProfile } from "@/context/ProfileContext";
 import {
   LayoutDashboard,
   Activity,
@@ -17,7 +17,9 @@ import {
   Radio,
   FlaskConical,
   Atom,
-  Shield,
+  ChevronDown,
+  ChevronUp,
+  Check,
 } from "lucide-react";
 
 export type NavView =
@@ -66,7 +68,31 @@ export default function Sidebar({
   alertsSeverity = "nominal",
 }: SidebarProps) {
   const { linkState, payload } = useTelemetry();
-  const { profile, profileDef, canAccessView } = useProfile();
+  const { profile, setProfile, profileDef, canAccessView } = useProfile();
+  const profileDropdownRef = useRef<HTMLDivElement>(null);
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        profileDropdownRef.current &&
+        !profileDropdownRef.current.contains(event.target as Node)
+      ) {
+        setProfileDropdownOpen(false);
+      }
+    }
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setProfileDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
 
   // Collapsed state initialized from localStorage for persistent preference
   const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
@@ -290,97 +316,201 @@ export default function Sidebar({
         </div>
       </div>
 
-      {/* Active Workstation Profile Indicator */}
+      {/* PROFILE Selector in Sidebar */}
       {!isCollapsed ? (
         <div
-          className="sidebar-profile-indicator"
+          ref={profileDropdownRef}
+          className="sidebar-profile-selector"
           style={{
-            padding: "0.35rem 0.65rem",
-            margin: "0 0.5rem 0.5rem 0.5rem",
-            background: "var(--surface-2)",
-            border: `1px solid ${profileDef.badgeBorder}`,
-            borderRadius: "6px",
+            position: "relative",
+            padding: "0.5rem 0.85rem 0.65rem 0.85rem",
+            borderBottom: "1px solid var(--border)",
             display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: "0.4rem",
+            flexDirection: "column",
+            gap: "0.35rem",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", minWidth: 0 }}>
-            <Shield size={12} style={{ color: profileDef.badgeColor, flexShrink: 0 }} />
-            <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
-              <span
-                style={{
-                  fontSize: "9px",
-                  color: "var(--text-faint)",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.06em",
-                  fontWeight: 700,
-                  lineHeight: 1,
-                }}
-              >
-                Workstation
+          <span
+            style={{
+              fontSize: "0.6rem",
+              fontWeight: 700,
+              color: "var(--text-muted)",
+              letterSpacing: "0.5px",
+              fontFamily: "var(--font-mono), monospace",
+              textTransform: "uppercase",
+            }}
+          >
+            PROFILE
+          </span>
+
+          {/* Trigger Button */}
+          <button
+            type="button"
+            onClick={() => setProfileDropdownOpen((prev) => !prev)}
+            aria-haspopup="listbox"
+            aria-expanded={profileDropdownOpen}
+            aria-label="Select Workstation Profile"
+            style={{
+              width: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: "0.45rem",
+              background: "var(--surface-2)",
+              border: `1px solid ${profileDropdownOpen ? "var(--accent)" : "var(--border)"}`,
+              borderRadius: "6px",
+              padding: "0.45rem 0.6rem",
+              color: "var(--text)",
+              fontSize: "12px",
+              fontWeight: 600,
+              fontFamily: "var(--font-sans), system-ui, sans-serif",
+              cursor: "pointer",
+              transition: "all 0.15s ease",
+              outline: "none",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "0.45rem", minWidth: 0 }}>
+              <span style={{ color: profileDef.badgeColor, display: "flex", alignItems: "center", flexShrink: 0 }}>
+                {profile === "propulsion" ? (
+                  <Cpu size={14} />
+                ) : profile === "maintenance" ? (
+                  <Wrench size={14} />
+                ) : (
+                  <Compass size={14} />
+                )}
               </span>
               <span
                 style={{
-                  fontSize: "10.5px",
-                  fontWeight: 700,
-                  color: profileDef.badgeColor,
                   whiteSpace: "nowrap",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
-                  fontFamily: "var(--font-mono), monospace",
-                  marginTop: "2px",
+                  textAlign: "left",
                 }}
-                title={profileDef.title}
               >
-                {profileDef.roleTag}
+                {profile === "propulsion"
+                  ? "Propulsion Engineer"
+                  : profile === "maintenance"
+                  ? "Maintenance"
+                  : "GCS Operator"}
               </span>
             </div>
-          </div>
-          <button
-            onClick={() => onSelectView("settings")}
-            style={{
-              background: "transparent",
-              border: "none",
-              color: "var(--text-muted)",
-              fontSize: "10px",
-              cursor: "pointer",
-              padding: "2px 4px",
-              borderRadius: "3px",
-              textDecoration: "underline",
-              fontFamily: "var(--font-mono), monospace",
-            }}
-            title="Configure Workstation Profile & RBAC Matrix in Settings"
-          >
-            ROLE
+            {profileDropdownOpen ? (
+              <ChevronUp size={13} style={{ color: "var(--text-muted)", flexShrink: 0 }} />
+            ) : (
+              <ChevronDown size={13} style={{ color: "var(--text-muted)", flexShrink: 0 }} />
+            )}
           </button>
+
+          {/* Dropdown Options List */}
+          {profileDropdownOpen && (
+            <div
+              role="listbox"
+              aria-label="Profile options"
+              style={{
+                position: "absolute",
+                top: "calc(100% + 4px)",
+                left: "0.85rem",
+                right: "0.85rem",
+                background: "var(--surface-1)",
+                border: "1px solid var(--border)",
+                borderRadius: "6px",
+                boxShadow: "0 8px 24px rgba(0,0,0,0.55)",
+                padding: "0.25rem",
+                zIndex: 1000,
+                display: "flex",
+                flexDirection: "column",
+                gap: "2px",
+              }}
+            >
+              {[
+                { id: "propulsion" as WorkstationProfile, label: "Propulsion Engineer", icon: <Cpu size={14} />, color: "var(--status-nominal)" },
+                { id: "operator" as WorkstationProfile, label: "GCS Operator", icon: <Compass size={14} />, color: "var(--accent)" },
+                { id: "maintenance" as WorkstationProfile, label: "Maintenance", icon: <Wrench size={14} />, color: "var(--status-caution)" },
+              ].map((opt) => {
+                const isSelected = profile === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    role="option"
+                    aria-selected={isSelected}
+                    onClick={() => {
+                      setProfile(opt.id);
+                      setProfileDropdownOpen(false);
+                    }}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: "0.45rem",
+                      padding: "0.45rem 0.55rem",
+                      borderRadius: "5px",
+                      background: isSelected ? "var(--surface-2)" : "transparent",
+                      border: "none",
+                      color: isSelected ? "var(--text)" : "var(--text-muted)",
+                      fontSize: "11.5px",
+                      fontWeight: isSelected ? 600 : 500,
+                      cursor: "pointer",
+                      textAlign: "left",
+                      width: "100%",
+                      transition: "all 0.12s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isSelected) e.currentTarget.style.background = "var(--surface-2)";
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isSelected) e.currentTarget.style.background = "transparent";
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.45rem" }}>
+                      <span style={{ color: opt.color, display: "flex", alignItems: "center" }}>
+                        {opt.icon}
+                      </span>
+                      <span>{opt.label}</span>
+                    </div>
+                    {isSelected && <Check size={13} style={{ color: opt.color }} />}
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
       ) : (
+        /* Collapsed Mode Profile Selector */
         <div
           style={{
             display: "flex",
             justifyContent: "center",
-            padding: "0.2rem 0 0.4rem 0",
+            padding: "0.5rem 0",
+            borderBottom: "1px solid var(--border)",
           }}
-          title={`Active Workstation: ${profileDef.title}`}
+          title={`Active Profile: ${profileDef.title}. Click to switch.`}
         >
           <button
-            onClick={() => onSelectView("settings")}
+            onClick={() => {
+              const cycle: WorkstationProfile[] = ["propulsion", "operator", "maintenance"];
+              const nextIdx = (cycle.indexOf(profile) + 1) % cycle.length;
+              setProfile(cycle[nextIdx]);
+            }}
             style={{
+              width: "28px",
+              height: "28px",
+              borderRadius: "6px",
               background: "var(--surface-2)",
               border: `1px solid ${profileDef.badgeBorder}`,
-              borderRadius: "4px",
-              padding: "2px 4px",
-              cursor: "pointer",
-              fontSize: "8.5px",
-              fontWeight: 800,
-              fontFamily: "var(--font-mono), monospace",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
               color: profileDef.badgeColor,
+              cursor: "pointer",
             }}
-            title="Open Settings to change profile"
           >
-            {profile === "operator" ? "GCS" : profile === "maintenance" ? "MNT" : "ENG"}
+            {profile === "propulsion" ? (
+              <Cpu size={14} />
+            ) : profile === "maintenance" ? (
+              <Wrench size={14} />
+            ) : (
+              <Compass size={14} />
+            )}
           </button>
         </div>
       )}

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   useProfile,
   WorkstationProfile,
@@ -8,9 +9,9 @@ import {
   ACCESS_MATRIX_DATA,
   FAULT_INJECTION_MATRIX,
 } from "@/context/ProfileContext";
-import { useTelemetry } from "@/context/TelemetryContext";
 import { useTheme } from "@/context/ThemeContext";
 import PageLayout from "./common/PageLayout";
+import { NavView } from "./Sidebar";
 import {
   ShieldCheck,
   Compass,
@@ -23,26 +24,22 @@ import {
   Check,
   Search,
   BookOpen,
-  Sliders,
-  Activity,
-  BellRing,
-  Info,
   Moon,
   Sun,
   Shield,
+  Eye,
 } from "lucide-react";
 
-type SettingsSection = "rbac" | "units" | "telemetry" | "alerts" | "system";
+type SettingsSection = "rbac" | "theme";
 type RbacSubTab = "profiles" | "matrix" | "simulation" | "blueprints";
 
-export default function SettingsView() {
+interface SettingsViewProps {
+  onNavigate?: (view: NavView) => void;
+}
+
+export default function SettingsView({ onNavigate }: SettingsViewProps) {
+  const router = useRouter();
   const { profile, setProfile, profileDef } = useProfile();
-  const {
-    unitPreference,
-    setUnitPreference,
-    timeDisplay,
-    setTimeDisplay,
-  } = useTelemetry();
   const { theme, setTheme } = useTheme();
 
   const [activeSection, setActiveSection] = useState<SettingsSection>("rbac");
@@ -50,10 +47,6 @@ export default function SettingsView() {
   const [searchQuery, setSearchQuery] = useState("");
   const [matrixCategoryFilter, setMatrixCategoryFilter] = useState<string>("ALL");
   const [activationNotice, setActivationNotice] = useState<string | null>(null);
-
-  // Telemetry stream and audio alert preferences
-  const [streamRate, setStreamRate] = useState<string>("10");
-  const [audioAlerts, setAudioAlerts] = useState<boolean>(true);
 
   const handleActivateProfile = (selectedProfile: WorkstationProfile) => {
     setProfile(selectedProfile);
@@ -87,32 +80,20 @@ export default function SettingsView() {
       tag: profileDef.roleTag,
     },
     {
-      id: "units" as SettingsSection,
-      label: "Units & Display",
-      icon: <Sliders size={16} />,
-    },
-    {
-      id: "telemetry" as SettingsSection,
-      label: "Telemetry Stream",
-      icon: <Activity size={16} />,
-    },
-    {
-      id: "alerts" as SettingsSection,
-      label: "Audio & Alerts",
-      icon: <BellRing size={16} />,
-    },
-    {
-      id: "system" as SettingsSection,
-      label: "System Information",
-      icon: <Info size={16} />,
+      id: "theme" as SettingsSection,
+      label: "Workstation Theme",
+      icon: theme === "light" ? <Sun size={16} /> : <Moon size={16} />,
+      tag: theme === "light" ? "LIGHT" : "DARK",
     },
   ];
+
+  const PROFILE_KEYS: WorkstationProfile[] = ["propulsion", "operator", "maintenance"];
 
   return (
     <PageLayout
       title="Workstation Settings & GCS Preferences"
-      subtitle="Ground Control Station display units, telemetry sampling rates, and alert trigger thresholds."
-      icon={<Sliders size={18} />}
+      subtitle="Configure operational workstation roles, access permissions, and interface theme."
+      icon={<ShieldCheck size={18} />}
       tags={
         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
           <span
@@ -131,6 +112,23 @@ export default function SettingsView() {
             }}
           >
             ACTIVE ROLE: {profileDef.roleTag}
+          </span>
+          <span
+            className="nav-tag font-mono"
+            style={{
+              color: "var(--accent)",
+              borderColor: "var(--border)",
+              background: "var(--surface-2)",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.35rem",
+              padding: "0.2rem 0.55rem",
+              borderRadius: "4px",
+              fontWeight: 700,
+              fontSize: "11px",
+            }}
+          >
+            THEME: {theme === "light" ? "LIGHT" : "DARK"}
           </span>
         </div>
       }
@@ -361,8 +359,17 @@ export default function SettingsView() {
               {/* RBAC TAB 1: WORKSTATION PROFILES */}
               {rbacTab === "profiles" && (
                 <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "1rem" }}>
-                    {(Object.keys(WORKSTATION_PROFILES) as WorkstationProfile[]).map((profKey) => {
+                  <div
+                    className="workstation-roles-grid"
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(3, 1fr)",
+                      gap: "1rem",
+                      alignItems: "stretch",
+                      width: "100%",
+                    }}
+                  >
+                    {PROFILE_KEYS.map((profKey) => {
                       const item = WORKSTATION_PROFILES[profKey];
                       const isActive = profile === profKey;
 
@@ -380,8 +387,9 @@ export default function SettingsView() {
                             display: "flex",
                             flexDirection: "column",
                             justifyContent: "space-between",
-                            gap: "0.9rem",
-                            boxShadow: isActive ? "0 0 0 1px " + item.badgeBorder : "none",
+                            gap: "0.85rem",
+                            height: "100%",
+                            boxShadow: isActive ? "0 0 0 1.5px " + item.badgeBorder : "none",
                             transition: "all 0.2s ease",
                           }}
                         >
@@ -462,12 +470,12 @@ export default function SettingsView() {
                             </div>
 
                             {/* Card Title & Core Question */}
-                            <h4 style={{ fontSize: "15px", fontWeight: 700, margin: "0 0 0.35rem 0", color: "var(--text)" }}>
+                            <h4 style={{ fontSize: "14.5px", fontWeight: 700, margin: "0 0 0.35rem 0", color: "var(--text)", minHeight: "36px" }}>
                               {item.title}
                             </h4>
                             <div
                               style={{
-                                fontSize: "12px",
+                                fontSize: "11.5px",
                                 fontStyle: "italic",
                                 color: item.badgeColor,
                                 marginBottom: "0.6rem",
@@ -475,12 +483,15 @@ export default function SettingsView() {
                                 background: "var(--surface-3)",
                                 borderRadius: "4px",
                                 borderLeft: `2px solid ${item.badgeBorder}`,
+                                minHeight: "52px",
+                                display: "flex",
+                                alignItems: "center",
                               }}
                             >
                               &quot;{item.mainQuestion}&quot;
                             </div>
 
-                            <p style={{ fontSize: "12px", color: "var(--text-muted)", margin: "0 0 0.75rem 0", lineHeight: "1.5" }}>
+                            <p style={{ fontSize: "11.5px", color: "var(--text-muted)", margin: "0 0 0.75rem 0", lineHeight: "1.45", minHeight: "68px" }}>
                               {item.description}
                             </p>
 
@@ -495,6 +506,7 @@ export default function SettingsView() {
                                 padding: "0.6rem 0.75rem",
                                 fontSize: "11px",
                                 border: "1px solid var(--border)",
+                                minHeight: "88px",
                               }}
                             >
                               <div style={{ display: "flex", justifyContent: "space-between" }}>
@@ -531,39 +543,77 @@ export default function SettingsView() {
                             </div>
                           </div>
 
-                          {/* Action Button */}
+                          {/* Action Buttons: View Active Dashboard or Switch & Launch Dashboard */}
                           <div style={{ borderTop: "1px solid var(--border)", paddingTop: "0.75rem" }}>
                             {isActive ? (
                               <button
-                                disabled
-                                className="btn-secondary"
-                                style={{
-                                  width: "100%",
-                                  padding: "0.45rem 0",
-                                  fontSize: "12px",
-                                  fontFamily: "var(--font-mono), monospace",
-                                  fontWeight: 700,
-                                  opacity: 0.85,
-                                  cursor: "default",
-                                }}
-                              >
-                                CURRENT ACTIVE PROFILE
-                              </button>
-                            ) : (
-                              <button
-                                onClick={() => handleActivateProfile(profKey)}
+                                onClick={() =>
+                                  onNavigate ? onNavigate("dashboard") : router.push("/")
+                                }
                                 className="btn-primary"
                                 style={{
                                   width: "100%",
-                                  padding: "0.45rem 0",
+                                  padding: "0.5rem 0",
                                   fontSize: "12px",
                                   fontFamily: "var(--font-mono), monospace",
                                   fontWeight: 700,
                                   cursor: "pointer",
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  gap: "0.4rem",
                                 }}
+                                title={`Open the active ${item.title}`}
                               >
-                                ACTIVATE {item.roleTag}
+                                <Eye size={13} />
+                                <span>VIEW {item.roleTag} DASHBOARD</span>
+                                <span>&rarr;</span>
                               </button>
+                            ) : (
+                              <div style={{ display: "flex", gap: "0.4rem" }}>
+                                <button
+                                  onClick={() => {
+                                    setProfile(profKey);
+                                    if (onNavigate) {
+                                      onNavigate("dashboard");
+                                    } else {
+                                      router.push("/");
+                                    }
+                                  }}
+                                  className="btn-primary"
+                                  style={{
+                                    flex: 1,
+                                    padding: "0.5rem 0.5rem",
+                                    fontSize: "11.5px",
+                                    fontFamily: "var(--font-mono), monospace",
+                                    fontWeight: 700,
+                                    cursor: "pointer",
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    gap: "0.35rem",
+                                  }}
+                                  title={`Activate and immediately open the ${item.title}`}
+                                >
+                                  <Eye size={12} />
+                                  <span>LAUNCH DASHBOARD</span>
+                                  <span>&rarr;</span>
+                                </button>
+                                <button
+                                  onClick={() => handleActivateProfile(profKey)}
+                                  className="btn-secondary"
+                                  style={{
+                                    padding: "0.5rem 0.65rem",
+                                    fontSize: "11px",
+                                    fontFamily: "var(--font-mono), monospace",
+                                    fontWeight: 600,
+                                    cursor: "pointer",
+                                  }}
+                                  title="Set as active role without leaving settings"
+                                >
+                                  ACTIVATE
+                                </button>
+                              </div>
                             )}
                           </div>
                         </div>
@@ -864,207 +914,313 @@ export default function SettingsView() {
             </>
           )}
 
-          {/* SECTION 2: UNITS & DISPLAY */}
-          {activeSection === "units" && (
+          {/* SECTION 2: WORKSTATION THEME */}
+          {activeSection === "theme" && (
             <>
-              <div>
-                <h3 className="card-title" style={{ margin: "0 0 0.25rem 0", fontSize: "16px" }}>
-                  Display Units &amp; Formatting
-                </h3>
-                <p className="text-caption" style={{ color: "var(--text-muted)", margin: 0 }}>
-                  Select standardized aerospace measurement systems for pressure, timestamps, and interface themes.
-                </p>
-              </div>
-
-              <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem", maxWidth: "480px" }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
+                  borderBottom: "1px solid var(--border)",
+                  paddingBottom: "1rem",
+                }}
+              >
                 <div>
-                  <label className="text-caption" style={{ display: "block", color: "var(--text-muted)", marginBottom: "0.4rem", fontWeight: 600 }}>
-                    OIL PRESSURE UNIT
-                  </label>
-                  <div style={{ display: "flex", gap: "0.5rem" }}>
-                    <button
-                      className={unitPreference === "psi" ? "btn-primary" : "btn-secondary"}
-                      onClick={() => setUnitPreference("psi")}
-                      style={{ padding: "0.4rem 1rem", borderRadius: "6px", fontSize: "13px", cursor: "pointer" }}
-                    >
-                      Pounds per Sq. Inch (psi)
-                    </button>
-                    <button
-                      className={unitPreference === "bar" ? "btn-primary" : "btn-secondary"}
-                      onClick={() => setUnitPreference("bar")}
-                      style={{ padding: "0.4rem 1rem", borderRadius: "6px", fontSize: "13px", cursor: "pointer" }}
-                    >
-                      Metric Bar (bar)
-                    </button>
-                  </div>
+                  <h3 className="card-title" style={{ margin: "0 0 0.25rem 0", fontSize: "16px" }}>
+                    Workstation Interface Theme
+                  </h3>
+                  <p className="text-caption" style={{ color: "var(--text-muted)", margin: 0 }}>
+                    Select standardized visual theme for the AeroTwin GCS ground station environment.
+                  </p>
                 </div>
 
-                <div>
-                  <label className="text-caption" style={{ display: "block", color: "var(--text-muted)", marginBottom: "0.4rem", fontWeight: 600 }}>
-                    STATION CLOCK DISPLAY
-                  </label>
-                  <div style={{ display: "flex", gap: "0.5rem" }}>
-                    <button
-                      className={timeDisplay === "zulu" ? "btn-primary" : "btn-secondary"}
-                      onClick={() => setTimeDisplay("zulu")}
-                      style={{ padding: "0.4rem 1rem", borderRadius: "6px", fontSize: "13px", cursor: "pointer" }}
-                    >
-                      Zulu Time (UTC / GMT)
-                    </button>
-                    <button
-                      className={timeDisplay === "local" ? "btn-primary" : "btn-secondary"}
-                      onClick={() => setTimeDisplay("local")}
-                      style={{ padding: "0.4rem 1rem", borderRadius: "6px", fontSize: "13px", cursor: "pointer" }}
-                    >
-                      Local Station Time (IST)
-                    </button>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-caption" style={{ display: "block", color: "var(--text-muted)", marginBottom: "0.4rem", fontWeight: 600 }}>
-                    WORKSTATION INTERFACE THEME
-                  </label>
-                  <div style={{ display: "flex", gap: "0.5rem" }}>
-                    <button
-                      className={theme === "dark" ? "btn-primary" : "btn-secondary"}
-                      onClick={() => setTheme("dark")}
-                      style={{
-                        padding: "0.4rem 1rem",
-                        borderRadius: "6px",
-                        fontSize: "13px",
-                        cursor: "pointer",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "0.4rem",
-                      }}
-                    >
-                      <Moon size={14} /> Tactical Dark
-                    </button>
-                    <button
-                      className={theme === "light" ? "btn-primary" : "btn-secondary"}
-                      onClick={() => setTheme("light")}
-                      style={{
-                        padding: "0.4rem 1rem",
-                        borderRadius: "6px",
-                        fontSize: "13px",
-                        cursor: "pointer",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "0.4rem",
-                      }}
-                    >
-                      <Sun size={14} /> Aero Light Blue
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </>
-          )}
-
-          {/* SECTION 3: TELEMETRY STREAM */}
-          {activeSection === "telemetry" && (
-            <>
-              <div>
-                <h3 className="card-title" style={{ margin: "0 0 0.25rem 0", fontSize: "16px" }}>
-                  Telemetry Streaming Rate
-                </h3>
-                <p className="text-caption" style={{ color: "var(--text-muted)", margin: 0 }}>
-                  Adjust WebSocket polling and streaming frequency across all 9 propulsion sensor channels.
-                </p>
-              </div>
-
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", maxWidth: "340px" }}>
-                <label className="text-caption" style={{ color: "var(--text-muted)", fontWeight: 600 }}>
-                  STREAM FREQUENCY
-                </label>
-                <select
-                  value={streamRate}
-                  onChange={(e) => setStreamRate(e.target.value)}
+                <div
                   style={{
-                    padding: "0.5rem 0.75rem",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "0.4rem",
+                    padding: "0.3rem 0.6rem",
                     borderRadius: "6px",
-                    fontSize: "13px",
                     background: "var(--surface-2)",
                     border: "1px solid var(--border)",
-                    color: "var(--text)",
-                    outline: "none",
+                    fontFamily: "var(--font-mono), monospace",
+                    fontSize: "11px",
+                    fontWeight: 700,
+                    color: "var(--accent)",
                   }}
                 >
-                  <option value="5">5 Hz (Low Bandwidth Satcom)</option>
-                  <option value="10">10 Hz (Standard Certified Default)</option>
-                  <option value="20">20 Hz (High Fidelity Engineering)</option>
-                </select>
-              </div>
-            </>
-          )}
-
-          {/* SECTION 4: AUDIO & ALERTS */}
-          {activeSection === "alerts" && (
-            <>
-              <div>
-                <h3 className="card-title" style={{ margin: "0 0 0.25rem 0", fontSize: "16px" }}>
-                  Audio Chimes &amp; Alert Dispatch
-                </h3>
-                <p className="text-caption" style={{ color: "var(--text-muted)", margin: 0 }}>
-                  Control audible annunciators and automated alert dispatch parameters.
-                </p>
+                  {theme === "light" ? <Sun size={12} /> : <Moon size={12} />}
+                  <span>ACTIVE: {theme === "light" ? "AERO LIGHT BLUE" : "TACTICAL DARK"}</span>
+                </div>
               </div>
 
-              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                <input
-                  type="checkbox"
-                  id="audio-toggle"
-                  checked={audioAlerts}
-                  onChange={(e) => setAudioAlerts(e.target.checked)}
-                  style={{ width: "16px", height: "16px", cursor: "pointer" }}
-                />
-                <label htmlFor="audio-toggle" className="text-body" style={{ color: "var(--text)", cursor: "pointer", fontSize: "13px" }}>
-                  Audible warning tones on Warning/Critical state excursions
-                </label>
-              </div>
-            </>
-          )}
+              {/* 2-Column Theme Selection Cards */}
+              <div className="settings-theme-grid">
+                {/* 1. Tactical Dark Theme Card */}
+                <div
+                  className="card"
+                  style={{
+                    background: theme === "dark" ? "var(--surface-2)" : "var(--surface-1)",
+                    border: `1px solid ${theme === "dark" ? "var(--accent)" : "var(--border)"}`,
+                    borderRadius: "10px",
+                    padding: "1.25rem",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    gap: "1rem",
+                    boxShadow: theme === "dark" ? "0 0 0 1px var(--accent)" : "none",
+                    cursor: "pointer",
+                    transition: "all 0.2s ease",
+                  }}
+                  onClick={() => setTheme("dark")}
+                >
+                  <div>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                        <div
+                          style={{
+                            width: "36px",
+                            height: "36px",
+                            borderRadius: "8px",
+                            background: "#0A0A0D",
+                            border: "1px solid #3F4350",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            color: "#F2EFE9",
+                          }}
+                        >
+                          <Moon size={18} />
+                        </div>
+                        <div>
+                          <div style={{ fontSize: "14px", fontWeight: 700, color: "var(--text)" }}>Tactical Dark</div>
+                          <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>Aviation Ground Station Spec</div>
+                        </div>
+                      </div>
 
-          {/* SECTION 5: SYSTEM INFORMATION */}
-          {activeSection === "system" && (
-            <>
-              <div>
-                <h3 className="card-title" style={{ margin: "0 0 0.25rem 0", fontSize: "16px" }}>
-                  System &amp; Build Diagnostics
-                </h3>
-                <p className="text-caption" style={{ color: "var(--text-muted)", margin: 0 }}>
-                  AeroTwin Digital Twin Ground Control Station Build Specification.
-                </p>
-              </div>
+                      {theme === "dark" ? (
+                        <span
+                          style={{
+                            fontSize: "10.5px",
+                            background: "var(--accent)",
+                            color: "var(--accent-contrast)",
+                            borderRadius: "4px",
+                            padding: "0.2rem 0.55rem",
+                            fontWeight: 700,
+                            fontFamily: "var(--font-mono), monospace",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "0.25rem",
+                          }}
+                        >
+                          <Check size={11} /> ACTIVE
+                        </span>
+                      ) : (
+                        <span
+                          style={{
+                            fontSize: "10px",
+                            background: "var(--surface-3)",
+                            color: "var(--text-faint)",
+                            borderRadius: "4px",
+                            padding: "0.15rem 0.45rem",
+                            fontFamily: "var(--font-mono), monospace",
+                          }}
+                        >
+                          STANDBY
+                        </span>
+                      )}
+                    </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-                <div style={{ background: "var(--surface-2)", padding: "0.75rem 1rem", borderRadius: "8px", border: "1px solid var(--border)" }}>
-                  <span className="text-caption" style={{ color: "var(--text-muted)" }}>Application Framework</span>
-                  <div style={{ fontFamily: "var(--font-mono), monospace", fontWeight: 600, color: "var(--text)", marginTop: "0.25rem" }}>
-                    Next.js 16.3.4 (App Router, Turbopack)
+                    <p style={{ fontSize: "12px", color: "var(--text-muted)", lineHeight: "1.5", margin: "0 0 0.85rem 0" }}>
+                      Deep space black and charcoal palette optimized for low-light UAV ground control station operations and reduced ocular strain during long-duration ISR missions.
+                    </p>
+
+                    {/* Color Swatches */}
+                    <div style={{ background: "var(--surface-3)", borderRadius: "6px", padding: "0.6rem 0.75rem", border: "1px solid var(--border)" }}>
+                      <div style={{ fontSize: "10px", color: "var(--text-faint)", textTransform: "uppercase", fontWeight: 700, marginBottom: "0.4rem" }}>
+                        Palette Token Architecture:
+                      </div>
+                      <div style={{ display: "flex", gap: "0.5rem" }}>
+                        <div style={{ flex: 1, textAlign: "center" }}>
+                          <div style={{ height: "24px", background: "#0A0A0D", borderRadius: "4px", border: "1px solid #3F4350" }} />
+                          <span style={{ fontSize: "9px", fontFamily: "var(--font-mono), monospace", color: "var(--text-muted)" }}>Base #0A</span>
+                        </div>
+                        <div style={{ flex: 1, textAlign: "center" }}>
+                          <div style={{ height: "24px", background: "#15161A", borderRadius: "4px", border: "1px solid #3F4350" }} />
+                          <span style={{ fontSize: "9px", fontFamily: "var(--font-mono), monospace", color: "var(--text-muted)" }}>Surface #15</span>
+                        </div>
+                        <div style={{ flex: 1, textAlign: "center" }}>
+                          <div style={{ height: "24px", background: "#F2EFE9", borderRadius: "4px" }} />
+                          <span style={{ fontSize: "9px", fontFamily: "var(--font-mono), monospace", color: "var(--text-muted)" }}>Ivory #F2</span>
+                        </div>
+                        <div style={{ flex: 1, textAlign: "center" }}>
+                          <div style={{ height: "24px", background: "#5BA872", borderRadius: "4px" }} />
+                          <span style={{ fontSize: "9px", fontFamily: "var(--font-mono), monospace", color: "var(--text-muted)" }}>Emerald #5B</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
+
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setTheme("dark");
+                    }}
+                    className={theme === "dark" ? "btn-primary" : "btn-secondary"}
+                    style={{
+                      width: "100%",
+                      padding: "0.5rem",
+                      fontSize: "12px",
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "0.4rem",
+                    }}
+                  >
+                    {theme === "dark" ? (
+                      <>
+                        <Check size={13} /> Active Tactical Dark
+                      </>
+                    ) : (
+                      "Switch to Tactical Dark"
+                    )}
+                  </button>
                 </div>
 
-                <div style={{ background: "var(--surface-2)", padding: "0.75rem 1rem", borderRadius: "8px", border: "1px solid var(--border)" }}>
-                  <span className="text-caption" style={{ color: "var(--text-muted)" }}>Target UAV Engine</span>
-                  <div style={{ fontFamily: "var(--font-mono), monospace", fontWeight: 600, color: "var(--text)", marginTop: "0.25rem" }}>
-                    Rotax 914 F4 Turbocharged Aero Piston
-                  </div>
-                </div>
+                {/* 2. Aero Light Blue Theme Card */}
+                <div
+                  className="card"
+                  style={{
+                    background: theme === "light" ? "var(--surface-2)" : "var(--surface-1)",
+                    border: `1px solid ${theme === "light" ? "var(--accent)" : "var(--border)"}`,
+                    borderRadius: "10px",
+                    padding: "1.25rem",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    gap: "1rem",
+                    boxShadow: theme === "light" ? "0 0 0 1px var(--accent)" : "none",
+                    cursor: "pointer",
+                    transition: "all 0.2s ease",
+                  }}
+                  onClick={() => setTheme("light")}
+                >
+                  <div>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                        <div
+                          style={{
+                            width: "36px",
+                            height: "36px",
+                            borderRadius: "8px",
+                            background: "#FFFFFF",
+                            border: "1px solid #96C0E6",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            color: "#0284C7",
+                          }}
+                        >
+                          <Sun size={18} />
+                        </div>
+                        <div>
+                          <div style={{ fontSize: "14px", fontWeight: 700, color: "var(--text)" }}>Aero Light Blue</div>
+                          <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>High-Visibility Day Hangar Spec</div>
+                        </div>
+                      </div>
 
-                <div style={{ background: "var(--surface-2)", padding: "0.75rem 1rem", borderRadius: "8px", border: "1px solid var(--border)" }}>
-                  <span className="text-caption" style={{ color: "var(--text-muted)" }}>PHM Inference Engine</span>
-                  <div style={{ fontFamily: "var(--font-mono), monospace", fontWeight: 600, color: "var(--text)", marginTop: "0.25rem" }}>
-                    LSTM Autoencoder &amp; OLS Linear Regression
-                  </div>
-                </div>
+                      {theme === "light" ? (
+                        <span
+                          style={{
+                            fontSize: "10.5px",
+                            background: "var(--accent)",
+                            color: "var(--accent-contrast)",
+                            borderRadius: "4px",
+                            padding: "0.2rem 0.55rem",
+                            fontWeight: 700,
+                            fontFamily: "var(--font-mono), monospace",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "0.25rem",
+                          }}
+                        >
+                          <Check size={11} /> ACTIVE
+                        </span>
+                      ) : (
+                        <span
+                          style={{
+                            fontSize: "10px",
+                            background: "var(--surface-3)",
+                            color: "var(--text-faint)",
+                            borderRadius: "4px",
+                            padding: "0.15rem 0.45rem",
+                            fontFamily: "var(--font-mono), monospace",
+                          }}
+                        >
+                          STANDBY
+                        </span>
+                      )}
+                    </div>
 
-                <div style={{ background: "var(--surface-2)", padding: "0.75rem 1rem", borderRadius: "8px", border: "1px solid var(--border)" }}>
-                  <span className="text-caption" style={{ color: "var(--text-muted)" }}>Active Workstation Persona</span>
-                  <div style={{ fontFamily: "var(--font-mono), monospace", fontWeight: 600, color: profileDef.badgeColor, marginTop: "0.25rem" }}>
-                    {profileDef.title} ({profileDef.roleTag})
+                    <p style={{ fontSize: "12px", color: "var(--text-muted)", lineHeight: "1.5", margin: "0 0 0.85rem 0" }}>
+                      Clean, high-contrast crisp white and aero light-blue palette with navy typography, optimized for daylight ground stations, maintenance hangars, and high ambient light.
+                    </p>
+
+                    {/* Color Swatches */}
+                    <div style={{ background: "var(--surface-3)", borderRadius: "6px", padding: "0.6rem 0.75rem", border: "1px solid var(--border)" }}>
+                      <div style={{ fontSize: "10px", color: "var(--text-faint)", textTransform: "uppercase", fontWeight: 700, marginBottom: "0.4rem" }}>
+                        Palette Token Architecture:
+                      </div>
+                      <div style={{ display: "flex", gap: "0.5rem" }}>
+                        <div style={{ flex: 1, textAlign: "center" }}>
+                          <div style={{ height: "24px", background: "#F0F4F8", borderRadius: "4px", border: "1px solid #96C0E6" }} />
+                          <span style={{ fontSize: "9px", fontFamily: "var(--font-mono), monospace", color: "var(--text-muted)" }}>Base #F0</span>
+                        </div>
+                        <div style={{ flex: 1, textAlign: "center" }}>
+                          <div style={{ height: "24px", background: "#FFFFFF", borderRadius: "4px", border: "1px solid #96C0E6" }} />
+                          <span style={{ fontSize: "9px", fontFamily: "var(--font-mono), monospace", color: "var(--text-muted)" }}>Surface #FF</span>
+                        </div>
+                        <div style={{ flex: 1, textAlign: "center" }}>
+                          <div style={{ height: "24px", background: "#0284C7", borderRadius: "4px" }} />
+                          <span style={{ fontSize: "9px", fontFamily: "var(--font-mono), monospace", color: "var(--text-muted)" }}>Aero #02</span>
+                        </div>
+                        <div style={{ flex: 1, textAlign: "center" }}>
+                          <div style={{ height: "24px", background: "#15803D", borderRadius: "4px" }} />
+                          <span style={{ fontSize: "9px", fontFamily: "var(--font-mono), monospace", color: "var(--text-muted)" }}>Green #15</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
+
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setTheme("light");
+                    }}
+                    className={theme === "light" ? "btn-primary" : "btn-secondary"}
+                    style={{
+                      width: "100%",
+                      padding: "0.5rem",
+                      fontSize: "12px",
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "0.4rem",
+                    }}
+                  >
+                    {theme === "light" ? (
+                      <>
+                        <Check size={13} /> Active Aero Light Blue
+                      </>
+                    ) : (
+                      "Switch to Aero Light Blue"
+                    )}
+                  </button>
                 </div>
               </div>
             </>

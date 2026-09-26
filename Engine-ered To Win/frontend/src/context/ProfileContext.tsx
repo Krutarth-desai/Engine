@@ -51,8 +51,8 @@ export const WORKSTATION_PROFILES: Record<WorkstationProfile, ProfileDefinition>
     badgeLabel: "PREDICTIVE MAINT",
     description:
       "Dedicated condition-based predictive maintenance workstation. Emphasizes component health, degradation trajectories, RUL countdown, turnaround checklists, historical logs, and work orders. Provides controlled access to preset failure scenarios for sensor validation.",
-    defaultView: "maintenance",
-    allowedViews: ["maintenance", "rul", "diagnostics", "alerts", "telemetry", "dashboard", "faults", "settings"],
+    defaultView: "dashboard",
+    allowedViews: ["dashboard", "maintenance", "rul", "diagnostics", "alerts", "telemetry", "faults", "settings"],
     faultInjectionTier: "preset",
     badgeColor: "var(--status-caution)",
     badgeBorder: "var(--status-caution)",
@@ -68,8 +68,8 @@ export const WORKSTATION_PROFILES: Record<WorkstationProfile, ProfileDefinition>
     badgeLabel: "PROPULSION ENG",
     description:
       "Deep analytical engineering suite centered around the Digital Twin. Explores thermodynamic coupling, 4-grid multi-correlation regression, actual vs. predicted physics models, FFT vibration spectrum, sensor fusion, and unrestricted fault injection simulation.",
-    defaultView: "physics-model",
-    allowedViews: ["dashboard", "telemetry", "diagnostics", "rul", "mission", "physics-model", "faults", "maintenance", "alerts", "settings"],
+    defaultView: "dashboard",
+    allowedViews: ["dashboard", "physics-model", "telemetry", "diagnostics", "rul", "mission", "faults", "maintenance", "alerts", "settings"],
     faultInjectionTier: "full",
     badgeColor: "var(--status-nominal)",
     badgeBorder: "var(--status-nominal)",
@@ -497,7 +497,7 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
         // Storage access restricted
       }
     }
-    return "operator";
+    return "propulsion";
   });
 
   const setProfile = (newProfile: WorkstationProfile) => {
@@ -538,12 +538,12 @@ export function useProfile() {
   const context = useContext(ProfileContext);
   if (!context) {
     return {
-      profile: "operator" as WorkstationProfile,
-      profileDef: WORKSTATION_PROFILES.operator,
+      profile: "propulsion" as WorkstationProfile,
+      profileDef: WORKSTATION_PROFILES.propulsion,
       setProfile: () => {},
       canAccessView: () => true,
-      canAccessFaultInjection: false,
-      faultInjectionTier: "none" as const,
+      canAccessFaultInjection: true,
+      faultInjectionTier: "full" as const,
     };
   }
   return context;

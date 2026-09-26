@@ -35,7 +35,7 @@ export default function TimeScrubBar() {
       setReplayIndex((prev: number | null) => {
         const next = (prev === null ? totalFrames - 1 : prev) + 1;
         if (next >= totalFrames) {
-          setIsPlaying(false);
+          setTimeout(() => setIsPlaying(false), 0);
           return null; // Return to live
         }
         return next;

@@ -27,6 +27,7 @@ import {
   Radio,
   SlidersHorizontal,
   Printer,
+  Compass,
 } from "lucide-react";
 import { useTelemetry } from "@/context/TelemetryContext";
 
@@ -510,7 +511,7 @@ export default function AlertsView({
         className="alerts-kpi-bar"
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+          gridTemplateColumns: "repeat(5, 1fr)",
           gap: "0.65rem",
         }}
       >
@@ -887,124 +888,271 @@ export default function AlertsView({
       >
         {displayedList.length === 0 ? (
           activeTab === "ACTIVE" ? (
-            /* ALL SYSTEMS NOMINAL FLIGHT CLEARANCE PANEL */
-            <div className="all-nominal-panel">
-              <div
-                style={{
-                  width: "40px",
-                  height: "40px",
-                  borderRadius: "50%",
-                  background: "var(--border)",
-                  border: "1px solid var(--border)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "var(--status-nominal)",
-                  boxShadow: "none",
-                }}
-              >
-                <ShieldCheck size={22} />
+            /* ALL SYSTEMS NOMINAL FLIGHT CLEARANCE PANEL (HIGH DENSITY, ZERO VOIDS) */
+            <div className="all-nominal-panel" style={{ display: "flex", flexDirection: "column", gap: "0.85rem", width: "100%", padding: "1.15rem 1.25rem", boxSizing: "border-box" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", borderBottom: "1px solid var(--border)", paddingBottom: "0.75rem" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.85rem" }}>
+                  <div
+                    style={{
+                      width: "42px",
+                      height: "42px",
+                      borderRadius: "50%",
+                      background: "color-mix(in srgb, var(--status-nominal) 12%, var(--surface-2))",
+                      border: "2px solid var(--status-nominal)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "var(--status-nominal)",
+                      boxShadow: "0 0 10px color-mix(in srgb, var(--status-nominal) 25%, transparent)",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <ShieldCheck size={22} />
+                  </div>
+
+                  <div style={{ textAlign: "left" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                      <span
+                        style={{
+                          fontSize: "10px",
+                          fontWeight: 800,
+                          color: "var(--status-nominal)",
+                          fontFamily: "var(--font-mono), monospace",
+                          background: "var(--surface-2)",
+                          border: "1px solid var(--status-nominal)",
+                          borderRadius: "4px",
+                          padding: "0.15rem 0.45rem",
+                        }}
+                      >
+                        [NOMINAL]
+                      </span>
+                      <h3 style={{ margin: 0, fontSize: "14px", fontWeight: 700, color: "var(--text)", letterSpacing: "0.02em" }}>
+                        ALL POWERTRAIN CHANNELS NOMINAL — MASTER CAUTION DISARMED
+                      </h3>
+                    </div>
+                    <p style={{ margin: "0.2rem 0 0", fontSize: "11.5px", color: "var(--text-muted)", lineHeight: 1.4 }}>
+                      Continuous digital twin residual monitoring confirms all Rotax 914 F powertrain parameters are operating within certified flight operational envelopes. Zero active cautions.
+                    </p>
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    background: "var(--surface-2)",
+                    border: "1px solid var(--border)",
+                    borderRadius: "6px",
+                    padding: "0.4rem 0.75rem",
+                    textAlign: "right",
+                    fontFamily: "var(--font-mono), monospace",
+                    fontSize: "11px",
+                    color: "var(--text-faint)",
+                  }}
+                >
+                  <span style={{ color: "var(--status-nominal)", fontWeight: 700 }}>DO-178C LEVEL A</span> • AIRWORTHY
+                </div>
               </div>
 
-              <div>
-                <h3 style={{ margin: 0, fontSize: "0.98rem", fontWeight: 700, color: "var(--status-nominal)", letterSpacing: "0.03em" }}>
-                  ALL POWERTRAIN CHANNELS NOMINAL
-                </h3>
-                <p style={{ margin: "0.25rem 0 0", fontSize: "0.74rem", color: "var(--text-muted)", maxWidth: "580px", lineHeight: 1.45 }}>
-                  Continuous digital twin residual monitoring confirms all Rotax 914 F powertrain parameters are operating within certified flight operational envelopes. Zero active cautions or warnings.
-                </p>
-              </div>
-
-              {/* Subsystem Health Grid: 4 cards row 1, Electrical centered row 2 */}
+              {/* 1. Subsystem Health Grid (6 Uniform Cards, 100% Width) */}
               <div className="nominal-cards-grid">
                 {/* 1. Thermal */}
                 <div className="nominal-subsystem-card">
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.35rem" }}>
-                    <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--accent)", display: "flex", alignItems: "center", gap: "0.3rem" }}>
+                    <span style={{ fontSize: "11px", fontWeight: 700, color: "var(--accent)", display: "flex", alignItems: "center", gap: "0.3rem" }}>
                       <Flame size={13} style={{ color: "var(--status-caution)" }} /> THERMAL
                     </span>
-                    <span style={{ fontSize: "0.62rem", color: "var(--status-nominal)", fontWeight: 700, background: "var(--border)", padding: "0.1rem 0.35rem", borderRadius: "3px" }}>
+                    <span style={{ fontSize: "9px", color: "var(--status-nominal)", fontWeight: 700, background: "var(--surface-1)", padding: "0.1rem 0.35rem", borderRadius: "3px" }}>
                       NOMINAL
                     </span>
                   </div>
-                  <div style={{ fontSize: "0.68rem", color: "var(--text-muted)", fontFamily: "var(--font-mono), monospace" }}>
-                    CHT: {payload.cht_c ?? 142.0}°C | EGT: {payload.egt_c ?? 615.0}°C
+                  <div style={{ fontSize: "11px", color: "var(--text)", fontFamily: "var(--font-mono), monospace", fontWeight: 600 }}>
+                    CHT: {payload.cht_c ?? 142.0}°C | EGT: {payload.egt_c ?? 614.6}°C
                   </div>
-                  <div style={{ fontSize: "0.64rem", color: "var(--text-muted)", marginTop: "0.2rem" }}>
-                    Thermal margin: +23.0°C
+                  <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "0.2rem" }}>
+                    Thermal margin: +23.0°C below redline
                   </div>
                 </div>
 
                 {/* 2. Lubrication */}
                 <div className="nominal-subsystem-card">
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.35rem" }}>
-                    <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--accent)", display: "flex", alignItems: "center", gap: "0.3rem" }}>
+                    <span style={{ fontSize: "11px", fontWeight: 700, color: "var(--accent)", display: "flex", alignItems: "center", gap: "0.3rem" }}>
                       <Droplets size={13} style={{ color: "var(--accent)" }} /> LUBRICATION
                     </span>
-                    <span style={{ fontSize: "0.62rem", color: "var(--status-nominal)", fontWeight: 700, background: "var(--border)", padding: "0.1rem 0.35rem", borderRadius: "3px" }}>
+                    <span style={{ fontSize: "9px", color: "var(--status-nominal)", fontWeight: 700, background: "var(--surface-1)", padding: "0.1rem 0.35rem", borderRadius: "3px" }}>
                       NOMINAL
                     </span>
                   </div>
-                  <div style={{ fontSize: "0.68rem", color: "var(--text-muted)", fontFamily: "var(--font-mono), monospace" }}>
-                    Press: {payload.oil_pressure_bar ?? 4.69} bar | Temp: {payload.oil_temperature_c ?? 92.0}°C
+                  <div style={{ fontSize: "11px", color: "var(--text)", fontFamily: "var(--font-mono), monospace", fontWeight: 600 }}>
+                    Press: {payload.oil_pressure_bar ?? 68.0} psi | Temp: {payload.oil_temperature_c ?? 92.0}°C
                   </div>
-                  <div style={{ fontSize: "0.64rem", color: "var(--text-muted)", marginTop: "0.2rem" }}>
-                    Hydrodynamic film stable
+                  <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "0.2rem" }}>
+                    Hydrodynamic film stable &bull; Scavenge 100%
                   </div>
                 </div>
 
                 {/* 3. Combustion */}
                 <div className="nominal-subsystem-card">
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.35rem" }}>
-                    <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--accent)", display: "flex", alignItems: "center", gap: "0.3rem" }}>
+                    <span style={{ fontSize: "11px", fontWeight: 700, color: "var(--accent)", display: "flex", alignItems: "center", gap: "0.3rem" }}>
                       <Zap size={13} style={{ color: "var(--status-caution)" }} /> COMBUSTION
                     </span>
-                    <span style={{ fontSize: "0.62rem", color: "var(--status-nominal)", fontWeight: 700, background: "var(--border)", padding: "0.1rem 0.35rem", borderRadius: "3px" }}>
+                    <span style={{ fontSize: "9px", color: "var(--status-nominal)", fontWeight: 700, background: "var(--surface-1)", padding: "0.1rem 0.35rem", borderRadius: "3px" }}>
                       NOMINAL
                     </span>
                   </div>
-                  <div style={{ fontSize: "0.68rem", color: "var(--text-muted)", fontFamily: "var(--font-mono), monospace" }}>
+                  <div style={{ fontSize: "11px", color: "var(--text)", fontFamily: "var(--font-mono), monospace", fontWeight: 600 }}>
                     Flow: {payload.fuel_flow_lh ?? 17.6} L/h | Timing: {payload.injection_timing_deg ?? 23.4}°
                   </div>
-                  <div style={{ fontSize: "0.64rem", color: "var(--text-muted)", marginTop: "0.2rem" }}>
-                    4-cylinder balance 100%
+                  <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "0.2rem" }}>
+                    4-cylinder balance 100% stoichiometric
                   </div>
                 </div>
 
                 {/* 4. Dynamics */}
                 <div className="nominal-subsystem-card">
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.35rem" }}>
-                    <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--accent)", display: "flex", alignItems: "center", gap: "0.3rem" }}>
+                    <span style={{ fontSize: "11px", fontWeight: 700, color: "var(--accent)", display: "flex", alignItems: "center", gap: "0.3rem" }}>
                       <Activity size={13} style={{ color: "var(--surface-3)" }} /> ROTOR BALANCE
                     </span>
-                    <span style={{ fontSize: "0.62rem", color: "var(--status-nominal)", fontWeight: 700, background: "var(--border)", padding: "0.1rem 0.35rem", borderRadius: "3px" }}>
+                    <span style={{ fontSize: "9px", color: "var(--status-nominal)", fontWeight: 700, background: "var(--surface-1)", padding: "0.1rem 0.35rem", borderRadius: "3px" }}>
                       NOMINAL
                     </span>
                   </div>
-                  <div style={{ fontSize: "0.68rem", color: "var(--text-muted)", fontFamily: "var(--font-mono), monospace" }}>
-                    Vib: {payload.vibration_g ?? 1.42}g RMS | RPM: {payload.rpm ?? 2450}
+                  <div style={{ fontSize: "11px", color: "var(--text)", fontFamily: "var(--font-mono), monospace", fontWeight: 600 }}>
+                    Vib: {payload.vibration_g ?? 1.42}g RMS | RPM: {payload.rpm ?? 2462}
                   </div>
-                  <div style={{ fontSize: "0.64rem", color: "var(--text-muted)", marginTop: "0.2rem" }}>
+                  <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "0.2rem" }}>
                     Harmonics within 1X/2X limits
                   </div>
                 </div>
 
                 {/* 5. Avionics / Electrical */}
-                <div className="nominal-subsystem-card nominal-subsystem-card-center">
+                <div className="nominal-subsystem-card">
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.35rem" }}>
-                    <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--accent)", display: "flex", alignItems: "center", gap: "0.3rem" }}>
+                    <span style={{ fontSize: "11px", fontWeight: 700, color: "var(--accent)", display: "flex", alignItems: "center", gap: "0.3rem" }}>
                       <Radio size={13} style={{ color: "var(--accent)" }} /> ELECTRICAL
                     </span>
-                    <span style={{ fontSize: "0.62rem", color: "var(--status-nominal)", fontWeight: 700, background: "var(--border)", padding: "0.1rem 0.35rem", borderRadius: "3px" }}>
+                    <span style={{ fontSize: "9px", color: "var(--status-nominal)", fontWeight: 700, background: "var(--surface-1)", padding: "0.1rem 0.35rem", borderRadius: "3px" }}>
                       NOMINAL
                     </span>
                   </div>
-                  <div style={{ fontSize: "0.68rem", color: "var(--text-muted)", fontFamily: "var(--font-mono), monospace" }}>
-                    Bus: {payload.battery_voltage_v ?? 27.6}V | ECU Link: DUAL A/B
+                  <div style={{ fontSize: "11px", color: "var(--text)", fontFamily: "var(--font-mono), monospace", fontWeight: 600 }}>
+                    Bus: {payload.battery_voltage_v ?? 27.6}V | ECU: DUAL A/B
                   </div>
-                  <div style={{ fontSize: "0.64rem", color: "var(--text-muted)", marginTop: "0.2rem" }}>
+                  <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "0.2rem" }}>
                     Alternator float current normal
                   </div>
+                </div>
+
+                {/* 6. Turbo & Boost */}
+                <div className="nominal-subsystem-card">
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.35rem" }}>
+                    <span style={{ fontSize: "11px", fontWeight: 700, color: "var(--accent)", display: "flex", alignItems: "center", gap: "0.3rem" }}>
+                      <Compass size={13} style={{ color: "var(--accent)" }} /> TURBO &amp; BOOST
+                    </span>
+                    <span style={{ fontSize: "9px", color: "var(--status-nominal)", fontWeight: 700, background: "var(--surface-1)", padding: "0.1rem 0.35rem", borderRadius: "3px" }}>
+                      NOMINAL
+                    </span>
+                  </div>
+                  <div style={{ fontSize: "11px", color: "var(--text)", fontFamily: "var(--font-mono), monospace", fontWeight: 600 }}>
+                    MAP: {payload.manifold_pressure_bar ?? 1.15} bar | Boost: +0.35 bar
+                  </div>
+                  <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "0.2rem" }}>
+                    Wastegate duty 42% tracking
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. Certified Channel Safety Interlocks & Limits Matrix (8 Channels) */}
+              <div style={{ width: "100%", textAlign: "left", marginTop: "0.25rem" }}>
+                <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: "0.45rem" }}>
+                  Certified Channel Safety Interlocks &amp; Operating Limits (8 Verified Channels)
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "0.45rem" }}>
+                  {[
+                    { label: "ECU A/B DUAL LANE", value: "NOMINAL", limit: "Lane A Active • Sync 100%", residual: "0.01" },
+                    { label: "CYL HEAD TEMP (CHT)", value: `${payload.cht_c ?? 142.0} °C`, limit: "Caution Limit: < 150.0 °C", residual: "0.02" },
+                    { label: "EXHAUST GAS (EGT)", value: `${payload.egt_c ?? 614.6} °C`, limit: "Caution Limit: < 650.0 °C", residual: "0.01" },
+                    { label: "OIL SYSTEM PRESS", value: `${payload.oil_pressure_bar ?? 68.0} psi`, limit: "Normal: 40.0 - 75.0 psi", residual: "0.03" },
+                    { label: "OIL COOLING TEMP", value: `${payload.oil_temperature_c ?? 92.0} °C`, limit: "Caution Limit: < 105.0 °C", residual: "0.01" },
+                    { label: "FUEL INJECTION", value: `${payload.fuel_flow_lh ?? 17.6} L/h`, limit: "Nominal: 12.0 - 28.0 L/h", residual: "0.02" },
+                    { label: "CRANKCASE VIB", value: `${payload.vibration_g ?? 1.42} g RMS`, limit: "Threshold: < 2.50 g RMS", residual: "0.01" },
+                    { label: "28V DC AVIONICS", value: `${payload.battery_voltage_v ?? 27.6} V DC`, limit: "Bus Limits: 24.0 - 30.0 V", residual: "0.01" },
+                  ].map((chan, cIdx) => (
+                    <div
+                      key={cIdx}
+                      style={{
+                        background: "var(--surface-2)",
+                        border: "1px solid var(--border)",
+                        borderRadius: "6px",
+                        padding: "0.45rem 0.65rem",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "0.2rem",
+                      }}
+                    >
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <span style={{ fontSize: "9.5px", fontWeight: 700, color: "var(--text-muted)", fontFamily: "var(--font-mono), monospace" }}>
+                          {chan.label}
+                        </span>
+                        <span style={{ fontSize: "8.5px", fontWeight: 700, color: "var(--status-nominal)", background: "var(--surface-1)", padding: "0.1rem 0.35rem", borderRadius: "3px" }}>
+                          VERIFIED
+                        </span>
+                      </div>
+                      <div style={{ fontSize: "12px", fontWeight: 700, fontFamily: "var(--font-mono), monospace", color: "var(--text)" }}>
+                        {chan.value}
+                      </div>
+                      <div style={{ fontSize: "9px", color: "var(--text-faint)", display: "flex", justifyContent: "space-between" }}>
+                        <span>{chan.limit}</span>
+                        <span>Res: {chan.residual}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* 3. Pre-Flight & Operational Clearance Sign-off Log */}
+              <div style={{ width: "100%", textAlign: "left", marginTop: "0.25rem" }}>
+                <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: "0.45rem" }}>
+                  Operational PHM Clearance &amp; Telemetry Audit Trail
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "0.45rem" }}>
+                  {BASELINE_INCIDENTS.map((inc) => (
+                    <div
+                      key={inc.id}
+                      style={{
+                        background: "var(--surface-2)",
+                        border: "1px solid var(--border)",
+                        borderRadius: "6px",
+                        padding: "0.5rem 0.75rem",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                      }}
+                    >
+                      <div>
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                          <span style={{ fontSize: "9px", fontWeight: 700, fontFamily: "var(--font-mono), monospace", color: "var(--status-nominal)" }}>
+                            [PASS]
+                          </span>
+                          <span style={{ fontSize: "11px", fontWeight: 600, color: "var(--text)" }}>
+                            {inc.title}
+                          </span>
+                        </div>
+                        <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "2px" }}>
+                          {inc.message}
+                        </div>
+                      </div>
+                      <div style={{ textAlign: "right", flexShrink: 0, marginLeft: "0.75rem" }}>
+                        <div style={{ fontSize: "9.5px", fontFamily: "var(--font-mono), monospace", color: "var(--accent)" }}>
+                          {inc.ackBy}
+                        </div>
+                        <div style={{ fontSize: "9px", color: "var(--text-faint)" }}>
+                          {inc.time_ago}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>

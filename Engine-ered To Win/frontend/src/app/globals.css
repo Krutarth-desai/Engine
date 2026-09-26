@@ -3138,6 +3138,13 @@ input, select, textarea {
             overflow: hidden;
         }
 
+        .main-dashboard-container.is-scrollable {
+            height: auto !important;
+            min-height: 100% !important;
+            flex-shrink: 0 !important;
+            overflow: visible !important;
+        }
+
         @media (max-width: 1279px) {
             .main-dashboard-container {
                 height: auto;
@@ -4260,6 +4267,32 @@ input, select, textarea {
                 height: auto;
                 overflow: visible;
             }
+        }
+
+        /* Workstation Roles 3-column horizontal grid & Theme 2-column grid */
+        .workstation-roles-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            align-items: stretch;
+            width: 100%;
+        }
+
+        .settings-theme-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.25rem;
+            width: 100%;
+        }
+
+        @media (max-width: 1080px) {
+            .workstation-roles-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .settings-theme-grid {
+                grid-template-columns: 1fr !important;
+            }
+        }
         /* ==================================================== */
         /* PHASE 1: FAULT INJECTION PANEL & SIMULATION BANNER   */
         /* ==================================================== */
@@ -4646,15 +4679,14 @@ button.btn-destructive, .btn-destructive {
 
 .nominal-cards-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: 0.65rem;
   width: 100%;
-  max-width: 960px;
   box-sizing: border-box;
 }
 
 .nominal-subsystem-card {
-  background: var(--surface-1);
+  background: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: 6px;
   padding: 0.65rem 0.75rem;
@@ -4671,29 +4703,21 @@ button.btn-destructive, .btn-destructive {
   border-color: var(--border-strong);
 }
 
-.nominal-subsystem-card-center {
-  grid-column: 1 / -1;
-  justify-self: center;
-  width: calc((100% - 3 * 0.65rem) / 4);
+@media (max-width: 1200px) {
+  .nominal-cards-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
-@media (max-width: 960px) {
+@media (max-width: 768px) {
   .nominal-cards-grid {
     grid-template-columns: repeat(2, 1fr);
-  }
-  .nominal-subsystem-card-center {
-    grid-column: 1 / -1;
-    width: calc((100% - 0.65rem) / 2);
   }
 }
 
 @media (max-width: 540px) {
   .nominal-cards-grid {
     grid-template-columns: 1fr;
-  }
-  .nominal-subsystem-card-center {
-    grid-column: auto;
-    width: 100%;
   }
 }
 

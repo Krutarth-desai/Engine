@@ -258,7 +258,7 @@ export default function AeroTwinApp({ initialView = "dashboard" }: AeroTwinAppPr
                 )}
 
                 {(currentView === "physics-model" || currentView === "regression") && (
-                  <PhysicsModelView payload={payload} />
+                  <PhysicsModelView payload={payload} onNavigate={handleNavigate} />
                 )}
 
                 {currentView === "faults" && (
@@ -266,7 +266,7 @@ export default function AeroTwinApp({ initialView = "dashboard" }: AeroTwinAppPr
                 )}
 
                 {currentView === "maintenance" && (
-                  <MaintenanceView payload={payload} />
+                  <MaintenanceView payload={payload} onNavigate={handleNavigate} />
                 )}
 
                 {currentView === "alerts" && (
@@ -278,7 +278,7 @@ export default function AeroTwinApp({ initialView = "dashboard" }: AeroTwinAppPr
                 )}
 
                 {currentView === "settings" && (
-                  <SettingsView />
+                  <SettingsView onNavigate={handleNavigate} />
                 )}
               </main>
 
