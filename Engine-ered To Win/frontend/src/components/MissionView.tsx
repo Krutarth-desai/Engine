@@ -66,7 +66,7 @@ export default function MissionView() {
     >
 
       {/* Metric Cards Row */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "0.85rem" }}>
         <div className="card" style={{ background: "var(--surface-1)", border: "1px solid var(--border)", borderRadius: "12px", padding: "1rem" }}>
           <div className="text-caption" style={{ color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", display: "flex", alignItems: "center", gap: "0.4rem" }}>
             <Navigation size={14} /> Waypoint Progress
@@ -117,7 +117,7 @@ export default function MissionView() {
       </div>
 
       {/* Main Mission Grid: Waypoint Log & Operational Envelope */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(360px, 1fr))", gap: "1rem", flex: 1, minHeight: 0 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: "0.85rem", flex: 1, minHeight: 0 }}>
         {/* Left Column: Waypoints Table */}
         <div className="card" style={{ background: "var(--surface-1)", border: "1px solid var(--border)", borderRadius: "12px", padding: "1.25rem", display: "flex", flexDirection: "column" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>

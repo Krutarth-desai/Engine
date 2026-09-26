@@ -278,7 +278,7 @@ export default function FaultInjectionView() {
       </div>
 
       {/* 3x3 Scenario Matrix Grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "1rem", flex: 1, minHeight: 0 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.85rem", flex: 1, minHeight: 0 }}>
         {SCENARIO_REGISTRY.map((sc: ScenarioItem) => {
           const isCurrent = activeScenario === sc.id;
           return (
