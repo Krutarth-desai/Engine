@@ -19,7 +19,6 @@ import AlertsView from "@/components/AlertsView";
 import MissionView from "@/components/MissionView";
 import FaultInjectionView from "@/components/FaultInjectionView";
 import SettingsView from "@/components/SettingsView";
-import TimeScrubBar from "@/components/common/TimeScrubBar";
 
 interface AeroTwinAppProps {
   initialView?: NavView;
@@ -281,9 +280,6 @@ export default function AeroTwinApp({ initialView = "dashboard" }: AeroTwinAppPr
                   <SettingsView onNavigate={handleNavigate} />
                 )}
               </main>
-
-              {/* Bottom Docked Historical Timeline Scrub Bar */}
-              <TimeScrubBar />
             </div>
           </div>
         </div>
