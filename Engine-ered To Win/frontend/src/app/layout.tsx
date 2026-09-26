@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
 import { ThemeProvider } from "@/context/ThemeContext";
+import { ProfileProvider } from "@/context/ProfileContext";
 import { TelemetryProvider } from "@/context/TelemetryContext";
 import "./globals.css";
 
@@ -45,9 +46,11 @@ export default function RootLayout({
       </head>
       <body>
         <ThemeProvider>
-          <TelemetryProvider>
-            {children}
-          </TelemetryProvider>
+          <ProfileProvider>
+            <TelemetryProvider>
+              {children}
+            </TelemetryProvider>
+          </ProfileProvider>
         </ThemeProvider>
       </body>
     </html>

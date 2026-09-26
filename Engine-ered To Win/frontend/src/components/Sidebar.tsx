@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useTelemetry } from "@/context/TelemetryContext";
+import { useProfile } from "@/context/ProfileContext";
 import {
   LayoutDashboard,
   Activity,
@@ -16,6 +17,7 @@ import {
   Radio,
   FlaskConical,
   Atom,
+  Shield,
 } from "lucide-react";
 
 export type NavView =
@@ -64,6 +66,7 @@ export default function Sidebar({
   alertsSeverity = "nominal",
 }: SidebarProps) {
   const { linkState, payload } = useTelemetry();
+  const { profile, profileDef, canAccessView } = useProfile();
 
   // Collapsed state initialized from localStorage for persistent preference
   const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
@@ -182,6 +185,14 @@ export default function Sidebar({
     },
   ];
 
+  // Filter navigation items by active profile RBAC permissions
+  const visibleNavSections = navSections
+    .map((sec) => ({
+      ...sec,
+      items: sec.items.filter((item) => canAccessView(item.id)),
+    }))
+    .filter((sec) => sec.items.length > 0);
+
   // Global keyboard shortcuts: 1-9 switch views, 0 for Settings
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -206,14 +217,14 @@ export default function Sidebar({
         "0": "settings",
       };
 
-      if (keyMap[e.key]) {
+      if (keyMap[e.key] && canAccessView(keyMap[e.key])) {
         onSelectView(keyMap[e.key]);
       }
     }
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onSelectView]);
+  }, [onSelectView, canAccessView]);
 
   const engineOptions = ["UAV_ENG_001", "UAV_ENG_002", "TEST_BENCH_ROTAX"];
 
@@ -279,9 +290,104 @@ export default function Sidebar({
         </div>
       </div>
 
+      {/* Active Workstation Profile Indicator */}
+      {!isCollapsed ? (
+        <div
+          className="sidebar-profile-indicator"
+          style={{
+            padding: "0.35rem 0.65rem",
+            margin: "0 0.5rem 0.5rem 0.5rem",
+            background: "var(--surface-2)",
+            border: `1px solid ${profileDef.badgeBorder}`,
+            borderRadius: "6px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "0.4rem",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", minWidth: 0 }}>
+            <Shield size={12} style={{ color: profileDef.badgeColor, flexShrink: 0 }} />
+            <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
+              <span
+                style={{
+                  fontSize: "9px",
+                  color: "var(--text-faint)",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.06em",
+                  fontWeight: 700,
+                  lineHeight: 1,
+                }}
+              >
+                Workstation
+              </span>
+              <span
+                style={{
+                  fontSize: "10.5px",
+                  fontWeight: 700,
+                  color: profileDef.badgeColor,
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  fontFamily: "var(--font-mono), monospace",
+                  marginTop: "2px",
+                }}
+                title={profileDef.title}
+              >
+                {profileDef.roleTag}
+              </span>
+            </div>
+          </div>
+          <button
+            onClick={() => onSelectView("settings")}
+            style={{
+              background: "transparent",
+              border: "none",
+              color: "var(--text-muted)",
+              fontSize: "10px",
+              cursor: "pointer",
+              padding: "2px 4px",
+              borderRadius: "3px",
+              textDecoration: "underline",
+              fontFamily: "var(--font-mono), monospace",
+            }}
+            title="Configure Workstation Profile & RBAC Matrix in Settings"
+          >
+            ROLE
+          </button>
+        </div>
+      ) : (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            padding: "0.2rem 0 0.4rem 0",
+          }}
+          title={`Active Workstation: ${profileDef.title}`}
+        >
+          <button
+            onClick={() => onSelectView("settings")}
+            style={{
+              background: "var(--surface-2)",
+              border: `1px solid ${profileDef.badgeBorder}`,
+              borderRadius: "4px",
+              padding: "2px 4px",
+              cursor: "pointer",
+              fontSize: "8.5px",
+              fontWeight: 800,
+              fontFamily: "var(--font-mono), monospace",
+              color: profileDef.badgeColor,
+            }}
+            title="Open Settings to change profile"
+          >
+            {profile === "operator" ? "GCS" : profile === "maintenance" ? "MNT" : "ENG"}
+          </button>
+        </div>
+      )}
+
       {/* Navigation Sections */}
       <nav className="sidebar-nav" aria-label="Main Navigation">
-        {navSections.map((sec) => (
+        {visibleNavSections.map((sec) => (
           <div key={sec.heading} className="nav-group">
             {!isCollapsed && <div className="nav-group-heading">{sec.heading}</div>}
             <ul className="nav-list">

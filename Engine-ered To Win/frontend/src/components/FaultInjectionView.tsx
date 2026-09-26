@@ -2,12 +2,23 @@
 
 import React from "react";
 import { useTelemetry } from "@/context/TelemetryContext";
+import { useProfile } from "@/context/ProfileContext";
 import PageLayout from "./common/PageLayout";
-import { Zap, AlertTriangle, RefreshCw, CheckCircle2 } from "lucide-react";
+import {
+  Zap,
+  AlertTriangle,
+  RefreshCw,
+  CheckCircle2,
+  Lock,
+  Shield,
+  Sparkles,
+  Wrench,
+} from "lucide-react";
 import { SCENARIO_REGISTRY, ScenarioItem } from "@/lib/scenarios";
 
 export default function FaultInjectionView() {
   const { activeScenario, injectScenario, resetScenario } = useTelemetry();
+  const { profile, profileDef, setProfile } = useProfile();
 
   const isSimulationActive = activeScenario && activeScenario !== "Normal";
   const activeObj: ScenarioItem =
@@ -19,7 +30,7 @@ export default function FaultInjectionView() {
       subtitle="Evaluate predictive model anomaly detection, RUL degradation rates, and isolation confidence across 9 failure modes."
       icon={<Zap size={18} />}
       actions={
-        isSimulationActive ? (
+        isSimulationActive && profile !== "operator" ? (
           <button
             onClick={resetScenario}
             className="btn-secondary"
@@ -39,6 +50,168 @@ export default function FaultInjectionView() {
         ) : undefined
       }
     >
+      {/* RBAC Operator Safety Lockout Banner */}
+      {profile === "operator" ? (
+        <div
+          className="card"
+          style={{
+            background: "var(--surface-1)",
+            border: "1px solid color-mix(in srgb, var(--status-caution) 40%, var(--surface-1))",
+            borderRadius: "12px",
+            padding: "1.75rem",
+            display: "flex",
+            flexDirection: "column",
+            gap: "1.25rem",
+            maxWidth: "800px",
+            margin: "1rem auto",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "flex-start", gap: "1rem" }}>
+            <div
+              style={{
+                width: "44px",
+                height: "44px",
+                borderRadius: "10px",
+                background: "color-mix(in srgb, var(--status-caution) 12%, var(--surface-1))",
+                border: "1px solid var(--status-caution)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
+              <Lock size={22} style={{ color: "var(--status-caution)" }} />
+            </div>
+            <div>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.35rem" }}>
+                <span
+                  style={{
+                    fontSize: "11px",
+                    fontWeight: 700,
+                    color: "var(--status-caution)",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.06em",
+                    fontFamily: "var(--font-mono), monospace",
+                  }}
+                >
+                  RBAC Flight Safety Interlock Active
+                </span>
+                <span
+                  style={{
+                    fontSize: "10px",
+                    background: "var(--surface-2)",
+                    border: "1px solid var(--border)",
+                    borderRadius: "4px",
+                    padding: "0.1rem 0.4rem",
+                    color: "var(--text-muted)",
+                    fontFamily: "var(--font-mono), monospace",
+                  }}
+                >
+                  GCS OPERATOR PROFILE
+                </span>
+              </div>
+              <h2 style={{ fontSize: "18px", fontWeight: 700, color: "var(--text)", margin: "0 0 0.5rem 0" }}>
+                Fault Injection Simulation Restricted During Live Flight
+              </h2>
+              <p style={{ fontSize: "13px", lineHeight: "1.6", color: "var(--text-muted)", margin: 0 }}>
+                <strong>Defense Flight Safety Rationale:</strong> In live defense UAV operations, GCS operators are actively managing airframe survivability and tactical flight corridors. Exposing manual fault injection triggers on the operational console presents an unacceptable risk of accidental activation or cognitive confusion during live sorties.
+              </p>
+            </div>
+          </div>
+
+          <div
+            style={{
+              background: "var(--surface-2)",
+              border: "1px solid var(--border)",
+              borderRadius: "8px",
+              padding: "1rem",
+              fontSize: "12px",
+              color: "var(--text-muted)",
+              lineHeight: "1.5",
+            }}
+          >
+            <div style={{ fontWeight: 600, color: "var(--text)", marginBottom: "0.25rem" }}>
+              Authorized Testing Personas:
+            </div>
+            <ul style={{ margin: "0.35rem 0 0 1.25rem", padding: 0 }}>
+              <li><strong>Maintenance Team:</strong> Allowed preset component diagnostic validation for pre-flight BIT and bench harnesses.</li>
+              <li><strong>Propulsion Engineer:</strong> Unrestricted multi-fault injection matrix for digital twin degradation modeling and ML stress testing.</li>
+            </ul>
+          </div>
+
+          <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
+            <button
+              onClick={() => setProfile("propulsion")}
+              className="btn-primary"
+              style={{
+                padding: "0.5rem 1.2rem",
+                borderRadius: "6px",
+                fontSize: "12.5px",
+                cursor: "pointer",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.4rem",
+              }}
+            >
+              <Sparkles size={14} />
+              Switch to Propulsion Engineer Role
+            </button>
+            <button
+              onClick={() => setProfile("maintenance")}
+              className="btn-secondary"
+              style={{
+                padding: "0.5rem 1.2rem",
+                borderRadius: "6px",
+                fontSize: "12.5px",
+                cursor: "pointer",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.4rem",
+              }}
+            >
+              <Wrench size={14} />
+              Switch to Maintenance Role
+            </button>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* Active Persona Entitlement Header */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: "0.6rem 1rem",
+              background: "var(--surface-2)",
+              border: `1px solid ${profileDef.badgeBorder}`,
+              borderRadius: "8px",
+              fontSize: "12px",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              <Shield size={14} style={{ color: profileDef.badgeColor }} />
+              <span style={{ color: "var(--text)", fontWeight: 600 }}>
+                {profileDef.title}:
+              </span>
+              <span style={{ color: "var(--text-muted)" }}>
+                {profile === "maintenance"
+                  ? "Preset Component Validation Mode (Bench Test)"
+                  : "Unrestricted Multi-Fault Simulation Matrix (Tier 3 Engineering)"}
+              </span>
+            </div>
+            <span
+              style={{
+                fontSize: "10.5px",
+                fontWeight: 700,
+                color: profileDef.badgeColor,
+                fontFamily: "var(--font-mono), monospace",
+                textTransform: "uppercase",
+              }}
+            >
+              {profileDef.faultInjectionTier === "preset" ? "PRESET ACCESS" : "FULL ACCESS"}
+            </span>
+          </div>
 
       {/* Active Scenario Banner */}
       <div
@@ -187,6 +360,8 @@ export default function FaultInjectionView() {
           );
         })}
       </div>
-    </PageLayout>
-  );
+    </>
+  )}
+</PageLayout>
+);
 }

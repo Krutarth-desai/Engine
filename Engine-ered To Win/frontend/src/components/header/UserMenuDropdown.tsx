@@ -3,6 +3,8 @@
 import React, { useRef, useEffect } from "react";
 import { useTelemetry } from "@/context/TelemetryContext";
 import { useTheme } from "@/context/ThemeContext";
+import { useProfile } from "@/context/ProfileContext";
+import { NavView } from "../Sidebar";
 import {
   ChevronDown,
   User,
@@ -11,6 +13,7 @@ import {
   Clock,
   Sun,
   Moon,
+  Shield,
 } from "lucide-react";
 
 interface UserMenuDropdownProps {
@@ -20,6 +23,7 @@ interface UserMenuDropdownProps {
   onToggle: () => void;
   onClose: () => void;
   onLogout: () => void;
+  onSelectView?: (view: NavView) => void;
   getLinkColor: () => string;
   getLinkLabel: () => string;
   relativeTime: string;
@@ -32,6 +36,7 @@ export default function UserMenuDropdown({
   onToggle,
   onClose,
   onLogout,
+  onSelectView,
   getLinkColor,
   getLinkLabel,
   relativeTime,
@@ -43,6 +48,7 @@ export default function UserMenuDropdown({
     setUnitPreference,
   } = useTelemetry();
   const { theme, toggleTheme } = useTheme();
+  const { profileDef } = useProfile();
 
   const menuRef = useRef<HTMLDivElement>(null);
   const isZulu = timeDisplay === "zulu";
@@ -75,13 +81,13 @@ export default function UserMenuDropdown({
             height: "24px",
             borderRadius: "50%",
             background: "var(--border)",
-            border: "1px solid var(--border)",
+            border: `1px solid ${profileDef.badgeBorder}`,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             fontSize: "0.68rem",
             fontWeight: 700,
-            color: "var(--accent)",
+            color: profileDef.badgeColor,
           }}
         >
           {userEmail ? userEmail.charAt(0).toUpperCase() : "O"}
@@ -104,13 +110,13 @@ export default function UserMenuDropdown({
         <div className="user-dropdown-menu">
           <div className="user-dropdown-header">
             <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-              <User size={16} style={{ color: "var(--accent)" }} />
+              <User size={16} style={{ color: profileDef.badgeColor }} />
               <div>
                 <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--text)" }}>
                   {userEmail || "Operator"}
                 </div>
                 <div style={{ fontSize: "0.65rem", color: "var(--text-muted)" }}>
-                  Flight Engineer / GCS-1
+                  {profileDef.targetPersona}
                 </div>
               </div>
             </div>
@@ -125,6 +131,12 @@ export default function UserMenuDropdown({
               color: "var(--text-muted)",
             }}
           >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span>Workstation Role:</span>
+              <span style={{ color: profileDef.badgeColor, fontWeight: 700 }} className="font-mono">
+                {profileDef.roleTag}
+              </span>
+            </div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <span>Vehicle Target:</span>
               <span className="text-cyan font-mono">{vehicleId}</span>
@@ -152,6 +164,32 @@ export default function UserMenuDropdown({
               gap: "0.3rem",
             }}
           >
+            <button
+              onClick={() => {
+                onClose();
+                onSelectView?.("settings");
+              }}
+              style={{
+                background: "var(--border)",
+                border: `1px solid ${profileDef.badgeBorder}`,
+                borderRadius: "4px",
+                padding: "0.3rem 0.5rem",
+                color: "var(--text)",
+                fontSize: "0.7rem",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                cursor: "pointer",
+              }}
+              title="Open Settings to switch workstation persona"
+            >
+              <span style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                <Shield size={12} style={{ color: profileDef.badgeColor }} /> Switch Profile
+              </span>
+              <span style={{ color: profileDef.badgeColor, fontWeight: 700, fontSize: "0.68rem" }} className="font-mono">
+                {profileDef.roleTag} &rarr;
+              </span>
+            </button>
             <button
               onClick={() => setTimeDisplay(isZulu ? "local" : "zulu")}
               style={{

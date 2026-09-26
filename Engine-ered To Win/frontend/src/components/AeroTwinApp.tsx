@@ -195,6 +195,7 @@ export default function AeroTwinApp({ initialView = "dashboard" }: AeroTwinAppPr
             throttle={payload.vehicle?.throttle || 75}
             remainingTimeStr={payload.prognostics?.remaining_time_str || "01:57:32"}
             onLogout={handleLogout}
+            onSelectView={handleNavigate}
           />
 
           {/* MAIN GCS WORKSPACE (SIDEBAR + ACTIVE DETAIL VIEW) */}

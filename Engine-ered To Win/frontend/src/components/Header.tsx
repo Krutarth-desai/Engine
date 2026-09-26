@@ -3,9 +3,11 @@
 import React, { useState } from "react";
 import { useTelemetry } from "@/context/TelemetryContext";
 import { useTheme } from "@/context/ThemeContext";
+import { useProfile } from "@/context/ProfileContext";
 import { fmtTimestamp, fmtRelativeTime, fmtRulCountdown } from "@/lib/format";
 import UserMenuDropdown from "./header/UserMenuDropdown";
 import { SCENARIO_REGISTRY } from "@/lib/scenarios";
+import { NavView } from "./Sidebar";
 import {
   Clock,
   Radio,
@@ -15,6 +17,8 @@ import {
   FlaskConical,
   Sun,
   Moon,
+  Shield,
+  Lock,
 } from "lucide-react";
 
 interface HeaderProps {
@@ -26,6 +30,7 @@ interface HeaderProps {
   throttle?: number;
   remainingTimeStr?: string;
   onLogout: () => void;
+  onSelectView?: (view: NavView) => void;
 }
 
 export default function Header({
@@ -36,6 +41,7 @@ export default function Header({
   altitude = 15000,
   throttle = 75,
   onLogout,
+  onSelectView,
 }: HeaderProps) {
   const {
     payload,
@@ -50,6 +56,7 @@ export default function Header({
     resetScenario,
   } = useTelemetry();
 
+  const { profile, profileDef } = useProfile();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
 
@@ -202,90 +209,129 @@ export default function Header({
         </button>
 
         {/* Dedicated Top Mission SIM Option */}
-        <div
-          style={{
-            height: "30px",
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "0.3rem",
-            background: isSimulationActive
-              ? "color-mix(in srgb, var(--status-caution) 12%, var(--surface-1))"
-              : "var(--surface-2)",
-            border: `1px solid ${
-              isSimulationActive
-                ? "color-mix(in srgb, var(--status-caution) 35%, transparent)"
-                : "var(--border)"
-            }`,
-            borderRadius: "6px",
-            padding: "0 0.45rem",
-            fontSize: "11px",
-            fontFamily: "var(--font-mono), monospace",
-            fontWeight: 700,
-            boxSizing: "border-box",
-          }}
-        >
-          {isSimulationActive ? (
-            <AlertTriangle size={12} style={{ color: "var(--status-caution)", flexShrink: 0 }} />
-          ) : (
-            <FlaskConical size={12} style={{ color: "var(--accent)", flexShrink: 0 }} />
-          )}
-          <span
+        {profile === "operator" ? (
+          <div
             style={{
-              fontSize: "10.5px",
-              color: isSimulationActive ? "var(--status-caution)" : "var(--text-faint)",
-              textTransform: "uppercase",
-            }}
-          >
-            SIM:
-          </span>
-          <select
-            value={activeScenario || "Normal"}
-            onChange={(e) => injectScenario(e.target.value)}
-            style={{
-              background: "transparent",
-              border: "none",
-              color: isSimulationActive ? "var(--status-caution)" : "var(--text)",
+              height: "30px",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.4rem",
+              background: "var(--surface-2)",
+              border: "1px solid var(--border)",
+              borderRadius: "6px",
+              padding: "0 0.55rem",
               fontSize: "11px",
               fontFamily: "var(--font-mono), monospace",
               fontWeight: 700,
-              cursor: "pointer",
-              outline: "none",
-              padding: "0 0.15rem",
-              maxWidth: "155px",
+              boxSizing: "border-box",
             }}
-            title="Switch simulation scenario across ground station"
+            title="Fault injection simulation controls are restricted in GCS Operator profile to avoid accidental in-flight trigger. Switch to Propulsion Engineer in Settings to test simulations."
           >
-            {SCENARIO_REGISTRY.map((s) => (
-              <option key={s.id} value={s.id} style={{ background: "var(--surface-1)", color: "var(--text)" }}>
-                {s.label} ({s.category})
-              </option>
-            ))}
-          </select>
-
-          {isSimulationActive && (
-            <button
-              onClick={resetScenario}
-              title="Reset simulation to nominal baseline"
+            <Lock size={11} style={{ color: "var(--status-nominal)", flexShrink: 0 }} />
+            <span
               style={{
-                background: "var(--surface-2)",
-                border: "1px solid var(--border)",
-                color: "var(--status-caution)",
-                borderRadius: "4px",
-                padding: "0.1rem 0.35rem",
-                cursor: "pointer",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "0.2rem",
                 fontSize: "10px",
-                fontFamily: "var(--font-mono), monospace",
-                fontWeight: 600,
+                color: "var(--text-faint)",
+                textTransform: "uppercase",
               }}
             >
-              <RotateCcw size={9} />
-              RESET
-            </button>
-          )}
-        </div>
+              FLIGHT SIM:
+            </span>
+            <span
+              style={{
+                color: isSimulationActive ? "var(--status-caution)" : "var(--status-nominal)",
+                fontSize: "11px",
+              }}
+            >
+              {isSimulationActive ? activeScenario?.toUpperCase() : "NOMINAL"}
+            </span>
+          </div>
+        ) : (
+          <div
+            style={{
+              height: "30px",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.3rem",
+              background: isSimulationActive
+                ? "color-mix(in srgb, var(--status-caution) 12%, var(--surface-1))"
+                : "var(--surface-2)",
+              border: `1px solid ${
+                isSimulationActive
+                  ? "color-mix(in srgb, var(--status-caution) 35%, transparent)"
+                  : "var(--border)"
+              }`,
+              borderRadius: "6px",
+              padding: "0 0.45rem",
+              fontSize: "11px",
+              fontFamily: "var(--font-mono), monospace",
+              fontWeight: 700,
+              boxSizing: "border-box",
+            }}
+          >
+            {isSimulationActive ? (
+              <AlertTriangle size={12} style={{ color: "var(--status-caution)", flexShrink: 0 }} />
+            ) : (
+              <FlaskConical size={12} style={{ color: "var(--accent)", flexShrink: 0 }} />
+            )}
+            <span
+              style={{
+                fontSize: "10.5px",
+                color: isSimulationActive ? "var(--status-caution)" : "var(--text-faint)",
+                textTransform: "uppercase",
+              }}
+            >
+              SIM:
+            </span>
+            <select
+              value={activeScenario || "Normal"}
+              onChange={(e) => injectScenario(e.target.value)}
+              style={{
+                background: "transparent",
+                border: "none",
+                color: isSimulationActive ? "var(--status-caution)" : "var(--text)",
+                fontSize: "11px",
+                fontFamily: "var(--font-mono), monospace",
+                fontWeight: 700,
+                cursor: "pointer",
+                outline: "none",
+                padding: "0 0.15rem",
+                maxWidth: "155px",
+              }}
+              title="Switch simulation scenario across ground station"
+            >
+              {SCENARIO_REGISTRY.map((s) => (
+                <option key={s.id} value={s.id} style={{ background: "var(--surface-1)", color: "var(--text)" }}>
+                  {s.label} ({s.category})
+                </option>
+              ))}
+            </select>
+
+            {isSimulationActive && (
+              <button
+                onClick={resetScenario}
+                title="Reset simulation to nominal baseline"
+                style={{
+                  background: "var(--surface-2)",
+                  border: "1px solid var(--border)",
+                  color: "var(--status-caution)",
+                  borderRadius: "4px",
+                  padding: "0.1rem 0.35rem",
+                  cursor: "pointer",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "0.2rem",
+                  fontSize: "10px",
+                  fontFamily: "var(--font-mono), monospace",
+                  fontWeight: 600,
+                }}
+              >
+                <RotateCcw size={9} />
+                RESET
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Est. Engine Time Remaining */}
         <div
@@ -360,6 +406,34 @@ export default function Header({
           <span style={{ fontWeight: 700 }}>{getLinkLabel()}</span>
         </div>
 
+        {/* Workstation Profile Badge Button */}
+        <button
+          id="header-profile-btn"
+          className="window-pill"
+          onClick={() => onSelectView?.("settings")}
+          title={`Active Workstation: ${profileDef.title} (${profileDef.hierarchyLevel}). Click to switch profiles in Settings.`}
+          style={{
+            height: "30px",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "0.35rem",
+            background: "var(--surface-2)",
+            border: `1px solid ${profileDef.badgeBorder}`,
+            borderRadius: "6px",
+            padding: "0 0.55rem",
+            boxSizing: "border-box",
+            cursor: "pointer",
+            fontFamily: "var(--font-mono), monospace",
+            fontSize: "11px",
+            fontWeight: 700,
+            color: profileDef.badgeColor,
+            transition: "all 0.15s ease",
+          }}
+        >
+          <Shield size={11} />
+          <span>{profileDef.roleTag}</span>
+        </button>
+
         {/* Tactical / Light Theme Toggle */}
         <button
           id="theme-toggle-btn"
@@ -405,6 +479,7 @@ export default function Header({
           onToggle={() => setUserMenuOpen(!userMenuOpen)}
           onClose={() => setUserMenuOpen(false)}
           onLogout={onLogout}
+          onSelectView={onSelectView}
           getLinkColor={getLinkColor}
           getLinkLabel={getLinkLabel}
           relativeTime={relativeTime}
